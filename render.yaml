@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: saba-conference
+    env: php
+    buildCommand: ./build.sh
+    startCommand: apachectl -D FOREGROUND
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: errorlog
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://saba-conference.onrender.com # يمكنك تغييره لاحقاً لاسم نطاقك
