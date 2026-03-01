@@ -24,9 +24,9 @@
     ],
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "false",
-        "APP_URL": "https://system-one-blue.vercel.app",
-        "ASSET_URL": "https://system-one-blue.vercel.app",
+        "APP_DEBUG": "true",
+        "APP_URL": "https://scientific-conference.vercel.app",
+        "ASSET_URL": "https://scientific-conference.vercel.app",
         "DB_CONNECTION": "pgsql",
         "DB_HOST": "db.epfpzgkzzqelrsjwpgqk.supabase.co",
         "DB_PORT": "5432",

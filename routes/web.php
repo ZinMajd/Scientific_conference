@@ -16,4 +16,4 @@ Route::get('/storage_file/{path}', function ($path) {
     return response()->file($filePath);
 })->where('path', '.*');
 
-Route::view('/{path?}', 'welcome')->where('path', '.*');
+Route::view('/{path?}', 'welcome')->where('path', '^(?!api).*$');
