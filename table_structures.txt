@@ -1,0 +1,328 @@
+
+Table: activity_logs
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - user_id (bigint unsigned) NULL Key: MUL
+ - action (varchar(100)) NOT NULL 
+ - description (text) NULL 
+ - ip_address (varchar(45)) NULL 
+ - user_agent (text) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: attendees
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - user_id (bigint unsigned) NULL Key: MUL
+ - conf_id (bigint unsigned) NOT NULL Key: MUL
+ - full_name (varchar(100)) NOT NULL 
+ - email (varchar(100)) NOT NULL 
+ - affiliation (varchar(200)) NULL 
+ - registration_type (enum('author','reviewer','participant','student','guest')) NOT NULL 
+ - payment_status (enum('pending','paid','waived','cancelled')) NOT NULL Key: MUL
+ - payment_amount (decimal(10,2)) NULL 
+ - payment_date (datetime) NULL 
+ - receipt_number (varchar(50)) NULL 
+ - has_certificate (tinyint(1)) NOT NULL 
+ - certificate_sent_date (datetime) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: cache
+ - key (varchar(255)) NOT NULL Key: PRI
+ - value (mediumtext) NOT NULL 
+ - expiration (int) NOT NULL Key: MUL
+
+Table: cache_locks
+ - key (varchar(255)) NOT NULL Key: PRI
+ - owner (varchar(255)) NOT NULL 
+ - expiration (int) NOT NULL Key: MUL
+
+Table: certificates
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - uuid (char(36)) NOT NULL Key: UNI
+ - user_id (bigint unsigned) NOT NULL Key: MUL
+ - conf_id (bigint unsigned) NOT NULL Key: MUL
+ - paper_id (bigint unsigned) NULL Key: MUL
+ - type (enum('participation','presentation','review','organizing')) NOT NULL 
+ - file_path (varchar(255)) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: coauthors
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - paper_id (bigint unsigned) NOT NULL Key: MUL
+ - full_name (varchar(100)) NOT NULL 
+ - email (varchar(100)) NOT NULL 
+ - affiliation (varchar(200)) NULL 
+ - country (varchar(100)) NULL 
+ - author_order (int) NOT NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: conference_settings
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - conf_id (bigint unsigned) NOT NULL Key: MUL
+ - key (varchar(255)) NOT NULL 
+ - value (text) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: conferences
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - chair_id (bigint unsigned) NOT NULL Key: MUL
+ - title (varchar(200)) NOT NULL 
+ - description (text) NOT NULL 
+ - short_name (varchar(50)) NULL 
+ - venue (varchar(200)) NOT NULL 
+ - start_date (date) NOT NULL 
+ - end_date (date) NOT NULL 
+ - submission_deadline (datetime) NOT NULL Key: MUL
+ - review_deadline (datetime) NOT NULL 
+ - notification_date (datetime) NOT NULL 
+ - camera_ready_deadline (datetime) NULL 
+ - registration_deadline (datetime) NULL 
+ - registration_fee (decimal(10,2)) NOT NULL 
+ - max_papers (int) NULL 
+ - status (enum('draft','open','reviewing','closed','archived')) NOT NULL Key: MUL
+ - website_url (varchar(255)) NULL 
+ - contact_email (varchar(100)) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: failed_jobs
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - uuid (varchar(255)) NOT NULL Key: UNI
+ - connection (text) NOT NULL 
+ - queue (text) NOT NULL 
+ - payload (longtext) NOT NULL 
+ - exception (longtext) NOT NULL 
+ - failed_at (timestamp) NOT NULL 
+
+Table: initial_screenings
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - paper_id (bigint unsigned) NOT NULL Key: MUL
+ - screener_id (bigint unsigned) NOT NULL Key: MUL
+ - plagiarism_score (decimal(5,2)) NULL 
+ - format_check_passed (tinyint(1)) NOT NULL 
+ - completeness_check_passed (tinyint(1)) NOT NULL 
+ - result (enum('pass','fail','revision_required')) NOT NULL 
+ - comments (text) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: job_batches
+ - id (varchar(255)) NOT NULL Key: PRI
+ - name (varchar(255)) NOT NULL 
+ - total_jobs (int) NOT NULL 
+ - pending_jobs (int) NOT NULL 
+ - failed_jobs (int) NOT NULL 
+ - failed_job_ids (longtext) NOT NULL 
+ - options (mediumtext) NULL 
+ - cancelled_at (int) NULL 
+ - created_at (int) NOT NULL 
+ - finished_at (int) NULL 
+
+Table: jobs
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - queue (varchar(255)) NOT NULL Key: MUL
+ - payload (longtext) NOT NULL 
+ - attempts (tinyint unsigned) NOT NULL 
+ - reserved_at (int unsigned) NULL 
+ - available_at (int unsigned) NOT NULL 
+ - created_at (int unsigned) NOT NULL 
+
+Table: migrations
+ - id (int unsigned) NOT NULL Key: PRI
+ - migration (varchar(255)) NOT NULL 
+ - batch (int) NOT NULL 
+
+Table: notifications_log
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - user_id (bigint unsigned) NOT NULL Key: MUL
+ - title (varchar(200)) NOT NULL 
+ - message (text) NOT NULL 
+ - notification_type (enum('system','conference','paper','review')) NOT NULL 
+ - related_id (int) NULL 
+ - is_read (tinyint(1)) NOT NULL 
+ - read_at (datetime) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: paper_assignments
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - paper_id (bigint unsigned) NOT NULL Key: MUL
+ - reviewer_id (bigint unsigned) NOT NULL Key: MUL
+ - assigned_by (bigint unsigned) NOT NULL Key: MUL
+ - due_date (datetime) NULL 
+ - status (enum('assigned','accepted','declined','completed')) NOT NULL Key: MUL
+ - decline_reason (text) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: paper_topics
+ - paper_id (bigint unsigned) NOT NULL Key: PRI
+ - topic_id (bigint unsigned) NOT NULL Key: PRI
+ - is_primary (tinyint(1)) NOT NULL 
+
+Table: paper_versions
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - paper_id (bigint unsigned) NOT NULL Key: MUL
+ - version_number (int) NOT NULL 
+ - file_path (varchar(255)) NOT NULL 
+ - response_letter_path (varchar(255)) NULL 
+ - author_comments (text) NULL 
+ - type (enum('original','revised','camera_ready')) NOT NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: papers
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - tracking_number (varchar(50)) NULL Key: UNI
+ - author_id (bigint unsigned) NOT NULL Key: MUL
+ - conf_id (bigint unsigned) NOT NULL Key: MUL
+ - title (varchar(300)) NOT NULL 
+ - abstract (text) NOT NULL 
+ - keywords (varchar(500)) NOT NULL 
+ - file_path (varchar(500)) NOT NULL 
+ - file_name (varchar(255)) NOT NULL 
+ - file_size (int) NOT NULL 
+ - file_type (varchar(50)) NOT NULL 
+ - status (enum('submitted','under_review','accepted','rejected','revision_requested','withdrawn')) NOT NULL Key: MUL
+ - track (varchar(100)) NULL 
+ - decision_date (datetime) NULL 
+ - final_decision (enum('accept','reject')) NULL 
+ - decision_notes (text) NULL 
+ - is_published (tinyint(1)) NOT NULL 
+ - doi (varchar(100)) NULL Key: UNI
+ - page_numbers (varchar(20)) NULL 
+ - created_at (timestamp) NULL Key: MUL
+ - updated_at (timestamp) NULL 
+
+Table: password_reset_tokens
+ - email (varchar(255)) NOT NULL Key: PRI
+ - token (varchar(255)) NOT NULL 
+ - created_at (timestamp) NULL 
+
+Table: permission_role
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - permission_id (bigint unsigned) NOT NULL Key: MUL
+ - role_id (bigint unsigned) NOT NULL Key: MUL
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: permission_user
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - permission_id (bigint unsigned) NOT NULL Key: MUL
+ - user_id (bigint unsigned) NOT NULL Key: MUL
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: permissions
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - name (varchar(255)) NOT NULL 
+ - slug (varchar(255)) NOT NULL Key: UNI
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: personal_access_tokens
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - tokenable_type (varchar(255)) NOT NULL Key: MUL
+ - tokenable_id (bigint unsigned) NOT NULL 
+ - name (text) NOT NULL 
+ - token (varchar(64)) NOT NULL Key: UNI
+ - abilities (text) NULL 
+ - last_used_at (timestamp) NULL 
+ - expires_at (timestamp) NULL Key: MUL
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: reviewer_expertise
+ - reviewer_id (bigint unsigned) NOT NULL Key: PRI
+ - topic_id (bigint unsigned) NOT NULL Key: PRI
+ - proficiency_level (enum('beginner','intermediate','expert')) NOT NULL 
+
+Table: reviews
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - assignment_id (bigint unsigned) NOT NULL Key: MUL
+ - overall_score (decimal(3,2)) NULL 
+ - originality (int) NULL 
+ - relevance (int) NULL 
+ - methodology (int) NULL 
+ - presentation (int) NULL 
+ - technical_quality (int) NULL 
+ - comments_author (text) NULL 
+ - comments_chair (text) NULL 
+ - decision (enum('accept','minor_revision','major_revision','reject')) NULL Key: MUL
+ - confidence (enum('high','medium','low')) NOT NULL 
+ - is_submitted (tinyint(1)) NOT NULL 
+ - submission_date (datetime) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: role_user
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - role_id (bigint unsigned) NOT NULL Key: MUL
+ - user_id (bigint unsigned) NOT NULL Key: MUL
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: roles
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - name (varchar(255)) NOT NULL 
+ - slug (varchar(255)) NOT NULL Key: UNI
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: scientific_sessions
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - conf_id (bigint unsigned) NOT NULL Key: MUL
+ - title (varchar(200)) NOT NULL 
+ - description (text) NULL 
+ - session_type (enum('oral','poster','keynote','workshop')) NOT NULL 
+ - chair_id (bigint unsigned) NULL Key: MUL
+ - room (varchar(100)) NULL 
+ - start_time (datetime) NOT NULL 
+ - end_time (datetime) NOT NULL 
+ - max_attendees (int) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: session_papers
+ - session_id (bigint unsigned) NOT NULL Key: PRI
+ - paper_id (bigint unsigned) NOT NULL Key: PRI
+ - presentation_order (int) NOT NULL 
+ - presentation_time (datetime) NULL 
+ - duration_minutes (int) NOT NULL 
+
+Table: sessions
+ - id (varchar(255)) NOT NULL Key: PRI
+ - user_id (bigint unsigned) NULL Key: MUL
+ - ip_address (varchar(45)) NULL 
+ - user_agent (text) NULL 
+ - payload (longtext) NOT NULL 
+ - last_activity (int) NOT NULL Key: MUL
+
+Table: topics
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - name (varchar(100)) NOT NULL Key: UNI
+ - description (text) NULL 
+ - parent_id (bigint unsigned) NULL Key: MUL
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 
+
+Table: users
+ - id (bigint unsigned) NOT NULL Key: PRI
+ - username (varchar(50)) NOT NULL Key: UNI
+ - email (varchar(100)) NOT NULL Key: UNI
+ - password (varchar(255)) NOT NULL 
+ - user_type (enum('admin','chair','author','reviewer','committee','editor','office')) NOT NULL Key: MUL
+ - full_name (varchar(100)) NOT NULL 
+ - affiliation (varchar(200)) NULL 
+ - phone (varchar(20)) NULL 
+ - address (text) NULL 
+ - bio (text) NULL 
+ - cv_path (varchar(255)) NULL 
+ - profile_image (varchar(255)) NULL 
+ - is_active (tinyint(1)) NOT NULL Key: MUL
+ - last_login (datetime) NULL 
+ - created_at (timestamp) NULL 
+ - updated_at (timestamp) NULL 

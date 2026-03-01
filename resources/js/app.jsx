@@ -144,6 +144,13 @@ const container = document.getElementById('app');
 if (container) {
     const root = createRoot(container);
 
+    // Axios global defaults - IMPORTANT: must send Accept: application/json
+    // so Laravel returns JSON errors instead of redirecting to /register GET route
+    axios.defaults.baseURL = window.location.origin;
+    axios.defaults.headers.common['Accept'] = 'application/json';
+    axios.defaults.headers.common['Content-Type'] = 'application/json';
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
     // Axios central configuration
     axios.interceptors.request.use(config => {
         try {

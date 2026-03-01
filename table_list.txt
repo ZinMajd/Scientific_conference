@@ -1,0 +1,34 @@
+
+Database: saba_conference_db
+ - activity_logs
+ - attendees
+ - cache
+ - cache_locks
+ - certificates
+ - coauthors
+ - conference_settings
+ - conferences
+ - failed_jobs
+ - initial_screenings
+ - job_batches
+ - jobs
+ - migrations
+ - notifications_log
+ - paper_assignments
+ - paper_topics
+ - paper_versions
+ - papers
+ - password_reset_tokens
+ - permission_role
+ - permission_user
+ - permissions
+ - personal_access_tokens
+ - reviewer_expertise
+ - reviews
+ - role_user
+ - roles
+ - scientific_sessions
+ - session_papers
+ - sessions
+ - topics
+ - users

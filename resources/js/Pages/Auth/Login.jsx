@@ -38,6 +38,11 @@ export default function Login() {
             const response = await axios.post('/api/login', {
                 login: formData.login,
                 password: formData.password
+            }, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
             });
             
             const { user, token } = response.data;

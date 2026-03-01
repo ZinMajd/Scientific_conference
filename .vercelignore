@@ -1,0 +1,16 @@
+.git
+.env
+.vercel
+node_modules
+public/storage
+storage/*.key
+/storage/pail
+/storage/framework/sessions
+/storage/framework/views
+/storage/framework/cache
+/storage/logs
+/tests
+/node_modules
+/public/build
+/public/hot
+!/vendor

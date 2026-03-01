@@ -9,7 +9,7 @@ export default function Register() {
         email: '',
         username: '',
         password: '',
-        role: '',
+        role: 'باحث',
         affiliation: '',
         phone: '',
         address: '',
@@ -39,17 +39,23 @@ export default function Register() {
         };
 
         try {
-            const response = await axios.post('/api/register', {
-                full_name: formData.full_name,
-                email: formData.email,
-                username: formData.username,
-                password: formData.password,
-                user_type: roleMap[formData.role],
-                affiliation: formData.affiliation,
-                phone: formData.phone,
-                address: formData.address,
-                bio: formData.bio
-            });
+           const response = await axios.post('/api/register', {
+              full_name: formData.full_name,
+              email: formData.email,
+              username: formData.username,
+              password: formData.password,
+              user_type: roleMap[formData.role],
+              affiliation: formData.affiliation,
+              phone: formData.phone,
+              address: formData.address,
+              bio: formData.bio
+        }, {
+              headers: {
+                  'Accept': 'application/json',
+                   'Content-Type': 'application/json'
+            }
+        });
+
 
             const { user } = response.data;
             // Instead of auto-login, redirect to login page with a success message

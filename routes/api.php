@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CommitteeController;
 Route::get('/conferences', [ConferenceController::class, 'index']);
 Route::get('/conferences/{id}', [ConferenceController::class, 'show']);
 
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 

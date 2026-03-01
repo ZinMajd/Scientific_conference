@@ -1,0 +1,93 @@
+Roles:
+[
+    {
+        "id": 1,
+        "name": "Researcher",
+        "slug": "researcher",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 2,
+        "name": "Reviewer",
+        "slug": "reviewer",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 3,
+        "name": "Scientific Committee",
+        "slug": "scientific_committee",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 4,
+        "name": "Conference Chair",
+        "slug": "conference_chair",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 5,
+        "name": "Editorial Office",
+        "slug": "editorial_office",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 6,
+        "name": "Editor",
+        "slug": "editor",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 7,
+        "name": "System Administrator",
+        "slug": "system_admin",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    }
+]
+
+Permissions (count: 91)
+[
+    {
+        "id": 1,
+        "name": "Home View",
+        "slug": "home.view",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 2,
+        "name": "About View",
+        "slug": "about.view",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 3,
+        "name": "Conferences List",
+        "slug": "conferences.list",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 4,
+        "name": "Conferences View Details",
+        "slug": "conferences.view_details",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    },
+    {
+        "id": 5,
+        "name": "Conferences View Topics",
+        "slug": "conferences.view_topics",
+        "created_at": "2026-02-24 22:51:53",
+        "updated_at": "2026-02-24 22:51:53"
+    }
+]
+
+Permission-Role Mapping (count: 128)
