@@ -5,19 +5,20 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Role;
 use App\Models\Permission;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Schema::disableForeignKeyConstraints();
         DB::table('permission_user')->truncate();
         DB::table('permission_role')->truncate();
         DB::table('role_user')->truncate();
         DB::table('permissions')->truncate();
         DB::table('roles')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         // 1. Guest (Public) - These are usually handled by public routes, but we list them for completeness if needed in DB
         $guestPermissions = [
