@@ -146,7 +146,7 @@ if (container) {
 
     // Axios global defaults - IMPORTANT: must send Accept: application/json
     // so Laravel returns JSON errors instead of redirecting to /register GET route
-    axios.defaults.baseURL = window.location.origin;
+    axios.defaults.baseURL = 'https://scientific-conference.vercel.app';
     axios.defaults.headers.common['Accept'] = 'application/json';
     axios.defaults.headers.common['Content-Type'] = 'application/json';
     axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
