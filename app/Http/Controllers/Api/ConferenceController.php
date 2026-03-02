@@ -68,17 +68,21 @@ class ConferenceController extends Controller
         $conference = Conference::findOrFail($id);
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:200',
+            'description' => 'required|string',
+            'venue' => 'required|string|max:200',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
+            'submission_deadline' => 'required|date',
+            'review_deadline' => 'required|date|after_or_equal:submission_deadline',
+            'notification_date' => 'required|date|after_or_equal:review_deadline',
             'status' => 'required|in:draft,open,reviewing,closed,archived',
             'short_name' => 'nullable|string|max:50',
             'website_url' => 'nullable|url',
             'contact_email' => 'nullable|email',
             'registration_fee' => 'nullable|numeric|min:0',
             'max_papers' => 'nullable|integer|min:1',
-            'camera_ready_deadline' => 'nullable|date',
+            'camera_ready_deadline' => 'nullable|date|after_or_equal:notification_date',
             'registration_deadline' => 'nullable|date',
         ]);
 

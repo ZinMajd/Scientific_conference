@@ -104,10 +104,11 @@ export default function CommitteeConferences() {
             setShowModal(false);
             fetchConferences();
         } catch (error) {
+            console.error('Save error:', error.response?.data);
             if (error.response && error.response.status === 422) {
                 setErrors(error.response.data.errors);
             } else {
-                alert('فشل الحفظ: ' + (error.response?.data?.message || error.message));
+                alert('فشل الحفظ: ' + (error.response?.data?.message || JSON.stringify(error.response?.data?.errors) || error.message));
             }
         }
     };

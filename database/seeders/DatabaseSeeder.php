@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Topic;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
         \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
 
         // Add Topics
+        DB::table('topics')->truncate();
         $topics = [
             ['name' => 'علوم الحاسوب', 'description' => 'مجال علوم الحاسوب وتقنية المعلومات'],
             ['name' => 'الهندسة', 'description' => 'مجالات الهندسة المختلفة'],
@@ -28,7 +30,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($topics as $topic) {
-            Topic::firstOrCreate(['name' => $topic['name']], $topic);
+            Topic::create($topic);
         }
 
         $this->call(RolesAndPermissionsSeeder::class);
