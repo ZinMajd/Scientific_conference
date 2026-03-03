@@ -354,14 +354,6 @@ export default function CommitteeResearch() {
                 </div>
             </div>
             
-            <div className="bg-emerald-950 p-10 rounded-[3rem] text-white flex flex-col md:flex-row items-center gap-10 shadow-2xl shadow-emerald-900/30">
-                <div className="flex-1 space-y-4 text-center md:text-right">
-                    <h3 className="text-2xl font-black">جاهز للتحكيم النهائي؟</h3>
-                    <p className="text-emerald-200/80 font-medium">يمكنك الآن إغلاق باب التقديم والبدء في عملية الفرز النهائي وإصدار التوصيات لجميع الأبحاث المكتملة لدفعها نحو الجلسات العلمية.</p>
-                </div>
-                <button className="px-10 py-5 bg-white text-emerald-950 font-black rounded-3xl hover:bg-emerald-50 transition transform hover:scale-105 active:scale-95 shadow-xl">إطلاق عملية التحكيم النهائي 🚀</button>
-            </div>
-
             {/* Modals */}
             {showAssignModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
