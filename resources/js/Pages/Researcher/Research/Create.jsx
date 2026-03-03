@@ -102,10 +102,12 @@ export default function ResearchCreate() {
         });
 
         try {
+            console.log("Submitting paper with file:", formData.paper_file);
             const token = localStorage.getItem("token");
             const response = await axios.post("/api/papers", data, {
                 headers: {
-                    Accept: "application/json",
+                    "Content-Type": "multipart/form-data",
+                    "Accept": "application/json",
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
