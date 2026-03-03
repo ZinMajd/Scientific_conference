@@ -24,6 +24,7 @@
     ],
     "env": {
         "APP_ENV": "production",
+        "APP_LOCALE": "ar",
         "APP_DEBUG": "true",
         "VERCEL": "1",
         "APP_URL": "https://scientific-conference.vercel.app",
