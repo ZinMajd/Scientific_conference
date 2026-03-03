@@ -23,18 +23,33 @@ class PaperController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'conf_id' => 'required|exists:conferences,id',
-            'title' => 'required|string|max:500',
-            'abstract' => 'required|string',
-            'keywords' => 'required|string',
-            'track' => 'nullable|string',
-            'paper_file' => 'required|file|mimes:pdf,doc,docx|max:10240',
-            'coauthors' => 'nullable|array',
-            'coauthors.*.full_name' => 'required|string',
-            'coauthors.*.email' => 'required|email',
-            'coauthors.*.affiliation' => 'nullable|string',
+        \Illuminate\Support\Facades\Log::info('Paper submission attempt', [
+            'has_file' => $request->hasFile('paper_file'),
+            'file_info' => $request->file('paper_file') ? [
+                'name' => $request->file('paper_file')->getClientOriginalName(),
+                'size' => $request->file('paper_file')->getSize(),
+                'mime' => $request->file('paper_file')->getMimeType(),
+            ] : 'No file found',
+            'all_data' => $request->except(['paper_file']),
         ]);
+
+        try {
+            $request->validate([
+                'conf_id' => 'required|exists:conferences,id',
+                'title' => 'required|string|max:500',
+                'abstract' => 'required|string',
+                'keywords' => 'required|string',
+                'track' => 'nullable|string',
+                'paper_file' => 'required|file|mimes:pdf,doc,docx|max:10240',
+                'coauthors' => 'nullable|array',
+                'coauthors.*.full_name' => 'required|string',
+                'coauthors.*.email' => 'required|email',
+                'coauthors.*.affiliation' => 'nullable|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Illuminate\Support\Facades\Log::warning('Paper validation failed', ['errors' => $e->errors()]);
+            throw $e;
+        }
 
         try {
             return DB::transaction(function () use ($request) {
