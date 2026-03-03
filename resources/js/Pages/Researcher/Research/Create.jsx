@@ -105,9 +105,8 @@ export default function ResearchCreate() {
             const token = localStorage.getItem("token");
             const response = await axios.post("/api/papers", data, {
                 headers: {
-                    "Content-Type": "multipart/form-data",
                     Accept: "application/json",
-                    Authorization: token ? `Bearer ${token}` : "",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
             setSuccess(

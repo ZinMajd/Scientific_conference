@@ -21,6 +21,7 @@ return [
 
     'allowed_origins' => [
         env('APP_URL', 'http://localhost:8000'),
+        'https://scientific-conference.vercel.app',
         'http://127.0.0.1:8000',
         'http://localhost:8000',
     ],
