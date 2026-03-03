@@ -25,6 +25,7 @@
     "env": {
         "APP_ENV": "production",
         "APP_DEBUG": "true",
+        "VERCEL": "1",
         "APP_URL": "https://scientific-conference.vercel.app",
         "ASSET_URL": "https://scientific-conference.vercel.app",
         "SANCTUM_STATEFUL_DOMAINS": "scientific-conference.vercel.app",

@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            'root' => (env('VERCEL') || env('VERCEL_URL')) ? '/tmp/storage/app/private' : storage_path('app/private'),
             'serve' => true,
             'throw' => false,
             'report' => false,
@@ -40,8 +40,8 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'root' => (env('VERCEL') || env('VERCEL_URL')) ? '/tmp/storage/app/public' : storage_path('app/public'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
