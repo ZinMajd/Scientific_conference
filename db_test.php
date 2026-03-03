@@ -1,27 +1,33 @@
 <?php
-$host = '127.0.0.1';
-$port = 3306;
-$user = 'root';
-$passwords = ['', 'root', 'password', '12345678', '1234'];
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-echo "Testing MySQL credentials...\n";
+try {
+    echo "Testing DB Connection...\n";
+    $dbName = DB::connection()->getDatabaseName();
+    echo "Database: " . $dbName . "\n";
 
-foreach ($passwords as $pass) {
-    try {
-        $pdo = new PDO("mysql:host=$host;port=$port", $user, $pass);
-        echo "[SUCCESS] Connected with password: '" . $pass . "'\n";
-        
-        // Check if database exists
-        $stmt = $pdo->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'system'");
-        if ($stmt->fetch()) {
-            echo "[INFO] Database 'system' exists.\n";
-        } else {
-            echo "[WARNING] Database 'system' NOT found.\n";
-        }
-        exit(0);
-    } catch (PDOException $e) {
-        echo "[FAILED] Password '" . $pass . "': " . $e->getMessage() . "\n";
+    echo "Attempting to create a test user...\n";
+    $testUsername = 'testuser_' . time();
+    $user = User::create([
+        'username' => $testUsername,
+        'email' => $testUsername . '@example.com',
+        'password' => Hash::make('password123'),
+        'full_name' => 'Test User',
+        'user_type' => 'author',
+    ]);
+
+    if ($user && $user->exists) {
+        echo "SUCCESS! User created with ID: " . $user->id . "\n";
+        // Clean up
+        $user->delete();
+        echo "Test user deleted.\n";
+    } else {
+        echo "FAILED to create user.\n";
     }
+} catch (\Exception $e) {
+    echo "ERROR: " . $e->getMessage() . "\n";
+    Log::error('DB Test Failed', ['error' => $e->getMessage()]);
 }
-
-echo "All common passwords failed.\n";

@@ -10,7 +10,13 @@ class ConferenceController extends Controller
 {
     public function index()
     {
-        return Conference::whereIn('status', ['open', 'reviewing'])->orderBy('start_date', 'asc')->get();
+        $conferences = Conference::whereIn('status', ['open', 'reviewing'])->orderBy('start_date', 'asc')->get();
+        \Illuminate\Support\Facades\Log::info('Public conferences search', [
+            'count' => $conferences->count(),
+            'db' => \Illuminate\Support\Facades\DB::connection()->getDatabaseName(),
+            'status_queried' => ['open', 'reviewing']
+        ]);
+        return $conferences;
     }
 
     public function show($id)
@@ -20,6 +26,12 @@ class ConferenceController extends Controller
 
     public function committeeIndex()
     {
+        $user = auth()->user();
+        \Illuminate\Support\Facades\Log::info('Committee index requested', [
+            'user' => $user?->email ?? 'Guest',
+            'user_type' => $user?->user_type ?? 'None'
+        ]);
+
         return Conference::withCount([
             'papers',
             'attendees as authors_count' => function ($query) {
@@ -30,6 +42,7 @@ class ConferenceController extends Controller
 
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('Conference store request received', $request->all());
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:200',
