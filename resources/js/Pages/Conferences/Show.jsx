@@ -1,23 +1,64 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Show() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [conference, setConference] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isRegistered, setIsRegistered] = useState(false);
+    const [regLoading, setRegLoading] = useState(false);
 
     useEffect(() => {
-        axios.get(`/api/conferences/${id}`)
-            .then(response => {
-                setConference(response.data);
+        const fetchData = async () => {
+             try {
+                const token = localStorage.getItem('token');
+                const [confRes, regRes] = await Promise.all([
+                    axios.get(`/api/conferences/${id}`),
+                    token ? axios.get(`/api/conferences/${id}/check-registration`).catch(() => ({ data: { registered: false } })) : Promise.resolve({ data: { registered: false } })
+                ]);
+                console.log('Final check - axios baseURL:', axios.defaults.baseURL);
+                console.log('Final check - Conference data:', confRes.data);
+                console.log('Final check - Venue:', confRes.data.venue);
+                setConference(confRes.data);
+                setIsRegistered(regRes.data.registered);
+             } catch (error) {
+                console.error('Error fetching data:', error);
+             } finally {
                 setLoading(false);
-            })
-            .catch(error => {
-                console.error('Error fetching conference:', error);
-                setLoading(false);
-            });
+             }
+        };
+        fetchData();
     }, [id]);
+
+    const handleRegisterAttendance = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = `/login?redirect=/conferences/${id}`;
+            return;
+        }
+
+        setRegLoading(true);
+        try {
+            await axios.post(`/api/conferences/${id}/register-attendance`);
+            setIsRegistered(true);
+            alert('تم التسجيل كحضور بنجاح!');
+        } catch (error) {
+            alert(error.response?.data?.message || 'فشل التسجيل');
+        } finally {
+            setRegLoading(false);
+        }
+    };
+    
+    // Helper to handle Register Paper click
+    const handleRegisterPaper = (e) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            e.preventDefault();
+            window.location.href = `/login?redirect=/researcher/research/create?confId=${id}`;
+        }
+    };
 
     if (loading) {
         return <div className="text-center py-20">جاري التحميل...</div>;
@@ -83,23 +124,31 @@ export default function Show() {
                         <div className="space-y-4 mb-8">
                             <div className="flex justify-between items-center py-2 border-b">
                                 <span className="text-gray-500">بداية المؤتمر</span>
-                                <span className="font-bold">{conference.start_date}</span>
+                                <span className="font-bold">{new Date(conference.start_date).toLocaleDateString('ar-YE')}</span>
                             </div>
                             <div className="flex justify-between items-center py-2 border-b">
                                 <span className="text-gray-500">نهاية المؤتمر</span>
-                                <span className="font-bold text-red-600">{conference.end_date}</span>
+                                <span className="font-bold text-red-600">{new Date(conference.end_date).toLocaleDateString('ar-YE')}</span>
                             </div>
                             <div className="flex justify-between items-center py-2 border-b">
                                 <span className="text-gray-500">الموقع</span>
-                                <span className="font-bold text-green-600">{conference.location}</span>
+                                <span className="font-bold text-green-600">{conference.venue || 'غير محدد'}</span>
                             </div>
                         </div>
 
-                        <button className="w-full py-4 bg-blue-950 hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 mb-3">
+                        <Link 
+                            to={`/researcher/research/create?confId=${id}`} 
+                            onClick={handleRegisterPaper}
+                            className="block w-full text-center py-4 bg-blue-950 hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 mb-3"
+                        >
                             تسجيل ورقة بحثية
-                        </button>
-                        <button className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold transition">
-                            تسجيل كحضور
+                        </Link>
+                        <button 
+                            onClick={handleRegisterAttendance}
+                            disabled={isRegistered || regLoading}
+                            className={`w-full py-4 rounded-xl font-bold transition ${isRegistered ? 'bg-green-100 text-green-700 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                        >
+                            {regLoading ? 'جاري المعالجة...' : isRegistered ? 'تم التسجيل كحضور ✅' : 'تسجيل كحضور'}
                         </button>
                     </div>
                 </div>

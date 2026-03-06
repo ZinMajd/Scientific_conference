@@ -28,6 +28,8 @@ Route::prefix('api')->group(function () {
     Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
     Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
     Route::get('/topics', [\App\Http\Controllers\Api\TopicController::class, 'index']);
+    Route::post('/conferences/{id}/register-attendance', [\App\Http\Controllers\Api\AttendeeController::class, 'register']);
+    Route::get('/conferences/{id}/check-registration', [\App\Http\Controllers\Api\AttendeeController::class, 'checkRegistration']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/user', function (Request $request) {

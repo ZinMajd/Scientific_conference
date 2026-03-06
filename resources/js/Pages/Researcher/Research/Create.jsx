@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function ResearchCreate() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const preselectedConfId = searchParams.get('confId') || "";
+
     const [conferences, setConferences] = useState([]);
     const [formData, setFormData] = useState({
         title: "",
         abstract: "",
         keywords: "",
-        conf_id: "",
+        conf_id: preselectedConfId,
         track: "",
         paper_file: null,
         coauthors: [{ full_name: "", email: "", affiliation: "" }],
@@ -28,13 +32,19 @@ export default function ResearchCreate() {
         };
 
         setLoading(true);
-        // Ensure we use the /api prefix as seen in stats and papers requests
         axios
             .get("/api/conferences", config)
             .then((response) => {
                 console.log("Conferences response:", response.data);
                 const confs = Array.isArray(response.data) ? response.data : (response.data.data || []);
                 setConferences(confs);
+                
+                // Explicitly set conf_id if preselectedConfId is provided and exists in confs
+                if (preselectedConfId && confs.some(c => String(c.id) === String(preselectedConfId))) {
+                    console.log("Pre-selecting conference:", preselectedConfId);
+                    setFormData(prev => ({ ...prev, conf_id: preselectedConfId }));
+                }
+
                 if (confs.length === 0) {
                     setError("لا يوجد مؤتمرات متاحة للتقديم حالياً. يرجى التأكد من حالة المؤتمرات في النظام.");
                 }

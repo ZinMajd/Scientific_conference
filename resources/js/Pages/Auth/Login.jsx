@@ -49,6 +49,15 @@ export default function Login() {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
 
+            // Check for redirect parameter
+            const searchParams = new URLSearchParams(location.search);
+            const redirectTo = searchParams.get('redirect');
+            
+            if (redirectTo) {
+                navigate(redirectTo);
+                return;
+            }
+
             // توجيه المستخدم تلقائياً إلى لوحة التحكم الخاصة به بناءً على نوع الحساب
             switch(user.user_type) {
                 case 'author':
