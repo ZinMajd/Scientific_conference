@@ -28,11 +28,10 @@ export default function MainLayout() {
                 <div className="container mx-auto px-4 py-3 flex justify-between items-center">
                     <div className="flex items-center gap-2">
                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-lg border-2 border-blue-400/20">
-                            <img 
-                                src="https://pbs.twimg.com/profile_images/856860265249415168/v2K_v4x-_400x400.jpg" 
-                                alt="جامعة إقليم سبأ" 
-                                className="w-10 h-10 object-contain rounded-full"
-                            />
+                            <svg className="w-8 h-8 text-blue-900" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M22 17V7L12 12L2 7V17L12 22L22 17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
                          </div>
                          <h1 className="text-xl font-bold text-white tracking-wide">
                              جامعة إقليم سبأ

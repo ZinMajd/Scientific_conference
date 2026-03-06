@@ -78,6 +78,7 @@ class User extends Authenticatable
         'phone',
         'address',
         'bio',
+        'cv_path',
         'profile_image',
         'is_active',
         'last_login',

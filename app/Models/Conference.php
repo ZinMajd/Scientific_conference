@@ -26,7 +26,8 @@ class Conference extends Model
         'max_papers',
         'status',
         'website_url',
-        'contact_email'
+        'contact_email',
+        'image_url'
     ];
 
     protected $casts = [

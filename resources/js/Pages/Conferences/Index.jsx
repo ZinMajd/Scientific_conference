@@ -55,7 +55,7 @@ export default function Conferences() {
                             </p>
                             <div className="flex gap-6 text-sm text-gray-600 border-t pt-4 mt-2">
                                 <span>📅 التاريخ: {item.start_date}</span>
-                                <span>📍 المكان: {item.location}</span>
+                                <span>📍 المكان: {item.venue}</span>
                             </div>
                             <div className="mt-4 flex justify-end">
                                 <Link to={`/conferences/${item.id}`} className="px-6 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 transition font-bold shadow-md">

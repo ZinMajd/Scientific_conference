@@ -27,6 +27,7 @@ Route::prefix('api')->group(function () {
 
     Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
     Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
+    Route::get('/topics', [\App\Http\Controllers\Api\TopicController::class, 'index']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/user', function (Request $request) {
@@ -56,6 +57,8 @@ Route::prefix('api')->group(function () {
         Route::post('/committee/reviewers', [\App\Http\Controllers\Api\CommitteeController::class, 'addReviewer']);
         Route::put('/committee/reviewers/{id}', [\App\Http\Controllers\Api\CommitteeController::class, 'updateReviewer']);
         Route::delete('/committee/reviewers/{id}', [\App\Http\Controllers\Api\CommitteeController::class, 'deleteReviewer']);
+        Route::post('/committee/papers/{id}/classify', [\App\Http\Controllers\Api\CommitteeController::class, 'classifyAndSchedule']);
+        Route::post('/committee/papers/{id}/invite', [\App\Http\Controllers\Api\CommitteeController::class, 'sendInvitation']);
 
         // Conference Management
         Route::get('/committee/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'committeeIndex']);

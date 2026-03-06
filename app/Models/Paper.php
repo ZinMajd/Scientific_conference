@@ -19,8 +19,13 @@ class Paper extends Model
         'file_name',
         'file_size',
         'file_type',
-        'status',
         'track',
+        'presentation_type',
+        'participation_mode',
+        'revision_deadline',
+        'invitation_sent_at',
+        'access_link',
+        'publication_selected',
         'decision_date',
         'final_decision',
         'decision_notes',
@@ -28,6 +33,28 @@ class Paper extends Model
         'doi',
         'page_numbers'
     ];
+
+    // Lifecycle Statuses
+    const STATUS_SUBMITTED = 'submitted';
+    const STATUS_INITIAL_SCREENING = 'initial_screening';
+    const STATUS_INCOMPLETE = 'incomplete'; // For "Returned for modification" in Stage 2
+    const STATUS_UNDER_REVIEW = 'under_review';
+    const STATUS_REVISION_REQUESTED = 'revision_requested';
+    const STATUS_REVISION_SUBMITTED = 'revision_submitted';
+    const STATUS_ACCEPTED = 'accepted';
+    const STATUS_REJECTED = 'rejected';
+    const STATUS_SCHEDULED = 'scheduled';
+
+    // Presentation Types
+    const PRESENTATION_ORAL = 'oral';
+    const PRESENTATION_POSTER = 'poster';
+    const PRESENTATION_KEYNOTE = 'keynote';
+    const PRESENTATION_NONE = 'none';
+
+    // Participation Mode
+    const MODE_PHYSICAL = 'physical';
+    const MODE_ONLINE = 'online';
+    const MODE_NONE = 'none';
 
     protected $casts = [
         'decision_date' => 'datetime',
@@ -75,5 +102,26 @@ class Paper extends Model
     public function paperAssignments()
     {
         return $this->hasMany(PaperAssignment::class);
+    }
+
+    public function versions()
+    {
+        return $this->hasMany(PaperVersion::class);
+    }
+
+    public function initialScreening()
+    {
+        return $this->hasOne(InitialScreening::class);
+    }
+
+    // Helper methods for state transitions
+    public function canSubmitRevision()
+    {
+        return $this->status === self::STATUS_REVISION_REQUESTED;
+    }
+
+    public function isAccepted()
+    {
+        return $this->status === self::STATUS_ACCEPTED || $this->status === self::STATUS_SCHEDULED;
     }
 }

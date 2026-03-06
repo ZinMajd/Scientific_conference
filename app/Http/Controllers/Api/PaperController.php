@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Paper;
 use App\Models\Coauthor;
+use App\Models\PaperVersion;
+use App\Models\InitialScreening;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -67,7 +69,15 @@ class PaperController extends Controller
                     'file_name' => $file->getClientOriginalName(),
                     'file_size' => $file->getSize(),
                     'file_type' => $file->getClientOriginalExtension(),
-                    'status' => 'submitted',
+                    'status' => Paper::STATUS_SUBMITTED,
+                ]);
+
+                // Record Version 1
+                PaperVersion::create([
+                    'paper_id' => $paper->id,
+                    'version_number' => 1,
+                    'file_path' => $path,
+                    'type' => 'original',
                 ]);
 
                 if ($request->has('coauthors')) {
@@ -99,35 +109,43 @@ class PaperController extends Controller
     public function initialScreening(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:accepted_for_review,desk_rejection,incomplete',
+            'result' => 'required|in:pass,fail,revision_required', // Changed from status to result to match model
             'notes' => 'nullable|string',
             'plagiarism_ratio' => 'nullable|numeric|min:0|max:100',
-            'format_match' => 'nullable|boolean',
+            'format_check' => 'nullable|boolean',
+            'completeness_check' => 'nullable|boolean',
         ]);
 
-        $paper = Paper::findOrFail($id);
+        return DB::transaction(function () use ($request, $id) {
+            $paper = Paper::findOrFail($id);
 
-        $statusMap = [
-            'accepted_for_review' => 'under_review',
-            'desk_rejection' => 'rejected',
-            'incomplete' => 'incomplete'
-        ];
+            $statusMap = [
+                'pass' => Paper::STATUS_UNDER_REVIEW,
+                'fail' => Paper::STATUS_REJECTED,
+                'revision_required' => Paper::STATUS_INCOMPLETE // "Returned for modification"
+            ];
 
-        $paper->update([
-            'status' => $statusMap[$request->status],
-            'screening_notes' => $request->notes,
-            'plagiarism_ratio' => $request->plagiarism_ratio,
-            'format_match' => $request->format_match,
-            'screening_date' => now()
-        ]);
+            $paper->update([
+                'status' => $statusMap[$request->result],
+                'decision_notes' => $request->notes,
+                'decision_date' => now()
+            ]);
 
-        // Notify author
-        // NotificationLog::create([...]) - Assuming notification logic elsewhere
+            InitialScreening::create([
+                'paper_id' => $paper->id,
+                'screener_id' => Auth::id(),
+                'plagiarism_score' => $request->plagiarism_ratio,
+                'format_check_passed' => $request->format_check ?? true,
+                'completeness_check_passed' => $request->completeness_check ?? true,
+                'result' => $request->result,
+                'comments' => $request->notes,
+            ]);
 
-        return response()->json([
-            'message' => 'تم تسجيل نتيجة الفحص الأولي بنجاح',
-            'paper' => $paper
-        ]);
+            return response()->json([
+                'message' => 'تم تسجيل نتيجة الفرز الأولي بنجاح',
+                'paper' => $paper
+            ]);
+        });
     }
 
     public function submitRevision(Request $request, $id)
@@ -152,15 +170,28 @@ class PaperController extends Controller
                 $revisedPath = $revisedFile->store('papers/revisions');
                 $responsePath = $responseLetter->store('papers/response_letters');
 
+                // Get latest version number
+                $latestVersion = $paper->versions()->max('version_number') ?? 1;
+
+                // Create new version
+                PaperVersion::create([
+                    'paper_id' => $paper->id,
+                    'version_number' => $latestVersion + 1,
+                    'file_path' => $revisedPath,
+                    'response_letter_path' => $responsePath,
+                    'author_comments' => $request->summary_of_changes,
+                    'type' => 'revised',
+                ]);
+
                 $paper->update([
                     'file_path' => $revisedPath,
                     'file_name' => $revisedFile->getClientOriginalName(),
-                    'status' => 'under_review',
+                    'status' => Paper::STATUS_REVISION_SUBMITTED,
                     'decision_notes' => $request->summary_of_changes,
                 ]);
 
                 return response()->json([
-                    'message' => 'تم تقديم التعديلات بنجاح. سيتم إرسالها للمحكمين للمراجعة.',
+                    'message' => 'تم تقديم التعديلات بنجاح. سيتم مراجعتها من قبل المحرر أو المحكمين.',
                     'paper' => $paper
                 ]);
             });
@@ -171,19 +202,21 @@ class PaperController extends Controller
 
     public function finalAcceptance(Request $request, $id)
     {
-        $paper = Paper::findOrFail($id);
-
-        // Authorization: ensure only committee can finalize
-        // (Assuming middleware handles general access, but good to be explicit for logic)
-
-        $paper->update([
-            'status' => 'accepted',
-            'acceptance_date' => now(),
-            'is_final' => true,
+        $request->validate([
+            'publication_selected' => 'nullable|boolean',
+            'notes' => 'nullable|string',
         ]);
 
-        // Trigger notification queue for author
-        // Sending email with acceptance letter template...
+        $paper = Paper::findOrFail($id);
+
+        $paper->update([
+            'status' => Paper::STATUS_ACCEPTED,
+            'acceptance_date' => now(),
+            'decision_date' => now(),
+            'final_decision' => 'accept',
+            'decision_notes' => $request->notes ?? $paper->decision_notes,
+            'publication_selected' => $request->publication_selected ?? false,
+        ]);
 
         return response()->json([
             'message' => 'تم إصدار قرار القبول النهائي للبحث بنجاح.',

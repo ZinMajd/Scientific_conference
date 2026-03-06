@@ -8,6 +8,7 @@ import Conferences from './Pages/Conferences/Index';
 import ConferenceDetails from './Pages/Conferences/Show';
 import Login from './Pages/Auth/Login';
 import Register from './Pages/Auth/Register';
+import ReviewerRegister from './Pages/Auth/ReviewerRegister';
 import ForgotPassword from './Pages/Auth/ForgotPassword';
 import Dashboard from './Pages/Profile/Dashboard';
 import ProfileEdit from './Pages/Profile/Edit';
@@ -69,6 +70,7 @@ function App() {
                     {/* Auth Routes */}
                     <Route path="login" element={<Login />} />
                     <Route path="register" element={<Register />} />
+                    <Route path="register/reviewer" element={<ReviewerRegister />} />
                     <Route path="forgot-password" element={<ForgotPassword />} />
                 </Route>
 
@@ -146,7 +148,8 @@ if (container) {
 
     // Axios global defaults - IMPORTANT: must send Accept: application/json
     // so Laravel returns JSON errors instead of redirecting to /register GET route
-    axios.defaults.baseURL = 'https://scientific-conference.vercel.app';
+    // axios.defaults.baseURL = 'https://scientific-conference.vercel.app';
+    axios.defaults.baseURL = window.location.origin;
     axios.defaults.headers.common['Accept'] = 'application/json';
     axios.defaults.headers.common['Content-Type'] = 'application/json';
     axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

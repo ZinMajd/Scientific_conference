@@ -117,8 +117,8 @@ class CommitteeController extends Controller
             ]);
 
             // Update paper status to under_review if not already
-            if ($paper->status === 'submitted') {
-                $paper->update(['status' => 'under_review']);
+            if ($paper->status === Paper::STATUS_SUBMITTED || $paper->status === Paper::STATUS_REVISION_SUBMITTED) {
+                $paper->update(['status' => Paper::STATUS_UNDER_REVIEW]);
             }
 
             // Create notification safely
@@ -150,31 +150,81 @@ class CommitteeController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        $paper = Paper::findOrFail($id);
-
         $statusMap = [
-            'accept' => 'accepted',
-            'reject' => 'rejected',
-            'revision_requested' => 'revision_requested'
+            'accept' => Paper::STATUS_ACCEPTED,
+            'reject' => Paper::STATUS_REJECTED,
+            'revision_requested' => Paper::STATUS_REVISION_REQUESTED
         ];
+
+        $paper = Paper::findOrFail($id);
 
         $paper->update([
             'status' => $statusMap[$request->decision],
-            'final_decision' => $request->decision === 'revision_requested' ? null : $request->decision, // only accept/reject are in final_decision enum usually, check migration
+            'final_decision' => $request->decision === 'revision_requested' ? null : $request->decision,
             'decision_notes' => $request->notes,
             'decision_date' => now()
         ]);
 
         // Notification to author
+        try {
+            NotificationLog::create([
+                'user_id' => $paper->author_id,
+                'title' => 'Paper Decision: ' . ucfirst($request->decision),
+                'message' => 'A decision has been made on your paper: ' . $paper->title,
+                'notification_type' => 'paper',
+                'related_id' => $id
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Notification Error: ' . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'Decision recorded successfully', 'paper' => $paper]);
+    }
+
+    public function classifyAndSchedule(Request $request, $id)
+    {
+        $request->validate([
+            'presentation_type' => 'required|in:oral,poster,keynote,none',
+            'participation_mode' => 'required|in:physical,online,none',
+            'publication_selected' => 'nullable|boolean',
+            'access_link' => 'nullable|string|url',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+
+        $paper->update([
+            'status' => Paper::STATUS_SCHEDULED,
+            'presentation_type' => $request->presentation_type,
+            'participation_mode' => $request->participation_mode,
+            'publication_selected' => $request->publication_selected ?? $paper->publication_selected,
+            'access_link' => $request->access_link,
+        ]);
+
+        return response()->json([
+            'message' => 'تم تصنيف المشاركة وجدولتها بنجاح',
+            'paper' => $paper
+        ]);
+    }
+
+    public function sendInvitation(Request $request, $id)
+    {
+        $paper = Paper::findOrFail($id);
+
+        // Logic to generate and send official invitation
+        // For now, mark as sent
+        $paper->update([
+            'invitation_sent_at' => now(),
+        ]);
+
         NotificationLog::create([
             'user_id' => $paper->author_id,
-            'title' => 'Paper Decision: ' . ucfirst($request->decision),
-            'message' => 'A decision has been made on your paper: ' . $paper->title,
-            'notification_type' => 'paper',
+            'title' => 'Official Conference Invitation',
+            'message' => 'You are officially invited to present your paper: ' . $paper->title,
+            'notification_type' => 'conference',
             'related_id' => $id
         ]);
 
-        return response()->json(['message' => 'Decision recorded successfully', 'paper' => $paper]);
+        return response()->json(['message' => 'تم إرسال الدعوة بنجاح']);
     }
 
     public function reviewers()
