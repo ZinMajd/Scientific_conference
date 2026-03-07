@@ -112,7 +112,7 @@ export default function Login() {
                     </div>
                 )}
 
-                <form className="space-y-6" onSubmit={handleSubmit}>
+                <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
                     <div>
                         <label className="block text-gray-700 font-bold mb-2">نوع الحساب</label>
                         <select 
@@ -139,6 +139,7 @@ export default function Login() {
                             value={formData.login}
                             onChange={handleChange}
                             required
+                            autoComplete="new-login"
                             className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 outline-none transition bg-gray-50 focus:bg-white font-medium"
                             placeholder="اسم المستخدم أو البريد الإلكتروني"
                         />
@@ -153,6 +154,7 @@ export default function Login() {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
+                            autoComplete="new-password"
                             className="w-full px-5 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition bg-gray-50 focus:bg-white"
                             placeholder="••••••••"
                         />

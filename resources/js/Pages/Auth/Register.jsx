@@ -92,7 +92,7 @@ export default function Register() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
                     <div className="space-y-2">
                         <label className="text-sm font-black text-blue-950 uppercase tracking-widest mr-2">الاسم الكامل</label>
                         <input 
@@ -101,6 +101,7 @@ export default function Register() {
                             value={formData.full_name}
                             onChange={handleChange}
                             required
+                            autoComplete="off"
                             className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all duration-300 font-medium"
                             placeholder="الاسم الكامل"
                         />
@@ -115,6 +116,7 @@ export default function Register() {
                                 value={formData.username}
                                 onChange={handleChange}
                                 required
+                                autoComplete="new-username"
                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all duration-300 font-medium"
                                 placeholder="اسم المستخدم"
                             />
@@ -127,6 +129,7 @@ export default function Register() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
+                                autoComplete="new-email"
                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all duration-300 font-medium"
                                 placeholder="البريد الإلكتروني"
                             />
@@ -142,6 +145,7 @@ export default function Register() {
                                 value={formData.password}
                                 onChange={handleChange}
                                 required
+                                autoComplete="new-password"
                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all duration-300 font-medium"
                                 placeholder="كلمة المرور"
                             />
