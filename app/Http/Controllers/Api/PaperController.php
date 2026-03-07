@@ -42,7 +42,8 @@ class PaperController extends Controller
                 'abstract' => 'required|string',
                 'keywords' => 'required|string',
                 'track' => 'nullable|string',
-                'paper_file' => 'required|file|mimes:pdf,doc,docx|max:10240',
+                'paper_files' => 'required|array|min:1',
+                'paper_files.*' => 'required|file|mimes:pdf,doc,docx,zip,rar,xls,xlsx,csv|max:20480',
                 'coauthors' => 'nullable|array',
                 'coauthors.*.full_name' => 'required|string',
                 'coauthors.*.email' => 'required|email',
@@ -55,8 +56,10 @@ class PaperController extends Controller
 
         try {
             return DB::transaction(function () use ($request) {
-                $file = $request->file('paper_file');
-                $path = $file->store('papers');
+                $files = $request->file('paper_files');
+                $mainFile = $files[0]; // First file is considered the main manuscript
+
+                $mainPath = $mainFile->store('papers');
 
                 $paper = Paper::create([
                     'author_id' => Auth::id(),
@@ -65,20 +68,35 @@ class PaperController extends Controller
                     'abstract' => $request->abstract,
                     'keywords' => $request->keywords,
                     'track' => $request->track,
-                    'file_path' => $path,
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_size' => $file->getSize(),
-                    'file_type' => $file->getClientOriginalExtension(),
+                    'file_path' => $mainPath,
+                    'file_name' => $mainFile->getClientOriginalName(),
+                    'file_size' => $mainFile->getSize(),
+                    'file_type' => $mainFile->getClientOriginalExtension(),
                     'status' => Paper::STATUS_SUBMITTED,
                 ]);
 
-                // Record Version 1
+                // Record Version 1 for Main Manuscript
                 PaperVersion::create([
                     'paper_id' => $paper->id,
                     'version_number' => 1,
-                    'file_path' => $path,
+                    'file_path' => $mainPath,
                     'type' => 'original',
                 ]);
+
+                // Store all attached files (including the main one in the attachments table for consistency)
+                foreach ($files as $index => $file) {
+                    $isMain = ($index === 0);
+                    $path = $isMain ? $mainPath : $file->store('papers/attachments');
+
+                    \App\Models\PaperAttachment::create([
+                        'paper_id' => $paper->id,
+                        'file_path' => $path,
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_size' => $file->getSize(),
+                        'file_type' => $file->getClientOriginalExtension(),
+                        'is_main_manuscript' => $isMain,
+                    ]);
+                }
 
                 if ($request->has('coauthors')) {
                     foreach ($request->coauthors as $coauthorData) {

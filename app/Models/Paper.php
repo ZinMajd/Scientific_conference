@@ -114,6 +114,11 @@ class Paper extends Model
         return $this->hasOne(InitialScreening::class);
     }
 
+    public function attachments()
+    {
+        return $this->hasMany(PaperAttachment::class);
+    }
+
     // Helper methods for state transitions
     public function canSubmitRevision()
     {

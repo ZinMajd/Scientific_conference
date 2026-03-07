@@ -15,7 +15,7 @@ export default function ResearchCreate() {
         keywords: "",
         conf_id: preselectedConfId,
         track: "",
-        paper_file: null,
+        paper_files: [],
         coauthors: [{ full_name: "", email: "", affiliation: "" }],
     });
     const [loading, setLoading] = useState(false);
@@ -60,7 +60,10 @@ export default function ResearchCreate() {
 
     const handleChange = (e) => {
         if (e.target.type === "file") {
-            setFormData({ ...formData, [e.target.name]: e.target.files[0] });
+            const newFiles = Array.from(e.target.files);
+            setFormData({ ...formData, paper_files: [...formData.paper_files, ...newFiles] });
+            // Reset input value so the same file can be selected again if removed
+            e.target.value = null;
         } else {
             setFormData({ ...formData, [e.target.name]: e.target.value });
         }
@@ -70,6 +73,11 @@ export default function ResearchCreate() {
         const newCoauthors = [...formData.coauthors];
         newCoauthors[index][field] = value;
         setFormData({ ...formData, coauthors: newCoauthors });
+    };
+
+    const removeFile = (indexToRemove) => {
+        const updatedFiles = formData.paper_files.filter((_, index) => index !== indexToRemove);
+        setFormData({ ...formData, paper_files: updatedFiles });
     };
 
     const addCoauthor = () => {
@@ -98,8 +106,15 @@ export default function ResearchCreate() {
         data.append("keywords", formData.keywords);
         data.append("conf_id", formData.conf_id);
         data.append("track", formData.track);
-        if (formData.paper_file) {
-            data.append("paper_file", formData.paper_file);
+        
+        if (formData.paper_files && formData.paper_files.length > 0) {
+            formData.paper_files.forEach((file, index) => {
+                data.append(`paper_files[${index}]`, file);
+            });
+        } else {
+            setError("يرجى إرفاق ملف البحث الرئيسي على الأقل.");
+            setLoading(false);
+            return;
         }
 
         // Filter out empty coauthors to avoid validation errors if the user left them blank
@@ -238,10 +253,13 @@ export default function ResearchCreate() {
 
                     {/* File Upload */}
                     <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 space-y-6">
-                        <label className="text-sm font-black text-blue-950 uppercase tracking-widest block pr-2">ملف البحث (PDF/DOCX)</label>
+                        <div className="flex justify-between items-center">
+                            <label className="text-sm font-black text-blue-950 uppercase tracking-widest block pr-2">ملفات البحث (PDF/DOCX/ZIP/CSV)</label>
+                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-xl">الملف الأول يعتبر هو البحث الرئيسي</span>
+                        </div>
                         <div className="relative group">
                             <input 
-                                type="file" name="paper_file" onChange={handleChange} required accept=".pdf,.doc,.docx"
+                                type="file" multiple name="paper_files" onChange={handleChange} accept=".pdf,.doc,.docx,.zip,.rar,.xls,.xlsx,.csv"
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
                             <div className="w-full bg-blue-50 border-2 border-dashed border-blue-200 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 group-hover:bg-blue-100 group-hover:border-blue-400 transition-all">
@@ -249,16 +267,36 @@ export default function ResearchCreate() {
                                     📂
                                 </div>
                                 <div className="text-center">
-                                    <p className="font-bold text-blue-900 text-lg">اضغط هنا لرفع ملف البحث</p>
-                                    <p className="text-blue-500 text-sm mt-1">أو قم بسحب وإسقاط الملف هنا</p>
+                                    <p className="font-bold text-blue-900 text-lg">اضغط هنا لرفع الملاحظات أو اسحب الملفات</p>
+                                    <p className="text-blue-500 text-sm mt-1">يمكنك تحديد عدة ملفات دفعة واحدة</p>
                                 </div>
-                                {formData.paper_file && (
-                                    <div className="mt-4 px-6 py-2 bg-emerald-100 text-emerald-700 rounded-xl font-bold text-sm animate-in fade-in">
-                                        ✅ {formData.paper_file.name}
-                                    </div>
-                                )}
                             </div>
                         </div>
+                        
+                        {formData.paper_files.length > 0 && (
+                            <div className="mt-6 space-y-3">
+                                {formData.paper_files.map((file, index) => (
+                                    <div key={index} className="px-6 py-4 bg-emerald-50 text-emerald-800 rounded-2xl flex items-center justify-between border border-emerald-100 shadow-sm animate-in slide-in-from-top-2">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xl">📄</span>
+                                            <div>
+                                                <p className="font-bold text-sm leading-none">{file.name}</p>
+                                                <p className="text-[10px] font-bold text-emerald-600/70 mt-1 uppercase tracking-widest">
+                                                    {(file.size / 1024 / 1024).toFixed(2)} MB {index === 0 && "— الملف الرئيسي"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeFile(index)} 
+                                            className="w-8 h-8 flex items-center justify-center bg-white text-red-500 rounded-full shadow-sm hover:scale-110 hover:bg-red-50 transition"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Coauthors */}
