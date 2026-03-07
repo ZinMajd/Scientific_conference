@@ -11,7 +11,7 @@
     "routes": [
         {
             "src": "/(css|js|images|fonts|favicon.ico|robots.txt|build)/(.*)",
-            "dest": "/public/$1/$2"
+            "dest": "/$1/$2"
         },
         {
             "src": "/api/(.*)",
