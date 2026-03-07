@@ -113,6 +113,12 @@ export default function Login() {
                 )}
 
                 <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
+                    {/* حقول مخفية لالتقاط الملء التلقائي من المتصفح ومنعه من ملء الحقول الحقيقية */}
+                    <div className="overflow-hidden w-0 h-0 absolute opacity-0">
+                        <input type="text" name="catch_username" tabIndex="-1" autoComplete="username" />
+                        <input type="password" name="catch_password" tabIndex="-1" autoComplete="current-password" />
+                    </div>
+
                     <div>
                         <label className="block text-gray-700 font-bold mb-2">نوع الحساب</label>
                         <select 

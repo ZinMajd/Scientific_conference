@@ -20,6 +20,12 @@ export default function Conferences() {
         fetchConferences();
     }, []);
 
+    const getConferenceImage = (id, imageUrl) => {
+        if (imageUrl && !imageUrl.includes('storage_file') && !imageUrl.includes('storage')) return imageUrl;
+        const images = ['/images/conf_ai.png', '/images/conf_cyber.png', '/images/conf_innovation.png'];
+        return images[(id - 1) % images.length];
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
@@ -33,9 +39,9 @@ export default function Conferences() {
             <h1 className="text-3xl font-bold mb-8">المؤتمرات المتاحة</h1>
             <div className="grid gap-6">
                 {conferences.map((item) => (
-                    <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all border border-gray-100 flex flex-col md:flex-row gap-8">
+                    <div key={item.id} className="bg-white group p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all border border-gray-100 flex flex-col md:flex-row gap-8">
                         <div className="w-full md:w-64 h-44 bg-blue-900 rounded-2xl shrink-0 overflow-hidden">
-                             {item.image_url && <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
+                             <img src={getConferenceImage(item.id, item.image_url)} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         </div>
                         <div className="grow">
                             <div className="flex justify-between items-start mb-4">

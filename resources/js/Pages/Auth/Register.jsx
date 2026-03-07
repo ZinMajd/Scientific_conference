@@ -93,6 +93,12 @@ export default function Register() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
+                    {/* حقول مخفية لالتقاط الملء التلقائي من المتصفح ومنعه من ملء الحقول الحقيقية */}
+                    <div className="overflow-hidden w-0 h-0 absolute opacity-0">
+                        <input type="text" name="catch_username" tabIndex="-1" autoComplete="username" />
+                        <input type="password" name="catch_password" tabIndex="-1" autoComplete="current-password" />
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-sm font-black text-blue-950 uppercase tracking-widest mr-2">الاسم الكامل</label>
                         <input 

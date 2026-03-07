@@ -60,6 +60,12 @@ export default function Show() {
         }
     };
 
+    const getConferenceImage = (id, imageUrl) => {
+        if (imageUrl && !imageUrl.includes('storage_file') && !imageUrl.includes('storage')) return imageUrl;
+        const images = ['/images/conf_ai.png', '/images/conf_cyber.png', '/images/conf_innovation.png'];
+        return images[((id || 1) - 1) % images.length];
+    };
+
     if (loading) {
         return <div className="text-center py-20">جاري التحميل...</div>;
     }
@@ -73,7 +79,7 @@ export default function Show() {
             {/* Header Banner */}
             <div className="relative h-64 md:h-96 rounded-3xl overflow-hidden mb-10 shadow-2xl">
                 <div className="absolute inset-0 bg-gray-900">
-                     {conference.image_url && <img src={conference.image_url} alt={conference.title} className="w-full h-full object-cover opacity-50" />}
+                     <img src={getConferenceImage(conference.id, conference.image_url)} alt={conference.title} className="w-full h-full object-cover opacity-50" />
                 </div>
                 <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-80"></div>
                 <div className="absolute bottom-0 right-0 p-8 md:p-12 text-white">
