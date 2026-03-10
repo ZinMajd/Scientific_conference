@@ -110,7 +110,7 @@ export default function CommitteeResearch() {
     const [reviewers, setReviewers] = useState([]);
     const [assignForm, setAssignForm] = useState({ reviewer_id: '', due_date: '' });
     const [decisionForm, setDecisionForm] = useState({ decision: '', notes: '' });
-    const [screeningForm, setScreeningForm] = useState({ status: '', notes: '', plagiarism_ratio: '', format_match: true });
+    const [screeningForm, setScreeningForm] = useState({ result: '', notes: '', plagiarism_ratio: '', format_check: true });
 
     const openAssignModal = async (paper) => {
         setSelectedPaper(paper);
@@ -143,7 +143,7 @@ export default function CommitteeResearch() {
         setSelectedPaper(null);
         setAssignForm({ reviewer_id: '', due_date: '' });
         setDecisionForm({ decision: '', notes: '' });
-        setScreeningForm({ status: '', notes: '', plagiarism_ratio: '', format_match: true });
+        setScreeningForm({ result: '', notes: '', plagiarism_ratio: '', format_check: true });
     };
 
     const submitAssignment = async (e) => {
@@ -441,14 +441,14 @@ export default function CommitteeResearch() {
                                 <label className="block text-sm font-bold text-gray-700 mb-2">نتيجة الفحص</label>
                                 <select 
                                     className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
-                                    value={screeningForm.status}
-                                    onChange={e => setScreeningForm({...screeningForm, status: e.target.value})}
+                                    value={screeningForm.result}
+                                    onChange={e => setScreeningForm({...screeningForm, result: e.target.value})}
                                     required
                                 >
                                     <option value="">اختر النتيجة...</option>
-                                    <option value="accepted_for_review">مقبول للتحكيم (Proceed to Review)</option>
-                                    <option value="desk_rejection">مرفوض فوراً (Desk Rejection)</option>
-                                    <option value="incomplete">بيانات ناقصة (Incomplete)</option>
+                                    <option value="pass">مقبول للتحكيم (Proceed to Review)</option>
+                                    <option value="fail">مرفوض فوراً (Desk Rejection)</option>
+                                    <option value="revision_required">بيانات ناقصة (Incomplete)</option>
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -466,8 +466,8 @@ export default function CommitteeResearch() {
                                     <label className="flex items-center gap-2 cursor-pointer mt-6">
                                         <input 
                                             type="checkbox"
-                                            checked={screeningForm.format_match}
-                                            onChange={e => setScreeningForm({...screeningForm, format_match: e.target.checked})}
+                                            checked={screeningForm.format_check}
+                                            onChange={e => setScreeningForm({...screeningForm, format_check: e.target.checked})}
                                             className="w-5 h-5 rounded border-gray-300"
                                         />
                                         <span className="text-sm font-bold text-gray-700">مطابق للقالب</span>

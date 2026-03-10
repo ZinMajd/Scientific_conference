@@ -126,6 +126,8 @@ class PaperController extends Controller
 
     public function initialScreening(Request $request, $id)
     {
+        \Illuminate\Support\Facades\Log::info('initialScreening Payload:', $request->all());
+
         $request->validate([
             'result' => 'required|in:pass,fail,revision_required', // Changed from status to result to match model
             'notes' => 'nullable|string',
