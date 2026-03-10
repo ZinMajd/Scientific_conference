@@ -194,6 +194,7 @@ export default function ReviewerForm() {
                                     onChange={(e) => setForm({...form, comments_author: e.target.value})}
                                     className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-indigo-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
                                     placeholder="اكتب ملاحظاتك النقدية والتطويرية للباحث هنا..."
+                                    required
                                 ></textarea>
                             </div>
 
