@@ -14,18 +14,27 @@ export default function ScientificCommitteeLayout() {
         }
     })();
 
+    const userType = user?.user_type || 'committee'; // fallback
+    const hasAccess = (allowedRoles) => {
+        if (!allowedRoles) return true; // if not specified, everyone can see
+        if (['admin', 'chair'].includes(userType)) return true; // chair/admin sees everything
+        return allowedRoles.includes(userType);
+    };
+
     const menuItems = [
         {
             title: 'لوحة التحكم',
             icon: '📊',
             path: '/committee',
-            group: 'الرئيسية'
+            group: 'الرئيسية',
+            allowedRoles: ['committee', 'editor', 'office']
         },
         {
             title: 'إدارة المؤتمرات',
             icon: '🏛️',
             path: '/committee/conferences',
             group: 'المؤتمرات',
+            allowedRoles: [], // Only chair/admin
             subItems: [
                 { title: 'إنشاء مؤتمر جديد', path: '/committee/conferences/create' },
                 { title: 'تعديل بيانات المؤتمر', path: '/committee/conferences' },
@@ -37,10 +46,11 @@ export default function ScientificCommitteeLayout() {
             icon: '📄',
             path: '/committee/research',
             group: 'الأبحاث',
+            allowedRoles: ['committee', 'editor', 'office'],
             subItems: [
-                { title: 'عرض الأبحاث', path: '/committee/research' },
-                { title: 'فرز الأبحاث', path: '/committee/research/sort' },
-                { title: 'اتخاذ القرار الأولي', path: '/committee/research/decisions' }
+                { title: 'عرض الأبحاث', path: '/committee/research', allowedRoles: ['committee', 'editor', 'office'] },
+                { title: 'فرز الأبحاث', path: '/committee/research/sort', allowedRoles: ['committee', 'editor', 'office'] },
+                { title: 'اتخاذ القرار الأولي', path: '/committee/research/decisions', allowedRoles: ['committee'] }
             ]
         },
         {
@@ -48,6 +58,7 @@ export default function ScientificCommitteeLayout() {
             icon: '👨‍🏫',
             path: '/committee/reviewers',
             group: 'المحكمين',
+            allowedRoles: ['committee', 'editor'],
             subItems: [
                 { title: 'إضافة محكم', path: '/committee/reviewers/add' },
                 { title: 'تعديل بيانات محكم', path: '/committee/reviewers' },
@@ -59,6 +70,7 @@ export default function ScientificCommitteeLayout() {
             icon: '⚖️',
             path: '/committee/results',
             group: 'النتائج',
+            allowedRoles: ['committee'],
             subItems: [
                 { title: 'مراجعة التقييمات', path: '/committee/results' },
                 { title: 'التوصية بالقبول/الرفض', path: '/committee/results/recommend' }
@@ -69,6 +81,7 @@ export default function ScientificCommitteeLayout() {
             icon: '🕒',
             path: '/committee/sessions',
             group: 'التنظيم',
+            allowedRoles: ['committee'],
             subItems: [
                 { title: 'إنشاء جلسة', path: '/committee/sessions/create' },
                 { title: 'جدولة الجلسات', path: '/committee/sessions' },
@@ -80,6 +93,7 @@ export default function ScientificCommitteeLayout() {
             icon: '📜',
             path: '/committee/certificates',
             group: 'الوثائق',
+            allowedRoles: ['office'],
             subItems: [
                 { title: 'توليد الشهادات', path: '/committee/certificates/generate' },
                 { title: 'اعتماد الشهادات', path: '/committee/certificates/approve' }
@@ -90,6 +104,7 @@ export default function ScientificCommitteeLayout() {
             icon: '📈',
             path: '/committee/reports',
             group: 'الإحصائيات',
+            allowedRoles: ['office'],
             subItems: [
                 { title: 'تقارير الأبحاث', path: '/committee/reports/research' },
                 { title: 'تقارير المحكمين', path: '/committee/reports/reviewers' },
@@ -100,9 +115,17 @@ export default function ScientificCommitteeLayout() {
             title: 'الإشعارات',
             icon: '🔔',
             path: '/committee/notifications',
-            group: 'النظام'
+            group: 'النظام',
+            allowedRoles: ['committee', 'editor', 'office']
         }
-    ];
+    ].filter(item => hasAccess(item.allowedRoles));
+
+    // Filter subItems as well
+    menuItems.forEach(item => {
+        if (item.subItems) {
+            item.subItems = item.subItems.filter(sub => hasAccess(sub.allowedRoles));
+        }
+    });
 
     const handleLogout = () => {
         localStorage.removeItem('token');
