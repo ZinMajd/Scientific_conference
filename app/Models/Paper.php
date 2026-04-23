@@ -20,6 +20,7 @@ class Paper extends Model
         'file_size',
         'file_type',
         'track',
+        'status',
         'presentation_type',
         'participation_mode',
         'revision_deadline',

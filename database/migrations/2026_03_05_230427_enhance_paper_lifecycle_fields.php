@@ -13,22 +13,32 @@ return new class extends Migration {
     {
         Schema::table('papers', function (Blueprint $table) {
             // Stage 4: Revisions
-            $table->dateTime('revision_deadline')->nullable()->after('track');
+            if (!Schema::hasColumn('papers', 'revision_deadline')) {
+                $table->dateTime('revision_deadline')->nullable()->after('track');
+            }
 
             // Stage 5: Final Acceptance and Publication
-            $table->boolean('publication_selected')->default(false)->after('is_published');
+            if (!Schema::hasColumn('papers', 'publication_selected')) {
+                $table->boolean('publication_selected')->default(false)->after('is_published');
+            }
 
             // Stage 6: Classification and Presentation
-            $table->enum('presentation_type', ['oral', 'poster', 'keynote', 'none'])->default('none')->after('track');
-            $table->enum('participation_mode', ['physical', 'online', 'none'])->default('none')->after('presentation_type');
-            $table->dateTime('invitation_sent_at')->nullable();
-            $table->string('access_link', 500)->nullable();
+            if (!Schema::hasColumn('papers', 'presentation_type')) {
+                $table->enum('presentation_type', ['oral', 'poster', 'keynote', 'none'])->default('none')->after('track');
+            }
+            if (!Schema::hasColumn('papers', 'participation_mode')) {
+                $table->enum('participation_mode', ['physical', 'online', 'none'])->default('none')->after('presentation_type');
+            }
+            if (!Schema::hasColumn('papers', 'invitation_sent_at')) {
+                $table->dateTime('invitation_sent_at')->nullable();
+            }
+            if (!Schema::hasColumn('papers', 'access_link')) {
+                $table->string('access_link', 500)->nullable();
+            }
         });
 
-        // Update status enum - Using raw SQL for better PGSQL compatibility if needed, 
-        // but since we are in Laravel, we'll try to handle it or at least define the new set.
-        // For Postgres, changing enum requires custom logic, but if we use string for now it might be easier.
-        DB::statement("ALTER TABLE papers ALTER COLUMN status TYPE VARCHAR(50)");
+        // Update status enum - Using compatible syntax for MySQL
+        DB::statement("ALTER TABLE papers MODIFY COLUMN status VARCHAR(50)");
     }
 
     public function down(): void
@@ -44,6 +54,6 @@ return new class extends Migration {
             ]);
         });
 
-        DB::statement("ALTER TABLE papers ALTER COLUMN status TYPE VARCHAR(255)");
+        DB::statement("ALTER TABLE papers MODIFY COLUMN status VARCHAR(255)");
     }
 };

@@ -146,23 +146,32 @@ const container = document.getElementById('app');
 if (container) {
     const root = createRoot(container);
 
-    // Axios global defaults - IMPORTANT: must send Accept: application/json
-    // so Laravel returns JSON errors instead of redirecting to /register GET route
-    // axios.defaults.baseURL = 'https://scientific-conference.vercel.app';
+    // إعدادات Axios الافتراضية - مهم جداً: إرسال Accept: application/json
+    // لكي يقوم Laravel بإرجاع أخطاء JSON بدلاً من تحويلنا لصفحة التسجيل
+    
+    // تحديد عنوان السيرفر الرئيسي (نفس عنوان الموقع الحالي)
     axios.defaults.baseURL = window.location.origin;
+    
+    // إخبار السيرفر بأننا نريد استقبال البيانات بتنسيق JSON
     axios.defaults.headers.common['Accept'] = 'application/json';
+    
+    // إخبار السيرفر بأننا نرسل البيانات بتنسيق JSON
     axios.defaults.headers.common['Content-Type'] = 'application/json';
+    
+    // تعريف الطلب كطلب برمجي (AJAX)
     axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-    // Axios central configuration
+    // إعدادات المراقب (Interceptor) لإضافة التوكن تلقائياً لكل طلب
     axios.interceptors.request.use(config => {
         try {
+            // جلب التوكن من ذاكرة المتصفح
             const token = localStorage.getItem('token');
             if (token) {
+                // إدراج التوكن في رأس الطلب للتوثيق
                 config.headers.Authorization = `Bearer ${token}`;
             }
         } catch (e) {
-            console.error('Axios interceptor error:', e);
+            console.error('خطأ في مراقب Axios:', e);
         }
         return config;
     });

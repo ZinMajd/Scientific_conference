@@ -26,13 +26,9 @@ class PaperController extends Controller
     public function store(Request $request)
     {
         \Illuminate\Support\Facades\Log::info('Paper submission attempt', [
-            'has_file' => $request->hasFile('paper_file'),
-            'file_info' => $request->file('paper_file') ? [
-                'name' => $request->file('paper_file')->getClientOriginalName(),
-                'size' => $request->file('paper_file')->getSize(),
-                'mime' => $request->file('paper_file')->getMimeType(),
-            ] : 'No file found',
-            'all_data' => $request->except(['paper_file']),
+            'has_files' => $request->hasFile('paper_files'),
+            'files_count' => $request->file('paper_files') ? count($request->file('paper_files')) : 0,
+            'all_data' => $request->except(['paper_files']),
         ]);
 
         try {
@@ -118,10 +114,16 @@ class PaperController extends Controller
     public function show($id)
     {
         $paper = Paper::with(['conference', 'author', 'coauthors', 'assignments.review'])->findOrFail($id);
-
-        // Authorization check if needed (only author, committee, or assigned reviewer)
-        // For now, simple return
         return response()->json($paper);
+    }
+
+    public function download($id)
+    {
+        $paper = Paper::findOrFail($id);
+        if (!Storage::exists($paper->file_path)) {
+            return response()->json(['message' => 'الملف غير موجود'], 404);
+        }
+        return Storage::download($paper->file_path, $paper->file_name);
     }
 
     public function initialScreening(Request $request, $id)

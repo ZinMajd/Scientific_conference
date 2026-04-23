@@ -11,4 +11,28 @@
         "Cairo", "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
+
+    /* Prussian Blue + Turquoise palette */
+    --color-prussian-950: #001a2e;
+    --color-prussian-900: #003153;
+    --color-prussian-800: #004472;
+    --color-prussian-700: #005a90;
+    --color-prussian-600: #0077b6;
+    --color-teal-400: #40E0D0;
+    --color-teal-300: #67e8df;
+    --color-teal-200: #99f0ea;
+    --color-cyan-400: #22d3ee;
+    --color-ocean: #0096c7;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #40E0D0;
+    border-radius: 99px;
 }
