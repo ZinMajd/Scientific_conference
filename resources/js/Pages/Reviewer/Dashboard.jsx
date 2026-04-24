@@ -91,7 +91,7 @@ export default function ReviewerDashboard() {
                                             <div className="flex-1">
                                                 <h4 className="font-bold text-sm truncate max-w-xs" style={{ color: PRUSSIAN }}>{assignment.paper?.title}</h4>
                                                 <div className="flex gap-4 mt-1">
-                                                    <span className="text-[10px] text-gray-400 font-bold">الباحث: {assignment.paper?.author?.full_name}</span>
+                                                    <span className="text-[10px] text-gray-400 font-bold">الباحث: <span className="blur-[5px] select-none opacity-50">{assignment.paper?.author?.full_name}</span></span>
                                                     <span className="text-[10px] font-bold" style={{ color: OCEAN }}>الموعد: {assignment.due_date || '—'}</span>
                                                 </div>
                                             </div>

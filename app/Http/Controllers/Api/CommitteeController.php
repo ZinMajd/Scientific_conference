@@ -12,6 +12,7 @@ use App\Models\NotificationLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class CommitteeController extends Controller
 {
@@ -45,15 +46,15 @@ class CommitteeController extends Controller
             'total_conferences' => Conference::count(),
             'total_reviewers' => User::where('user_type', 'reviewer')->count(),
             'total_attendees' => Attendee::count(),
-            'technical_check_count' => Paper::where('status', Paper::STATUS_TECHNICAL_CHECK)->count(),
-            'with_editor_count' => Paper::where('status', Paper::STATUS_WITH_EDITOR)->count(),
+            'technical_check_count' => Paper::whereIn('status', [Paper::STATUS_SUBMITTED, Paper::STATUS_UNDER_SCREENING, Paper::STATUS_RESUBMITTED])->count(),
+            'with_editor_count' => Paper::where('status', Paper::STATUS_SCREENED_APPROVED)->count(),
             'under_review_count' => Paper::where('status', Paper::STATUS_UNDER_REVIEW)->count(),
         ]);
     }
 
     public function papers(Request $request)
     {
-        $query = Paper::with(['conference', 'author', 'reviewers']);
+        $query = Paper::with(['conference', 'author', 'reviewers', 'statusHistory']);
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -127,13 +128,33 @@ class CommitteeController extends Controller
 
             $paper = Paper::findOrFail($id);
 
+            // Lifecycle Guard: Only allow assignment if the paper is actually ready for review
+            if (!in_array($paper->status, [Paper::STATUS_READY_FOR_REVIEW, Paper::STATUS_UNDER_REVIEW])) {
+                return response()->json([
+                    'message' => 'لا يمكن إسناد محكمين حالياً. البحث لا يزال في مرحلة: ' . $paper->status,
+                    'error_type' => 'invalid_lifecycle_stage'
+                ], 422);
+            }
+
             if ($this->checkConflict($paper, $request->user())) {
                 return $this->conflictResponse();
             }
 
-            // Check if already assigned
-            if ($paper->paperAssignments()->where('reviewer_id', $request->reviewer_id)->exists()) {
-                return response()->json(['message' => 'Reviewer already assigned'], 422);
+            // Check for recorded conflicts (e.g. from the same institution)
+            if (\App\Models\Conflict::where('paper_id', $id)->where('user_id', $request->reviewer_id)->exists()) {
+                $conflict = \App\Models\Conflict::where('paper_id', $id)->where('user_id', $request->reviewer_id)->first();
+                return response()->json([
+                    'message' => 'تضارب مصالح: ' . $conflict->reason,
+                    'error_type' => 'conflict_of_interest'
+                ], 403);
+            }
+
+            // Check if already assigned and NOT declined
+            if ($paper->paperAssignments()
+                ->where('reviewer_id', $request->reviewer_id)
+                ->whereIn('status', ['assigned', 'accepted', 'completed'])
+                ->exists()) {
+                return response()->json(['message' => 'Reviewer already assigned and active'], 422);
             }
 
             $dueDate = $request->due_date ? $request->due_date : null;
@@ -262,7 +283,7 @@ class CommitteeController extends Controller
         ]);
     }
 
-    public function sendInvitation(Request $request, $id)
+    public function sendAuthorInvitation(Request $request, $id)
     {
         $paper = Paper::findOrFail($id);
 
@@ -361,5 +382,89 @@ class CommitteeController extends Controller
             \Log::error('Delete Reviewer Error: ' . $e->getMessage());
             return response()->json(['message' => 'Failed to delete reviewer: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function sendInvitation(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|unique:users,email|unique:reviewer_invitations,email',
+            'name' => 'required|string|max:255',
+            'affiliation' => 'nullable|string|max:255',
+        ]);
+
+        $token = \Illuminate\Support\Str::random(40);
+
+        $invitation = \DB::table('reviewer_invitations')->insert([
+            'email' => $validated['email'],
+            'name' => $validated['name'],
+            'affiliation' => $validated['affiliation'],
+            'token' => $token,
+            'invited_by' => Auth::id(),
+            'expires_at' => now()->addDays(7),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Generate invitation link (This would be sent via email in production)
+        $invitationLink = url("/register/reviewer?token={$token}");
+
+        return response()->json([
+            'message' => 'تم إنشاء دعوة التسجيل بنجاح.',
+            'invitation_link' => $invitationLink
+        ]);
+    }
+
+    public function verifyInvitation(Request $request)
+    {
+        $token = $request->query('token');
+        $invitation = DB::table('reviewer_invitations')->where('token', $token)->first();
+
+        if (!$invitation || $invitation->status !== 'pending') {
+            return response()->json(['message' => 'هذا الرابط غير صالح أو منتهي الصلاحية.'], 404);
+        }
+
+        return response()->json($invitation);
+    }
+
+    public function registerFromInvitation(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+            'expertise' => 'nullable|string',
+        ]);
+
+        $invitation = DB::table('reviewer_invitations')->where('token', $request->token)->first();
+
+        if (!$invitation || $invitation->status !== 'pending') {
+            return response()->json(['message' => 'حدث خطأ في التحقق من الدعوة.'], 422);
+        }
+
+        return DB::transaction(function () use ($request, $invitation) {
+            // Generate a unique username
+            $username = explode('@', $invitation->email)[0] . rand(100, 999);
+            while (User::where('username', $username)->exists()) {
+                $username = explode('@', $invitation->email)[0] . rand(100, 999);
+            }
+
+            // Create user
+            $user = User::create([
+                'username' => $username,
+                'full_name' => $invitation->name,
+                'email' => $invitation->email,
+                'password' => bcrypt($request->password),
+                'user_type' => 'reviewer',
+                'affiliation' => $invitation->affiliation,
+                'expertise' => $request->expertise,
+            ]);
+
+            // Update invitation status
+            DB::table('reviewer_invitations')->where('token', $request->token)->update([
+                'status' => 'accepted',
+                'updated_at' => now()
+            ]);
+
+            return response()->json(['message' => 'تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.']);
+        });
     }
 }

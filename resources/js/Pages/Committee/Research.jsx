@@ -95,8 +95,11 @@ export default function CommitteeResearch() {
             case 'under_screening': return { text: 'جاري الفحص الأولي', color: 'bg-amber-50 text-amber-600', dot: 'bg-amber-600' };
             case 'resubmitted': return { text: 'تم إعادة الإرسال', color: 'bg-purple-50 text-purple-600', dot: 'bg-purple-600' };
             case 'revision_required': return { text: 'مطلوب تعديل', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-600' };
-            case 'with_editor': return { text: 'مع المحرر العلمي', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-600' };
-            case 'under_review': return { text: 'قيد التحكيم', color: 'bg-cyan-50 text-cyan-600', dot: 'bg-cyan-600' };
+            case 'preliminary_accepted': return { text: 'مقبول مبدئياً (بانتظار الإخفاء)', color: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-600' };
+            case 'with_editor': return { text: 'مقبول فنياً', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-600' };
+            case 'anonymizing': return { text: 'جاري تجهيز النسخة العمياء', color: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-600' };
+            case 'ready_for_review': return { text: 'جاهز للتحكيم (نسخة آمنة)', color: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-600' };
+            case 'under_review': return { text: 'قيد التحكيم الدولي', color: 'bg-cyan-50 text-cyan-600', dot: 'bg-cyan-600' };
             case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-600' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', dot: 'bg-red-600' };
             case 'withdrawn': return { text: 'منسحب', color: 'bg-gray-50 text-gray-600', dot: 'bg-gray-600' };
@@ -266,8 +269,8 @@ export default function CommitteeResearch() {
                     <p className="text-gray-500 font-medium">مراقبة، مراجعة، وتوزيع الأبحاث العلمية على المحكمين</p>
                 </div>
                 <div className="flex gap-4">
+                    <button onClick={fetchPapers} className="p-3 bg-white border border-gray-200 text-gray-500 rounded-2xl hover:bg-emerald-50 hover:text-emerald-600 transition shadow-sm" title="تحديث البيانات">🔄</button>
                     <button onClick={handleExport} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition shadow-sm">📥 تصدير البيانات</button>
-                    {/* <button className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition">🔍 فرز متقدم</button> */}
                 </div>
             </div>
 
@@ -292,7 +295,9 @@ export default function CommitteeResearch() {
                             { label: 'الكل', value: 'all' },
                             { label: 'الفحص الأولي', value: 'under_screening' },
                             { label: 'تم التعديل', value: 'resubmitted' },
-                            { label: 'مع المحرر', value: 'with_editor' },
+                            { label: 'مقبول مبدئياً', value: 'preliminary_accepted' },
+                            { label: 'تجهيز التحكيم', value: 'with_editor' },
+                            { label: 'جاهز للتحكيم', value: 'ready_for_review' },
                             { label: 'قيد التحكيم', value: 'under_review' },
                             { label: 'مقبول', value: 'accepted' }
                         ].map((tab, i) => (
@@ -381,7 +386,11 @@ export default function CommitteeResearch() {
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <button onClick={() => openAssignModal(paper)} className="text-[10px] font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100 italic hover:bg-amber-100 transition">بانتظار الإسناد</button>
+                                                    (paper.status === 'ready_for_review' || paper.status === 'under_review') ? (
+                                                        <button onClick={() => openAssignModal(paper)} className="text-[10px] font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100 italic hover:bg-amber-100 transition">بانتظار الإسناد</button>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-gray-300 italic">بانتظار الفرز/التجهيز</span>
+                                                    )
                                                 )}
                                             </div>
                                         </td>
@@ -390,6 +399,11 @@ export default function CommitteeResearch() {
                                                 <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`}></span>
                                                 <span className="text-[10px] font-black">{status.text}</span>
                                             </div>
+                                            {paper.status_history && paper.status_history.length > 0 && (
+                                                <p className="text-[9px] text-gray-400 mt-1 font-bold truncate max-w-[120px]" title={paper.status_history[0].note}>
+                                                    {paper.status_history[0].note}
+                                                </p>
+                                            )}
                                         </td>
                                         <td className="px-8 py-8">
                                             <div className="flex items-center justify-center gap-2">
@@ -403,11 +417,25 @@ export default function CommitteeResearch() {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <button onClick={() => openScreeningModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="الفحص الأولي">📋</button>
-                                                        <button onClick={() => openAnonymizeModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="إخفاء الهوية">👤</button>
-                                                        <button onClick={() => openAssignModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="إسناد محكم">🔗</button>
-                                                        <button onClick={() => openAggregationModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="تجميع التقييمات">📊</button>
-                                                        <button onClick={() => openDecisionModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="اتخاذ قرار">⚖️</button>
+                                                        {/* الفرز الأولي: يظل متاحاً طالما البحث لم ينتهِ مساره نهائياً */}
+                                                        {['submitted', 'under_screening', 'resubmitted', 'revision_required', 'with_editor'].includes(paper.status) && (
+                                                            <button onClick={() => openScreeningModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="الفحص الأولي">📋</button>
+                                                        )}
+                                                        
+                                                        {/* إخفاء الهوية: يظهر بمجرد القبول الفني ويظل متاحاً للتحديث */}
+                                                        {['with_editor', 'anonymizing', 'preliminary_accepted', 'ready_for_review', 'under_review'].includes(paper.status) && (
+                                                            <button onClick={() => openAnonymizeModal(paper)} className={`p-2.5 rounded-xl transition ${['with_editor', 'preliminary_accepted'].includes(paper.status) ? 'bg-amber-50 text-amber-600 animate-pulse' : 'bg-gray-50 text-gray-400 hover:bg-amber-50 hover:text-amber-600'}`} title="إخفاء الهوية">👤</button>
+                                                        )}
+
+                                                        {/* الإسناد والتحكيم والقرار: يظهر بمجرد جهوزية النسخة العمياء */}
+                                                        {['ready_for_review', 'under_review'].includes(paper.status) && (
+                                                            <>
+                                                                <button onClick={() => openAssignModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="إسناد محكم">🔗</button>
+                                                                <button onClick={() => openAggregationModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="تجميع التقييمات">📊</button>
+                                                                <button onClick={() => openDecisionModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="اتخاذ قرار">⚖️</button>
+                                                            </>
+                                                        )}
+                                                        
                                                         <button onClick={() => openPublishModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="نشر البحث">🌐</button>
                                                     </>
                                                 )}
@@ -642,11 +670,11 @@ export default function CommitteeResearch() {
                                 </div>
 
                                 <div>
-                                    <h4 className="text-sm font-black text-emerald-950 mb-4">توزيع القرارات</h4>
+                                    <h4 className="text-sm font-black text-emerald-950 mb-4">توزيع التوصيات</h4>
                                     <div className="space-y-3">
-                                        {Object.entries(aggregationData.decision_counts).map(([decision, count]) => (
+                                        {Object.entries(aggregationData.recommendation_counts || {}).map(([decision, count]) => (
                                             <div key={decision} className="flex items-center gap-4">
-                                                <span className="w-24 text-xs font-bold text-gray-500">{decision}</span>
+                                                <span className="w-32 text-xs font-bold text-gray-500 uppercase">{decision.replace('_', ' ')}</span>
                                                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                                                     <div 
                                                         className={`h-full ${decision === 'accept' ? 'bg-emerald-500' : decision === 'reject' ? 'bg-red-500' : 'bg-amber-500'}`} 
@@ -657,6 +685,36 @@ export default function CommitteeResearch() {
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-black text-emerald-950">تفاصيل تقارير المحكمين</h4>
+                                    {aggregationData.details?.map((detail, idx) => (
+                                        <div key={idx} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/50">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <p className="text-xs font-black text-emerald-900">{detail.reviewer}</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">التوصية: {detail.recommendation.replace('_', ' ')}</p>
+                                                </div>
+                                                <span className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-black text-emerald-600">
+                                                    {detail.total} / 10
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-2 mb-4">
+                                                {Object.entries(detail.scores).map(([key, score]) => (
+                                                    <div key={key} className="p-2 bg-white rounded-lg border border-gray-100 text-center">
+                                                        <p className="text-[8px] text-gray-400 font-bold uppercase">{key}</p>
+                                                        <p className="text-xs font-black text-gray-700">{score}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {detail.comments_to_editor && (
+                                                <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl text-[10px] text-amber-900 font-medium italic">
+                                                    <strong>ملاحظات للمحرر:</strong> {detail.comments_to_editor}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
 
                                 <div className={`p-6 rounded-2xl border ${aggregationData.contradiction_detected ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'}`}>

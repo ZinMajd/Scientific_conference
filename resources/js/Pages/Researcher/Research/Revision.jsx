@@ -45,9 +45,13 @@ export default function ResearchRevision() {
         data.append('response_letter', formData.response_letter);
         data.append('summary_of_changes', formData.summary_of_changes);
 
+        const token = localStorage.getItem('token');
         try {
-            await axios.post(`/api/papers/${id}/revision`, data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+            await axios.post(`/researcher/papers/${id}/revision`, data, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
             });
             setSuccess("تم تقديم التعديلات بنجاح! سيتم مراجعتها من قبل اللجنة العلمية.");
             setTimeout(() => navigate('/researcher/research'), 3000);

@@ -59,29 +59,51 @@ class PaperWorkflowService
             ->filter();
 
         if ($reviews->isEmpty()) {
-            return null;
+            return [
+                'count' => 0,
+                'average_score' => 0,
+                'decision_counts' => [],
+                'suggested_decision' => 'waiting',
+                'contradiction_detected' => false
+            ];
         }
 
         $count = $reviews->count();
-        $avgScore = $reviews->avg('overall_score');
+        $avgScore = $reviews->avg('total_avg_score');
         
-        $decisions = $reviews->pluck('decision')->toArray();
-        $decisionCounts = array_count_values($decisions);
+        $recommendations = $reviews->pluck('recommendation')->toArray();
+        $recommendationCounts = array_count_values($recommendations);
         
-        // Simple suggestion logic
+        // Advanced Scientific Suggestion Logic (Scale 1-10)
         $suggestion = 'reject';
-        if ($avgScore >= 4.0) {
+        if ($avgScore >= 8.0) {
             $suggestion = 'accept';
-        } elseif ($avgScore >= 3.0) {
-            $suggestion = 'revision_requested';
+        } elseif ($avgScore >= 6.0) {
+            $suggestion = 'minor_revision';
+        } elseif ($avgScore >= 4.0) {
+            $suggestion = 'major_revision';
         }
 
         return [
             'count' => $count,
             'average_score' => round($avgScore, 2),
-            'decision_counts' => $decisionCounts,
+            'recommendation_counts' => $recommendationCounts,
             'suggested_decision' => $suggestion,
-            'contradiction_detected' => (isset($decisionCounts['accept']) && isset($decisionCounts['reject'])),
+            'contradiction_detected' => (isset($recommendationCounts['accept']) && isset($recommendationCounts['reject'])),
+            'details' => $reviews->map(function($r) {
+                return [
+                    'reviewer' => $r->reviewer->full_name,
+                    'scores' => [
+                        'originality' => $r->originality_score,
+                        'methodology' => $r->methodology_score,
+                        'results' => $r->results_score,
+                        'clarity' => $r->clarity_score,
+                    ],
+                    'total' => $r->total_avg_score,
+                    'recommendation' => $r->recommendation,
+                    'comments_to_editor' => $r->comments_to_editor
+                ];
+            })
         ];
     }
 

@@ -5,21 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PaperAssignment extends Model
+class PaperReview extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'paper_id',
         'reviewer_id',
-        'assigned_by',
-        'due_date',
-        'status',
-        'decline_reason'
-    ];
-
-    protected $casts = [
-        'due_date' => 'datetime',
+        'assignment_id',
+        'originality_score',
+        'methodology_score',
+        'results_score',
+        'clarity_score',
+        'total_avg_score',
+        'comments_to_author',
+        'comments_to_editor',
+        'recommendation'
     ];
 
     public function paper()
@@ -30,15 +31,5 @@ class PaperAssignment extends Model
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewer_id');
-    }
-
-    public function assigner()
-    {
-        return $this->belongsTo(User::class, 'assigned_by');
-    }
-
-    public function review()
-    {
-        return $this->hasOne(PaperReview::class, 'assignment_id');
     }
 }

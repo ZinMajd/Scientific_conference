@@ -24,11 +24,12 @@ class RoleMiddleware
 
         $rolesArray = explode('|', $roles);
         $userRoles = $request->user()->roles->pluck('slug')->toArray();
+        $userType = $request->user()->user_type;
 
-        // Check if user has at least one of the required roles
+        // Check if user has at least one of the required roles or matching user_type
         $hasRole = false;
         foreach ($rolesArray as $role) {
-            if (in_array($role, $userRoles)) {
+            if (in_array($role, $userRoles) || $role === $userType) {
                 $hasRole = true;
                 break;
             }

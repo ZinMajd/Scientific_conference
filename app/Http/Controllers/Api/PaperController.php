@@ -7,6 +7,7 @@ use App\Models\Paper;
 use App\Models\Coauthor;
 use App\Models\PaperVersion;
 use App\Models\InitialScreening;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -150,6 +151,25 @@ class PaperController extends Controller
         }
     }
 
+    public function archive(Request $request)
+    {
+        $query = Paper::where('is_published', true)
+            ->with(['conference', 'author'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhereHas('author', function($aq) use ($search) {
+                      $aq->where('full_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->paginate(12);
+    }
+
     public function show($id)
     {
         $paper = Paper::with(['conference', 'author', 'coauthors', 'assignments.review', 'statusHistory.user'])->findOrFail($id);
@@ -184,14 +204,44 @@ class PaperController extends Controller
                 return $this->conflictResponse();
             }
 
-            $eventMap = [
-                'technical_pass' => 'TECHNICAL_CHECK_PASS',
-                'technical_fail' => 'TECHNICAL_CHECK_FAIL',
-                'scientific_pass' => 'INITIAL_SCREENING_PASS',
-                'desk_reject' => 'DESK_REJECT'
+            // 1. Calculate Automated System Recommendation (The Decision Engine)
+            $systemRecommendation = 'ACCEPT_PRELIMINARY';
+            
+            if (($request->plagiarism_ratio && $request->plagiarism_ratio > 30) || $request->result === 'desk_reject') {
+                $systemRecommendation = 'REJECT';
+            } elseif ($request->format_check === false || $request->completeness_check === false || $request->result === 'technical_fail') {
+                $systemRecommendation = 'REVISION_REQUIRED';
+            }
+
+            // 2. Map Professional Result to Final Status
+            $statusMap = [
+                'technical_pass' => Paper::STATUS_SCREENED_APPROVED, // Passed to Scientific Editor
+                'technical_fail' => Paper::STATUS_REVISION_REQUIRED,
+                'scientific_pass' => Paper::STATUS_PRELIMINARY_ACCEPTED, // Gateway to Anonymization
+                'desk_reject' => Paper::STATUS_REJECTED
             ];
 
-            $this->workflow->transition($paper, $eventMap[$request->result], $request->notes);
+            $newStatus = $statusMap[$request->result];
+            $note = "قرار الفرز الأولي: " . ($request->notes ?: "لا توجد ملاحظات إضافية");
+            
+            // 3. Apply transition with history
+            $paper->transitionStatus($newStatus, $note, Auth::id());
+
+            // 4. Store in Screening Decisions (The History Layer)
+            DB::table('screening_decisions')->insert([
+                'paper_id' => $paper->id,
+                'system_recommendation' => $systemRecommendation,
+                'editor_decision' => $request->result,
+                'notes' => $request->notes,
+                'decided_by' => Auth::id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // 5. Update specific fields
+            if ($request->has('plagiarism_ratio')) {
+                $paper->update(['plagiarism_ratio' => $request->plagiarism_ratio]);
+            }
 
             InitialScreening::create([
                 'paper_id' => $paper->id,
@@ -203,9 +253,13 @@ class PaperController extends Controller
                 'comments' => $request->notes,
             ]);
 
+            $paper->refresh(); // Refresh to get the latest status from DB
+
             return response()->json([
-                'message' => 'تم تسجيل نتيجة الفرز الأولي بنجاح',
-                'paper' => $paper
+                'message' => 'تم تسجيل القرار الأولي بنجاح.',
+                'system_recommendation' => $systemRecommendation,
+                'final_status' => $newStatus,
+                'paper' => $paper->load('versions')
             ]);
         });
     }
@@ -213,45 +267,89 @@ class PaperController extends Controller
     public function anonymize(Request $request, $id)
     {
         $request->validate([
-            'blind_file' => 'required|file|mimes:pdf|max:10240',
+            'blind_file' => 'required|file|mimes:pdf,doc,docx|max:10240',
             'notes' => 'nullable|string',
         ]);
 
-        $paper = Paper::findOrFail($id);
-        $path = $request->file('blind_file')->store('papers/blind');
+        return DB::transaction(function () use ($request, $id) {
+            $paper = Paper::with('author')->findOrFail($id);
+            
+            // 1. Store the Blind Version
+            $file = $request->file('blind_file');
+            $path = $file->store('papers/blind', 'public');
 
-        $this->workflow->anonymize($paper, $path, $request->notes);
+            // 2. Register in paper_versions and update main paper record
+            \App\Models\PaperVersion::create([
+                'paper_id' => $paper->id,
+                'version_number' => $paper->versions()->count() + 1,
+                'file_path' => $path,
+                'type' => 'blind',
+                'notes' => $request->notes
+            ]);
 
-        return response()->json([
-            'message' => 'تم إنشاء النسخة المخفية (Blind Version) بنجاح',
-            'paper' => $paper
-        ]);
+            $paper->update([
+                'blind_file_path' => $path,
+                'status' => Paper::STATUS_ANONYMIZING // This will be updated to UNDER_REVIEW on first assignment
+            ]);
+            
+            $paper->transitionStatus(Paper::STATUS_ANONYMIZING, 'تم رفع النسخة العمياء بنجاح. البحث جاهز الآن للتحكيم.', Auth::id());
+
+            // 3. Automated Conflict Detection (Institutional)
+            $authorInstitution = $paper->author->affiliation ?? null;
+            if ($authorInstitution) {
+                $reviewersWithConflict = User::where('user_type', 'reviewer')
+                    ->where('affiliation', $authorInstitution)
+                    ->get();
+
+                foreach ($reviewersWithConflict as $reviewer) {
+                    \App\Models\Conflict::updateOrCreate(
+                        ['paper_id' => $paper->id, 'user_id' => $reviewer->id],
+                        [
+                            'type' => 'author_conflict',
+                            'reason' => 'المحكم يعمل في نفس جهة عمل المؤلف: ' . $authorInstitution
+                        ]
+                    );
+                }
+            }
+
+            // 4. Update Status to Ready for Review
+            $paper->transitionStatus(Paper::STATUS_READY_FOR_REVIEW, 'تم تجهيز النسخة العمياء وكشف تضارب المصالح بنجاح. البحث جاهز الآن للتحكيم.');
+
+            return response()->json([
+                'message' => 'تم إنتاج النسخة العمياء وتفعيل نظام حماية النزاهة بنجاح.',
+                'paper' => $paper->load('versions')
+            ]);
+        });
     }
 
     public function submitRevision(Request $request, $id)
     {
+        \Illuminate\Support\Facades\Log::info('!!! REVISION_REQUEST_RECEIVED !!!', [
+            'id' => $id,
+            'user' => Auth::id(),
+            'user_type' => Auth::user()?->user_type,
+            'has_files' => $request->hasFile('revised_file')
+        ]);
+
         $request->validate([
             'revised_file' => 'required|file|mimes:pdf,doc,docx|max:10240',
             'response_letter' => 'required|file|mimes:pdf,doc,docx,txt|max:5120',
             'summary_of_changes' => 'required|string',
         ]);
         
-        \Illuminate\Support\Facades\Log::info('SUBMIT_REVISION_START', ['paper_id' => $id, 'user_id' => Auth::id()]);
-        
         $paper = Paper::findOrFail($id);
 
-        // Use != (not !==) to avoid type mismatch between int/string
+        // Ensure the current user is the author
         if ($paper->author_id != Auth::id()) {
-            \Illuminate\Support\Facades\Log::warning('REVISION_AUTH_FAILED', [
-                'paper_author_id' => $paper->author_id,
-                'auth_user_id'    => Auth::id(),
-                'paper_id'        => $id,
+            \Illuminate\Support\Facades\Log::warning('REVISION_UNAUTHORIZED_ATTEMPT', [
+                'paper_author' => $paper->author_id,
+                'current_user' => Auth::id()
             ]);
             return response()->json(['message' => 'غير مصرح لك بتعديل هذا البحث'], 403);
         }
 
         try {
-            $revisedFile   = $request->file('revised_file');
+            $revisedFile = $request->file('revised_file');
             $responseLetter = $request->file('response_letter');
 
             $revisedPath  = $revisedFile->store('papers/revisions');
@@ -270,30 +368,18 @@ class PaperController extends Controller
                 'type'                 => 'revised',
             ]);
 
-            \Illuminate\Support\Facades\Log::info('TRANSITIONING_STATUS', [
-                'from' => $paper->status, 'to' => 'resubmitted'
-            ]);
+            // Transition using the professional State Machine
+            // This will automatically change status to 'resubmitted' and record in history
+            $paper->transitionStatus(Paper::STATUS_RESUBMITTED, 'تم تعديل البحث وإعادة إرساله للفحص الأولي من قبل الباحث');
 
-            // Transition status (workflow handles its own transaction)
-            $this->workflow->transition($paper, 'REVISION_SUBMITTED', $request->summary_of_changes, [
-                'file_path' => $revisedPath,
-                'file_name' => $revisedFile->getClientOriginalName(),
-            ]);
-
-            // Force direct DB update as safety net
-            DB::table('papers')
-                ->where('id', $paper->id)
-                ->update(['status' => Paper::STATUS_RESUBMITTED, 'updated_at' => now()]);
-
-            $paper->refresh(); // reload from DB to get the final status
-
-            \Illuminate\Support\Facades\Log::info('STATUS_UPDATED_SUCCESSFULLY', [
-                'new_status' => $paper->status
+            \Illuminate\Support\Facades\Log::info('STATE_MACHINE_TRANSITION_SUCCESS', [
+                'new_status' => $paper->status,
+                'paper_id' => $paper->id
             ]);
 
             return response()->json([
-                'message' => 'تم تقديم التعديلات بنجاح. سيتم مراجعتها من قبل المحرر أو المحكمين.',
-                'paper'   => $paper,
+                'message' => 'تم إعادة إرسال البحث بنجاح. ستظهر الآن لمكتب التحرير كنسخة معدلة جاهزة للفحص.',
+                'paper' => $paper
             ]);
 
         } catch (\Exception $e) {

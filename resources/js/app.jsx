@@ -9,11 +9,13 @@ import ConferenceDetails from './Pages/Conferences/Show';
 import Login from './Pages/Auth/Login';
 import Register from './Pages/Auth/Register';
 import ReviewerRegister from './Pages/Auth/ReviewerRegister';
+import RegisterReviewer from './Pages/Auth/RegisterReviewer';
 import ForgotPassword from './Pages/Auth/ForgotPassword';
 import Dashboard from './Pages/Profile/Dashboard';
 import ProfileEdit from './Pages/Profile/Edit';
 import Security from './Pages/Profile/Security';
 import ActivityLog from './Pages/Profile/ActivityLog';
+import Archive from './Pages/Archive';
 
 // Profile Layout
 import ProfileLayout from './Layouts/ProfileLayout';
@@ -65,12 +67,13 @@ function App() {
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="conferences" element={<Conferences />} />
+                    <Route path="archive" element={<Archive />} />
                     <Route path="conferences/:id" element={<ConferenceDetails />} />
                     
                     {/* Auth Routes */}
                     <Route path="login" element={<Login />} />
                     <Route path="register" element={<Register />} />
-                    <Route path="register/reviewer" element={<ReviewerRegister />} />
+                    <Route path="register/reviewer" element={<RegisterReviewer />} />
                     <Route path="forgot-password" element={<ForgotPassword />} />
                 </Route>
 

@@ -72,6 +72,22 @@ export default function CommitteeReviewers() {
         }
     };
 
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteForm, setInviteForm] = useState({ name: '', email: '', affiliation: '' });
+    const [invitationLink, setInvitationLink] = useState(null);
+
+    const handleSendInvitation = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('/api/committee/reviewers/invite', inviteForm);
+            setInvitationLink(response.data.invitation_link);
+            alert('تم إنشاء دعوة التسجيل بنجاح.');
+            setInviteForm({ name: '', email: '', affiliation: '' });
+        } catch (error) {
+            alert('فشل إرسال الدعوة: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
     return (
         <div className="space-y-10 animate-in fade-in duration-700 pb-20 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -160,9 +176,80 @@ export default function CommitteeReviewers() {
                 <div className="space-y-4">
                     <h3 className="text-2xl font-black text-emerald-900">دعوات محكمين خارجيين</h3>
                     <p className="text-gray-500 font-medium leading-relaxed max-w-2xl">أرسل دعوات تسجيل رسمية لأساتذة من خارج الجامعة للمشاركة في تحكيم المؤتمر الحالي بمميزات خاصة وتحصيل التراخيص اللازمة.</p>
-                    <button className="px-10 py-4 bg-emerald-950 text-white font-black rounded-3xl hover:bg-emerald-800 transition shadow-xl shadow-emerald-950/20">إرسال دعوات التسجيل ➔</button>
+                    <button 
+                        onClick={() => {
+                            setInvitationLink(null);
+                            setShowInviteModal(true);
+                        }}
+                        className="px-10 py-4 bg-emerald-950 text-white font-black rounded-3xl hover:bg-emerald-800 transition shadow-xl shadow-emerald-950/20"
+                    >
+                        إرسال دعوات التسجيل ➔
+                    </button>
                 </div>
             </div>
+
+            {/* Invitation Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+                        <div className="flex justify-between items-start mb-6">
+                            <h3 className="text-xl font-black text-emerald-950">إرسال دعوة لمحكم خارجي</h3>
+                            <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                        </div>
+
+                        {invitationLink ? (
+                            <div className="space-y-6">
+                                <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 text-center">
+                                    <p className="text-emerald-800 font-bold mb-4">تم إنشاء الرابط بنجاح! انسخ الرابط وأرسله للمحكم:</p>
+                                    <div className="p-4 bg-white border border-emerald-200 rounded-xl font-mono text-xs break-all select-all">
+                                        {invitationLink}
+                                    </div>
+                                </div>
+                                <button onClick={() => setInvitationLink(null)} className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-700 transition">إرسال دعوة أخرى</button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSendInvitation} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">اسم الأستاذ / المحكم</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
+                                        value={inviteForm.name}
+                                        onChange={e => setInviteForm({...inviteForm, name: e.target.value})}
+                                        placeholder="مثال: د. أحمد محمد"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label>
+                                    <input 
+                                        type="email" 
+                                        className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
+                                        value={inviteForm.email}
+                                        onChange={e => setInviteForm({...inviteForm, email: e.target.value})}
+                                        placeholder="professor@university.edu"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">الجامعة / الجهة الخارجية</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
+                                        value={inviteForm.affiliation}
+                                        onChange={e => setInviteForm({...inviteForm, affiliation: e.target.value})}
+                                        placeholder="جامعة الملك سعود"
+                                    />
+                                </div>
+                                <div className="flex gap-3 mt-6">
+                                    <button type="submit" className="flex-1 bg-emerald-950 text-white py-3 rounded-xl font-bold hover:bg-emerald-800 transition">إنشاء رابط الدعوة</button>
+                                    <button type="button" onClick={() => setShowInviteModal(false)} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Add Reviewer Modal */}
             {showAddModal && (

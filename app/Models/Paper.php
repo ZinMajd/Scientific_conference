@@ -38,12 +38,16 @@ class Paper extends Model
 
     // Lifecycle Statuses
     // Lifecycle Statuses
+    // Lifecycle Statuses - Professional State Machine
     const STATUS_SUBMITTED = 'submitted';
-    const STATUS_UNDER_SCREENING = 'under_screening'; // جاري الفحص (مكتب التحرير)
-    const STATUS_REVISION_REQUIRED = 'revision_required'; // مطلوب تعديل (بيانات ناقصة/تعديل فني)
+    const STATUS_UNDER_SCREENING = 'under_screening'; // جاري الفحص الأولي (مكتب التحرير)
+    const STATUS_REVISION_REQUIRED = 'revision_required'; // مطلوب تعديل (بيانات ناقصة)
     const STATUS_RESUBMITTED = 'resubmitted'; // تم إعادة الإرسال (جاهز لإعادة الفحص)
-    const STATUS_WITH_EDITOR = 'with_editor'; // مع المحرر العلمي (بعد نجاح الفحص)
-    const STATUS_UNDER_REVIEW = 'under_review'; // قيد التحكيم (مع المحكمين)
+    const STATUS_SCREENED_APPROVED = 'with_editor'; // تم قبول الفحص الفني (مع المحرر)
+    const STATUS_PRELIMINARY_ACCEPTED = 'preliminary_accepted'; // مقبول مبدئياً (جاهز للإخفاء والتحكيم)
+    const STATUS_ANONYMIZING = 'anonymizing'; // جاري إخفاء الهوية
+    const STATUS_READY_FOR_REVIEW = 'ready_for_review'; // جاهز للتحكيم (النسخة العمياء جاهزة)
+    const STATUS_UNDER_REVIEW = 'under_review'; // قيد التحكيم
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_REJECTED = 'rejected';
     const STATUS_SCHEDULED = 'scheduled';

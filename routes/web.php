@@ -2,9 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 Route::middleware(['auth:sanctum'])->prefix('researcher')->name('researcher.')->group(function () {
     Route::resource('papers', \App\Http\Controllers\Researcher\PaperController::class);
+    Route::post('papers/{id}/revision', [\App\Http\Controllers\Api\PaperController::class, 'submitRevision']);
 });
 
 
@@ -41,6 +43,7 @@ Route::prefix('api')->group(function () {
     // Public Conference Routes (Now in web.php to use sessions if available)
     Route::get('/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'index']);
     Route::get('/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'show']);
+    Route::get('/archive', [\App\Http\Controllers\Api\PaperController::class, 'archive']);
 
     Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
     Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
@@ -48,7 +51,10 @@ Route::prefix('api')->group(function () {
     Route::post('/conferences/{id}/register-attendance', [\App\Http\Controllers\Api\AttendeeController::class, 'register']);
     Route::get('/conferences/{id}/check-registration', [\App\Http\Controllers\Api\AttendeeController::class, 'checkRegistration']);
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/invitation/verify', [\App\Http\Controllers\Api\CommitteeController::class, 'verifyInvitation']);
+    Route::post('/invitation/complete', [\App\Http\Controllers\Api\CommitteeController::class, 'registerFromInvitation']);
+
+Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/user', function (Request $request) {
             return $request->user();
         });
@@ -76,6 +82,8 @@ Route::prefix('api')->group(function () {
             Route::get('/committee/papers', [\App\Http\Controllers\Api\CommitteeController::class, 'papers']);
             Route::get('/committee/papers/export', [\App\Http\Controllers\Api\CommitteeController::class, 'exportPapers']);
             Route::get('/committee/reviewers', [\App\Http\Controllers\Api\CommitteeController::class, 'reviewers']);
+            Route::post('/committee/reviewers', [\App\Http\Controllers\Api\CommitteeController::class, 'addReviewer']);
+            Route::post('/committee/reviewers/invite', [\App\Http\Controllers\Api\CommitteeController::class, 'sendInvitation']);
             Route::get('/committee/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'committeeIndex']);
             
             // Editor Specific
@@ -84,6 +92,8 @@ Route::prefix('api')->group(function () {
             
             // Scientific Committee Specific
             Route::post('/committee/papers/{id}/decision', [\App\Http\Controllers\Api\CommitteeController::class, 'decision']);
+            
+            Route::post('/committee/papers/{id}/mark-as-published', [\App\Http\Controllers\Api\CommitteeController::class, 'markAsPublished']);
             
             // Office Specific
             Route::get('/committee/reports/papers', [\App\Http\Controllers\Api\ReportController::class, 'papers']);
@@ -110,5 +120,13 @@ Route::prefix('api')->group(function () {
 
         // Logout
         Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
+        // Reviewer Operations
+        Route::prefix('reviewer')->group(function () {
+            Route::get('/stats', [\App\Http\Controllers\Api\ReviewerController::class, 'stats']);
+            Route::get('/assignments', [\App\Http\Controllers\Api\ReviewerController::class, 'assignments']);
+            Route::post('/assignments/{id}/accept', [\App\Http\Controllers\Api\ReviewerController::class, 'acceptAssignment']);
+            Route::post('/assignments/{id}/decline', [\App\Http\Controllers\Api\ReviewerController::class, 'declineAssignment']);
+            Route::post('/assignments/{id}/review', [\App\Http\Controllers\Api\ReviewerController::class, 'submitReview']);
+        });
     });
 });

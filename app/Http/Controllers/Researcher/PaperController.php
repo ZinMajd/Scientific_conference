@@ -187,6 +187,11 @@ class PaperController extends Controller
 
                 $paper->update($updateData);
 
+                // Professional State Machine: If paper was "revision_required", change it to "resubmitted" automatically
+                if ($paper->status === Paper::STATUS_REVISION_REQUIRED) {
+                    $paper->transitionStatus(Paper::STATUS_RESUBMITTED, 'تم تحديث بيانات البحث من قبل الباحث (تعديل مباشر)');
+                }
+
                 // Sync Coauthors: Delete existing and recreate
                 $paper->coauthors()->delete();
                 if (!empty($validated['coauthors'])) {

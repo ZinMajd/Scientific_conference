@@ -72,6 +72,7 @@ export default function MainLayout() {
                     <nav className="hidden md:flex gap-6 items-center text-sm">
                         <Link to="/" className={getLinkClass('/')}>الرئيسية</Link>
                         <Link to="/conferences" className={getLinkClass('/conferences')}>المؤتمرات</Link>
+                        <Link to="/archive" className={getLinkClass('/archive')}>الأرشيف العلمي</Link>
                         <Link to="/about" className={getLinkClass('/about')}>عن النظام</Link>
                         <Link to="/faq" className={getLinkClass('/faq')}>الأسئلة الشائعة</Link>
                         <Link to="/support" className={getLinkClass('/support')}>الدعم</Link>
@@ -137,6 +138,7 @@ export default function MainLayout() {
                         style={{ background: '#001a2e' }}>
                         <Link to="/" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الرئيسية</Link>
                         <Link to="/conferences" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>المؤتمرات</Link>
+                        <Link to="/archive" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الأرشيف العلمي</Link>
                         <Link to="/about" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>عن النظام</Link>
                         <Link to="/faq" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الأسئلة الشائعة</Link>
                         <Link to="/support" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الدعم</Link>
