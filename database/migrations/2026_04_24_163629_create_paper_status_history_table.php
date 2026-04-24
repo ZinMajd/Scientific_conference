@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function run(): void
+    public function up(): void
     {
         Schema::create('paper_status_history', function (Blueprint $blueprint) {
             $blueprint->id();
