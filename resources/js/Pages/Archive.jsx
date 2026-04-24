@@ -36,7 +36,7 @@ export default function Archive() {
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-['Cairo']">
             {/* Hero Section */}
-            <div className="bg-[#001a2e] text-white py-20 relative overflow-hidden">
+            <div className="text-white py-20 relative overflow-hidden" style={{ background: '#001a2e' }}>
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #40E0D0 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <h1 className="text-4xl md:text-5xl font-black mb-4">الأرشيف العلمي العام</h1>
