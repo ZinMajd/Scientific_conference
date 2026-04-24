@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
+const PRUSSIAN_GRADIENT = 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)';
 const TURQUOISE = '#40E0D0';
-const OCEAN = '#0096c7';
 
 export default function ResearcherLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -63,7 +61,7 @@ export default function ResearcherLayout() {
 
     const getActiveStyle = (path, subItems) =>
         isActive(path, subItems)
-            ? { background: `linear-gradient(135deg, ${OCEAN}, ${TURQUOISE}20)`, color: 'white', boxShadow: `0 4px 15px ${TURQUOISE}30` }
+            ? { background: 'rgba(255, 255, 255, 0.1)', color: 'white', borderRight: `4px solid ${TURQUOISE}` }
             : {};
 
     const getActiveClass = (path, subItems) =>
@@ -80,11 +78,11 @@ export default function ResearcherLayout() {
         : {};
 
     return (
-        <div className="min-h-screen flex flex-row-reverse" style={{ fontFamily: "'Cairo', sans-serif", background: '#f0fafa' }} dir="rtl">
+        <div className="min-h-screen flex flex-row-reverse bg-gray-50" style={{ fontFamily: "'Cairo', sans-serif" }} dir="rtl">
             {/* Sidebar */}
             <aside
                 className={`${isSidebarOpen ? 'w-72' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
-                style={{ background: `linear-gradient(180deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 100%)`, borderLeft: `1px solid ${TURQUOISE}20` }}>
+                style={{ background: PRUSSIAN_GRADIENT, borderLeft: `1px solid ${TURQUOISE}20` }}>
 
                 {/* Logo Area */}
                 <div className="p-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${TURQUOISE}20` }}>
@@ -167,7 +165,7 @@ export default function ResearcherLayout() {
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-8" style={{ background: '#f0fafa' }}>
+                <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
                     <div className="max-w-7xl mx-auto">
                         <Outlet />
                     </div>

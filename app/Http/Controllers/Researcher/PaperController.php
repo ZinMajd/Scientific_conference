@@ -113,7 +113,7 @@ class PaperController extends Controller
             return response()->json(['message' => "البحث رقم {$id} غير موجود في النظام."], 404);
         }
 
-        if ($paper->author_id !== Auth::id()) {
+        if ($paper->author_id != Auth::id()) {
             return response()->json([
                 'message' => "غير مصرح لك بعرض هذا البحث. هذا البحث يخص باحثاً آخر.",
                 'debug' => [
@@ -126,6 +126,7 @@ class PaperController extends Controller
         $paper->load([
             'conference',
             'coauthors',
+            'statusHistory', // Load audit trail for status timeline
             'assignments' => function ($query) {
                 $query->where('status', 'completed')
                     ->with([
@@ -136,7 +137,11 @@ class PaperController extends Controller
             }
         ]);
 
-        return response()->json(['paper' => $paper]);
+        // Remap statusHistory to status_history for frontend compatibility
+        $paperData = $paper->toArray();
+        $paperData['status_history'] = $paperData['status_history'] ?? [];
+
+        return response()->json(['paper' => $paperData]);
     }
 
     public function update(Request $request, $id)

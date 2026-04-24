@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
+const PRUSSIAN_GRADIENT = 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)';
 const TURQUOISE = '#40E0D0';
-const OCEAN = '#0096c7';
 
 export default function ReviewerLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -38,9 +36,9 @@ export default function ReviewerLayout() {
     };
 
     return (
-        <div className="min-h-screen flex flex-row-reverse" style={{ fontFamily: "'Cairo', sans-serif", background: '#f0fafa' }} dir="rtl">
+        <div className="min-h-screen flex flex-row-reverse bg-gray-50" style={{ fontFamily: "'Cairo', sans-serif" }} dir="rtl">
             <aside className={`${isSidebarOpen ? 'w-72' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
-                style={{ background: `linear-gradient(180deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 100%)`, borderLeft: `1px solid ${TURQUOISE}20` }}>
+                style={{ background: PRUSSIAN_GRADIENT, borderLeft: `1px solid ${TURQUOISE}20` }}>
                 <div className="p-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${TURQUOISE}20` }}>
                     {isSidebarOpen && (
                         <div>
@@ -70,8 +68,8 @@ export default function ReviewerLayout() {
                                 </h4>
                             )}
                             <Link to={item.path}
-                                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${isActive(item.path) ? 'text-white font-bold' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
-                                style={isActive(item.path) ? { background: `linear-gradient(135deg, ${OCEAN}, ${TURQUOISE}20)`, boxShadow: `0 4px 15px ${TURQUOISE}30` } : {}}
+                                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${isActive(item.path) ? 'text-white font-bold bg-white/10 border-r-4 border-teal-400' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+                                style={{}}
                                 title={!isSidebarOpen ? item.title : ''}>
                                 <span className="text-lg">{item.icon}</span>
                                 {isSidebarOpen && <span className="font-semibold flex-1 text-sm">{item.title}</span>}
@@ -90,7 +88,7 @@ export default function ReviewerLayout() {
             </aside>
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-8" style={{ background: '#f0fafa' }}>
+                <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
                     <div className="max-w-7xl mx-auto"><Outlet /></div>
                 </div>
             </main>

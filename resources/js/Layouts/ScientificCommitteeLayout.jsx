@@ -141,15 +141,18 @@ export default function ScientificCommitteeLayout() {
     };
 
     const getActiveStyle = (path, subItems) => 
-        isActive(path, subItems) ? 'bg-blue-900 text-white shadow-lg' : 'text-gray-300 hover:bg-white/10 hover:text-white';
+        isActive(path, subItems) ? 'bg-white/10 text-white shadow-lg border-r-4 border-teal-400' : 'text-gray-300 hover:bg-white/5 hover:text-white';
 
-    const isSubActive = (path) => location.pathname === path ? 'text-white font-bold border-r-2 border-white pr-4 -mr-4' : 'text-gray-400 hover:text-blue-400 transition';
+    const isSubActive = (path) => location.pathname === path ? 'text-teal-400 font-bold border-r-2 border-teal-400 pr-4 -mr-4' : 'text-gray-400 hover:text-teal-400 transition';
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-row-reverse font-['Inter', 'Cairo', sans-serif]" dir="rtl">
+        <div className="min-h-screen bg-gray-50 flex flex-row-reverse font-['Cairo', sans-serif]" dir="rtl">
             {/* Sidebar */}
-            <aside className={`${isSidebarOpen ? 'w-80' : 'w-20'} bg-blue-950 transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}>
-                <div className="p-6 flex items-center justify-between border-b border-blue-900/50">
+            <aside 
+                className={`${isSidebarOpen ? 'w-80' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
+                style={{ background: 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)' }}
+            >
+                <div className="p-6 flex items-center justify-between border-b border-white/10">
                     {isSidebarOpen && (
                         <div className="flex flex-col">
                             <span className="text-xl font-black text-white truncate">
@@ -158,8 +161,8 @@ export default function ScientificCommitteeLayout() {
                                  user?.user_type === 'editor' ? 'المحرر العلمي' : 
                                  user?.user_type === 'admin' ? 'إدارة النظام' : 'اللجنة العلمية'}
                             </span>
-                            <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">جامعة إقليم سبأ</span>
-                            <Link to="/researcher" className="mt-2 block text-[10px] bg-white/5 text-center py-1 rounded hover:bg-white/10 transition text-blue-300">
+                            <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest mt-1">جامعة إقليم سبأ</span>
+                            <Link to="/researcher" className="mt-2 block text-[10px] bg-white/10 text-center py-1 rounded hover:bg-white/20 transition text-white">
                                 دخول لوحة الباحث ←
                             </Link>
                         </div>
@@ -173,7 +176,7 @@ export default function ScientificCommitteeLayout() {
                     {menuItems.map((item, idx) => (
                         <div key={idx} className="space-y-1">
                             {isSidebarOpen && (
-                                <h4 className="text-[9px] uppercase tracking-[0.2em] text-blue-500/60 font-black mb-2 px-4">
+                                <h4 className="text-[9px] uppercase tracking-[0.2em] text-teal-400/60 font-black mb-2 px-4">
                                     {item.group}
                                 </h4>
                             )}
@@ -187,7 +190,7 @@ export default function ScientificCommitteeLayout() {
                             </Link>
                             
                             {isSidebarOpen && item.subItems && (
-                                <div className="mr-6 border-r border-emerald-800/50 pr-4 mt-1 space-y-1 h-auto overflow-hidden">
+                                <div className="mr-6 border-r border-teal-400/20 pr-4 mt-1 space-y-1 h-auto overflow-hidden">
                                     {item.subItems.map((sub, sIdx) => (
                                         <Link 
                                             key={sIdx} 
@@ -220,7 +223,7 @@ export default function ScientificCommitteeLayout() {
                 {/* Header removed as requested */}
 
                 {/* Page Content */}
-                <div className="flex-1 overflow-y-auto p-8 bg-[#f8fafc]">
+                <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
                     <div className="max-w-7xl mx-auto">
                         <Outlet />
                     </div>

@@ -240,50 +240,67 @@ class PaperController extends Controller
         
         $paper = Paper::findOrFail($id);
 
-        if ($paper->author_id !== Auth::id()) {
+        // Use != (not !==) to avoid type mismatch between int/string
+        if ($paper->author_id != Auth::id()) {
+            \Illuminate\Support\Facades\Log::warning('REVISION_AUTH_FAILED', [
+                'paper_author_id' => $paper->author_id,
+                'auth_user_id'    => Auth::id(),
+                'paper_id'        => $id,
+            ]);
             return response()->json(['message' => 'غير مصرح لك بتعديل هذا البحث'], 403);
         }
 
         try {
-            return DB::transaction(function () use ($request, $paper) {
-                $revisedFile = $request->file('revised_file');
-                $responseLetter = $request->file('response_letter');
+            $revisedFile   = $request->file('revised_file');
+            $responseLetter = $request->file('response_letter');
 
-                $revisedPath = $revisedFile->store('papers/revisions');
-                $responsePath = $responseLetter->store('papers/response_letters');
+            $revisedPath  = $revisedFile->store('papers/revisions');
+            $responsePath = $responseLetter->store('papers/response_letters');
 
-                // Get latest version number
-                $latestVersion = $paper->versions()->max('version_number') ?? 1;
+            // Get latest version number
+            $latestVersion = $paper->versions()->max('version_number') ?? 1;
 
-                // Create new version
-                PaperVersion::create([
-                    'paper_id' => $paper->id,
-                    'version_number' => $latestVersion + 1,
-                    'file_path' => $revisedPath,
-                    'response_letter_path' => $responsePath,
-                    'author_comments' => $request->summary_of_changes,
-                    'type' => 'revised',
-                ]);
+            // Create new version record
+            PaperVersion::create([
+                'paper_id'             => $paper->id,
+                'version_number'       => $latestVersion + 1,
+                'file_path'            => $revisedPath,
+                'response_letter_path' => $responsePath,
+                'author_comments'      => $request->summary_of_changes,
+                'type'                 => 'revised',
+            ]);
 
-                \Illuminate\Support\Facades\Log::info('TRANSITIONING_STATUS', ['from' => $paper->status, 'to' => 'resubmitted']);
+            \Illuminate\Support\Facades\Log::info('TRANSITIONING_STATUS', [
+                'from' => $paper->status, 'to' => 'resubmitted'
+            ]);
 
-                $this->workflow->transition($paper, 'REVISION_SUBMITTED', $request->summary_of_changes, [
-                    'file_path' => $revisedPath,
-                    'file_name' => $revisedFile->getClientOriginalName(),
-                ]);
+            // Transition status (workflow handles its own transaction)
+            $this->workflow->transition($paper, 'REVISION_SUBMITTED', $request->summary_of_changes, [
+                'file_path' => $revisedPath,
+                'file_name' => $revisedFile->getClientOriginalName(),
+            ]);
 
-                // Force status update to be absolutely sure
-                $paper->status = Paper::STATUS_RESUBMITTED;
-                $paper->save();
+            // Force direct DB update as safety net
+            DB::table('papers')
+                ->where('id', $paper->id)
+                ->update(['status' => Paper::STATUS_RESUBMITTED, 'updated_at' => now()]);
 
-                \Illuminate\Support\Facades\Log::info('STATUS_UPDATED_SUCCESSFULLY', ['new_status' => $paper->status]);
+            $paper->refresh(); // reload from DB to get the final status
 
-                return response()->json([
-                    'message' => 'تم تقديم التعديلات بنجاح. سيتم مراجعتها من قبل المحرر أو المحكمين.',
-                    'paper' => $paper
-                ]);
-            });
+            \Illuminate\Support\Facades\Log::info('STATUS_UPDATED_SUCCESSFULLY', [
+                'new_status' => $paper->status
+            ]);
+
+            return response()->json([
+                'message' => 'تم تقديم التعديلات بنجاح. سيتم مراجعتها من قبل المحرر أو المحكمين.',
+                'paper'   => $paper,
+            ]);
+
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('REVISION_SUBMIT_FAILED', [
+                'error'    => $e->getMessage(),
+                'paper_id' => $id,
+            ]);
             return response()->json(['message' => 'فشل تقديم التعديلات: ' . $e->getMessage()], 500);
         }
     }

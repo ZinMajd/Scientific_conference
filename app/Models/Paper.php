@@ -141,7 +141,7 @@ class Paper extends Model
     // Helper methods for state transitions
     public function canSubmitRevision()
     {
-        return $this->status === self::STATUS_REVISION_REQUESTED;
+        return $this->status === self::STATUS_REVISION_REQUIRED;
     }
 
     public function isAccepted()
