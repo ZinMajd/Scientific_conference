@@ -15,6 +15,29 @@ use Illuminate\Support\Facades\Log;
 
 class CommitteeController extends Controller
 {
+    protected $workflow;
+
+    public function __construct(\App\Services\PaperWorkflowService $workflow)
+    {
+        $this->workflow = $workflow;
+    }
+
+    protected function checkConflict($paper, $user)
+    {
+        if ($paper->author_id === $user->id) {
+            return true;
+        }
+        return false;
+    }
+
+    protected function conflictResponse()
+    {
+        return response()->json([
+            'message' => 'تضارب مصالح: لا يمكنك إدارة هذا البحث لأنك أنت المؤلف.',
+            'error_type' => 'conflict_of_interest'
+        ], 403);
+    }
+
     public function stats()
     {
         return response()->json([
@@ -22,6 +45,9 @@ class CommitteeController extends Controller
             'total_conferences' => Conference::count(),
             'total_reviewers' => User::where('user_type', 'reviewer')->count(),
             'total_attendees' => Attendee::count(),
+            'technical_check_count' => Paper::where('status', Paper::STATUS_TECHNICAL_CHECK)->count(),
+            'with_editor_count' => Paper::where('status', Paper::STATUS_WITH_EDITOR)->count(),
+            'under_review_count' => Paper::where('status', Paper::STATUS_UNDER_REVIEW)->count(),
         ]);
     }
 
@@ -101,6 +127,10 @@ class CommitteeController extends Controller
 
             $paper = Paper::findOrFail($id);
 
+            if ($this->checkConflict($paper, $request->user())) {
+                return $this->conflictResponse();
+            }
+
             // Check if already assigned
             if ($paper->paperAssignments()->where('reviewer_id', $request->reviewer_id)->exists()) {
                 return response()->json(['message' => 'Reviewer already assigned'], 422);
@@ -117,9 +147,7 @@ class CommitteeController extends Controller
             ]);
 
             // Update paper status to under_review if not already
-            if ($paper->status === Paper::STATUS_SUBMITTED || $paper->status === Paper::STATUS_REVISION_SUBMITTED) {
-                $paper->update(['status' => Paper::STATUS_UNDER_REVIEW]);
-            }
+            $this->workflow->transition($paper, 'REVIEWERS_ASSIGNED', 'Reviewer assigned: ' . $request->reviewer_id);
 
             // Create notification safely
             try {
@@ -150,20 +178,15 @@ class CommitteeController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        $statusMap = [
-            'accept' => Paper::STATUS_ACCEPTED,
-            'reject' => Paper::STATUS_REJECTED,
-            'revision_requested' => Paper::STATUS_REVISION_REQUESTED
+        $eventMap = [
+            'accept' => 'FINAL_ACCEPT',
+            'reject' => 'FINAL_REJECT',
+            'revision_requested' => 'REVISION_REQUESTED'
         ];
 
         $paper = Paper::findOrFail($id);
 
-        $paper->update([
-            'status' => $statusMap[$request->decision],
-            'final_decision' => $request->decision === 'revision_requested' ? null : $request->decision,
-            'decision_notes' => $request->notes,
-            'decision_date' => now()
-        ]);
+        $this->workflow->transition($paper, $eventMap[$request->decision], $request->notes);
 
         // Notification to author
         try {
@@ -179,6 +202,18 @@ class CommitteeController extends Controller
         }
 
         return response()->json(['message' => 'Decision recorded successfully', 'paper' => $paper]);
+    }
+
+    public function reviewsAggregation($id)
+    {
+        $paper = Paper::findOrFail($id);
+        $aggregation = $this->workflow->aggregateReviews($paper);
+
+        return response()->json([
+            'paper_id' => $id,
+            'title' => $paper->title,
+            'aggregation' => $aggregation
+        ]);
     }
 
     public function classifyAndSchedule(Request $request, $id)
@@ -202,6 +237,27 @@ class CommitteeController extends Controller
 
         return response()->json([
             'message' => 'تم تصنيف المشاركة وجدولتها بنجاح',
+            'paper' => $paper
+        ]);
+    }
+
+    public function markAsPublished(Request $request, $id)
+    {
+        $request->validate([
+            'doi' => 'nullable|string',
+            'page_numbers' => 'nullable|string',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+
+        $paper->update([
+            'is_published' => true,
+            'doi' => $request->doi,
+            'page_numbers' => $request->page_numbers,
+        ]);
+
+        return response()->json([
+            'message' => 'تم تمييز البحث كمنشور بنجاح',
             'paper' => $paper
         ]);
     }

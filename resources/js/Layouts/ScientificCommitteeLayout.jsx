@@ -159,6 +159,9 @@ export default function ScientificCommitteeLayout() {
                                  user?.user_type === 'admin' ? 'إدارة النظام' : 'اللجنة العلمية'}
                             </span>
                             <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">جامعة إقليم سبأ</span>
+                            <Link to="/researcher" className="mt-2 block text-[10px] bg-white/5 text-center py-1 rounded hover:bg-white/10 transition text-blue-300">
+                                دخول لوحة الباحث ←
+                            </Link>
                         </div>
                     )}
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white bg-white/10 p-2 rounded-lg hover:bg-white/20">

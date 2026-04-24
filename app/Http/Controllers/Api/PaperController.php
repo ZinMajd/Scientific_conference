@@ -14,6 +14,29 @@ use Illuminate\Support\Facades\DB;
 
 class PaperController extends Controller
 {
+    protected $workflow;
+
+    public function __construct(\App\Services\PaperWorkflowService $workflow)
+    {
+        $this->workflow = $workflow;
+    }
+
+    protected function checkConflict($paper)
+    {
+        if ($paper->author_id === Auth::id()) {
+            return true;
+        }
+        return false;
+    }
+
+    protected function conflictResponse()
+    {
+        return response()->json([
+            'message' => 'تضارب مصالح: لا يمكنك فحص أو تعديل هذا البحث لأنك أنت المؤلف.',
+            'error_type' => 'conflict_of_interest'
+        ], 403);
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -71,6 +94,22 @@ class PaperController extends Controller
                     'status' => Paper::STATUS_SUBMITTED,
                 ]);
 
+                // Record Workflow Event
+                $this->workflow->transition($paper, 'PAPER_SUBMITTED', 'Initial submission');
+
+                // Record Conflict of Interest if the author has administrative roles
+                $userRoles = Auth::user()->roles->pluck('slug')->toArray();
+                $adminRoles = ['scientific_committee', 'editor', 'editorial_office', 'conference_chair', 'system_admin'];
+                
+                if (array_intersect($userRoles, $adminRoles)) {
+                    \App\Models\Conflict::create([
+                        'user_id' => Auth::id(),
+                        'paper_id' => $paper->id,
+                        'type' => 'author_conflict',
+                        'reason' => 'المؤلف عضو في اللجنة العلمية أو إداري في النظام.'
+                    ]);
+                }
+
                 // Record Version 1 for Main Manuscript
                 PaperVersion::create([
                     'paper_id' => $paper->id,
@@ -113,7 +152,7 @@ class PaperController extends Controller
 
     public function show($id)
     {
-        $paper = Paper::with(['conference', 'author', 'coauthors', 'assignments.review'])->findOrFail($id);
+        $paper = Paper::with(['conference', 'author', 'coauthors', 'assignments.review', 'statusHistory.user'])->findOrFail($id);
         return response()->json($paper);
     }
 
@@ -131,7 +170,7 @@ class PaperController extends Controller
         \Illuminate\Support\Facades\Log::info('initialScreening Payload:', $request->all());
 
         $request->validate([
-            'result' => 'required|in:pass,fail,revision_required', // Changed from status to result to match model
+            'result' => 'required|in:technical_pass,technical_fail,scientific_pass,desk_reject',
             'notes' => 'nullable|string',
             'plagiarism_ratio' => 'nullable|numeric|min:0|max:100',
             'format_check' => 'nullable|boolean',
@@ -141,17 +180,18 @@ class PaperController extends Controller
         return DB::transaction(function () use ($request, $id) {
             $paper = Paper::findOrFail($id);
 
-            $statusMap = [
-                'pass' => Paper::STATUS_UNDER_REVIEW,
-                'fail' => Paper::STATUS_REJECTED,
-                'revision_required' => Paper::STATUS_INCOMPLETE // "Returned for modification"
+            if ($this->checkConflict($paper)) {
+                return $this->conflictResponse();
+            }
+
+            $eventMap = [
+                'technical_pass' => 'TECHNICAL_CHECK_PASS',
+                'technical_fail' => 'TECHNICAL_CHECK_FAIL',
+                'scientific_pass' => 'INITIAL_SCREENING_PASS',
+                'desk_reject' => 'DESK_REJECT'
             ];
 
-            $paper->update([
-                'status' => $statusMap[$request->result],
-                'decision_notes' => $request->notes,
-                'decision_date' => now()
-            ]);
+            $this->workflow->transition($paper, $eventMap[$request->result], $request->notes);
 
             InitialScreening::create([
                 'paper_id' => $paper->id,
@@ -170,6 +210,24 @@ class PaperController extends Controller
         });
     }
 
+    public function anonymize(Request $request, $id)
+    {
+        $request->validate([
+            'blind_file' => 'required|file|mimes:pdf|max:10240',
+            'notes' => 'nullable|string',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+        $path = $request->file('blind_file')->store('papers/blind');
+
+        $this->workflow->anonymize($paper, $path, $request->notes);
+
+        return response()->json([
+            'message' => 'تم إنشاء النسخة المخفية (Blind Version) بنجاح',
+            'paper' => $paper
+        ]);
+    }
+
     public function submitRevision(Request $request, $id)
     {
         $request->validate([
@@ -177,7 +235,9 @@ class PaperController extends Controller
             'response_letter' => 'required|file|mimes:pdf,doc,docx,txt|max:5120',
             'summary_of_changes' => 'required|string',
         ]);
-
+        
+        \Illuminate\Support\Facades\Log::info('SUBMIT_REVISION_START', ['paper_id' => $id, 'user_id' => Auth::id()]);
+        
         $paper = Paper::findOrFail($id);
 
         if ($paper->author_id !== Auth::id()) {
@@ -205,12 +265,18 @@ class PaperController extends Controller
                     'type' => 'revised',
                 ]);
 
-                $paper->update([
+                \Illuminate\Support\Facades\Log::info('TRANSITIONING_STATUS', ['from' => $paper->status, 'to' => 'resubmitted']);
+
+                $this->workflow->transition($paper, 'REVISION_SUBMITTED', $request->summary_of_changes, [
                     'file_path' => $revisedPath,
                     'file_name' => $revisedFile->getClientOriginalName(),
-                    'status' => Paper::STATUS_REVISION_SUBMITTED,
-                    'decision_notes' => $request->summary_of_changes,
                 ]);
+
+                // Force status update to be absolutely sure
+                $paper->status = Paper::STATUS_RESUBMITTED;
+                $paper->save();
+
+                \Illuminate\Support\Facades\Log::info('STATUS_UPDATED_SUCCESSFULLY', ['new_status' => $paper->status]);
 
                 return response()->json([
                     'message' => 'تم تقديم التعديلات بنجاح. سيتم مراجعتها من قبل المحرر أو المحكمين.',
@@ -231,12 +297,7 @@ class PaperController extends Controller
 
         $paper = Paper::findOrFail($id);
 
-        $paper->update([
-            'status' => Paper::STATUS_ACCEPTED,
-            'acceptance_date' => now(),
-            'decision_date' => now(),
-            'final_decision' => 'accept',
-            'decision_notes' => $request->notes ?? $paper->decision_notes,
+        $this->workflow->transition($paper, 'FINAL_ACCEPT', $request->notes, [
             'publication_selected' => $request->publication_selected ?? false,
         ]);
 

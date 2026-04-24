@@ -11,25 +11,37 @@ export default function ResearcherResearchShow() {
     useEffect(() => {
         const token = localStorage.getItem('token');
         axios.get(`/researcher/papers/${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
         })
         .then(response => {
-            setPaper(response.data.paper);
+            if (response.data.paper) {
+                setPaper(response.data.paper);
+            } else {
+                setPaper(response.data); // Fallback in case it's not wrapped
+            }
             setLoading(false);
         })
         .catch(err => {
-            console.error(err);
-            setError('فشل في تحميل تفاصيل البحث.');
+            console.error("Error loading paper details:", err);
+            const msg = err.response?.data?.message || 'فشل في تحميل تفاصيل البحث.';
+            setError(msg);
             setLoading(false);
         });
     }, [id]);
 
     const getStatusInfo = (status) => {
         switch(status) {
-            case 'under_review': return { text: 'قيد التحكيم', color: 'bg-blue-50 text-blue-600', icon: '⚖️' };
-            case 'accepted': return { text: 'مقبول', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
+            case 'under_screening': return { text: 'جاري الفحص الأولي (مكتب التحرير)', color: 'bg-amber-50 text-amber-600', icon: '🔍' };
+            case 'resubmitted': return { text: 'تم إعادة الإرسال (بانتظار الفحص)', color: 'bg-purple-50 text-purple-600', icon: '♻️' };
+            case 'revision_required': return { text: 'مطلوب تعديلات (بيانات ناقصة)', color: 'bg-rose-50 text-rose-600', icon: '⚠️' };
+            case 'with_editor': return { text: 'مع المحرر العلمي (التقييم الأولي)', color: 'bg-blue-50 text-blue-600', icon: '👨‍🏫' };
+            case 'under_review': return { text: 'قيد التحكيم (Peer Review)', color: 'bg-cyan-50 text-cyan-600', icon: '⚖️' };
+            case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', icon: '❌' };
-            case 'submitted': return { text: 'مقدم', color: 'bg-gray-50 text-gray-600', icon: '📨' };
+            case 'submitted': return { text: 'تم الاستلام', color: 'bg-gray-50 text-gray-600', icon: '📨' };
             default: return { text: status, color: 'bg-gray-50 text-gray-600', icon: '❓' };
         }
     };
@@ -41,15 +53,20 @@ export default function ResearcherResearchShow() {
     const statusInfo = getStatusInfo(paper.status);
 
     const steps = [
-        { key: 'submitted', label: 'قيد الفحص', icon: '📝' },
-        { key: 'under_review', label: 'قيد التحكيم', icon: '⚖️' },
-        { key: 'decision', label: paper.status === 'rejected' ? 'مرفوض' : 'مقبول', icon: paper.status === 'rejected' ? '❌' : '✅' }
+        { key: 'submitted', label: 'التقديم', icon: '📨' },
+        { key: 'technical', label: 'الفحص الفني', icon: '🔍' },
+        { key: 'scientific', label: 'المحرر العلمي', icon: '👨‍🏫' },
+        { key: 'review', label: 'التحكيم', icon: '⚖️' },
+        { key: 'decision', label: 'القرار النهائي', icon: paper.status === 'rejected' ? '❌' : (paper.status === 'accepted' ? '✅' : '🏁') }
     ];
 
     const getCurrentStepIndex = () => {
-        if (paper.status === 'submitted') return 0;
-        if (paper.status === 'under_review') return 1;
-        if (paper.status === 'accepted' || paper.status === 'rejected') return 2;
+        const s = paper.status;
+        if (s === 'submitted') return 0;
+        if (['under_screening', 'revision_required', 'resubmitted'].includes(s)) return 1;
+        if (s === 'with_editor') return 2;
+        if (s === 'under_review') return 3;
+        if (['accepted', 'rejected', 'scheduled', 'published'].includes(s)) return 4;
         return 0;
     };
 
@@ -57,92 +74,87 @@ export default function ResearcherResearchShow() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in pb-20">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-8 gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-blue-950 font-['Cairo']">{paper.title}</h1>
-                    <p className="text-gray-500 mt-2 font-medium">تم التقديم في: {new Date(paper.created_at).toLocaleDateString('ar-EG')}</p>
+                    <p className="text-gray-500 mt-2 font-medium">تم التقديم في: {paper.created_at ? new Date(paper.created_at).toLocaleDateString('ar-EG') : '---'}</p>
                 </div>
                 <div className="flex gap-3">
-                    <Link to={`/researcher/research/${paper.id}/edit`} className="px-6 py-3 bg-amber-50 text-amber-600 font-bold rounded-xl hover:bg-amber-100 transition">تعديل</Link>
-                    <Link to="/researcher/research" className="px-6 py-3 bg-gray-50 text-gray-600 font-bold rounded-xl hover:bg-gray-100 transition">عودة</Link>
+                    {['submitted', 'revision_required'].includes(paper.status) && (
+                        <Link to={`/researcher/research/${paper.id}/edit`} className="px-6 py-3 bg-amber-50 text-amber-600 font-bold rounded-xl hover:bg-amber-100 transition">تعديل البحث</Link>
+                    )}
+                    <Link to="/researcher/research" className="px-6 py-3 bg-gray-50 text-gray-600 font-bold rounded-xl hover:bg-gray-100 transition">عودة للقائمة</Link>
                 </div>
             </div>
 
             {/* Status Timeline */}
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-black text-blue-950 mb-8">متابعة حالة البحث</h3>
-                <div className="relative flex justify-between">
-                    {/* Progress Bar Background */}
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 rounded-full z-0"></div>
+            <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100" dir="rtl">
+                <h3 className="text-xl font-black text-blue-950 mb-12 flex items-center gap-3">
+                    <span className="w-2 h-8 bg-blue-600 rounded-full"></span>
+                    تتبع حالة البحث
+                </h3>
+                
+                <div className="relative px-4">
+                    {/* Progress Bar Background (Gray Line) */}
+                    <div className="absolute top-7 left-10 right-10 h-1 bg-gray-100 z-0"></div>
                     
-                    {/* Active Progress Bar */}
+                    {/* Progress Bar Active (Green Line) */}
                     <div 
-                        className={`absolute top-1/2 right-0 h-1 -translate-y-1/2 rounded-full z-0 transition-all duration-1000 ease-out ${paper.status === 'rejected' ? 'bg-red-500' : 'bg-emerald-500'}`}
-                        style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                        className="absolute top-7 right-10 h-1 bg-emerald-500 z-0 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                        style={{ width: `calc(${(currentStep / (steps.length - 1)) * 100}% - 20px)` }}
                     ></div>
 
-                    {steps.map((step, index) => {
-                        let statusColor = 'bg-gray-100 text-gray-400 border-gray-200'; // Default pending
-                        let isCompleted = index <= currentStep;
-                        
-                        if (isCompleted) {
-                            if (index === currentStep && paper.status === 'rejected') {
-                                statusColor = 'bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/30';
-                            } else if (index === currentStep && paper.status === 'under_review') {
-                                statusColor = 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/30 ring-4 ring-blue-100';
-                            } else if (index === currentStep && paper.status === 'submitted') {
-                                statusColor = 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/30 ring-4 ring-blue-100';
-                            } else {
-                                // Completed past steps
-                                statusColor = 'bg-emerald-500 text-white border-emerald-500';
-                            }
-                            
-                            // Specific check for final step acceptance/rejection visual
-                            if (index === 2) { 
-                                if (paper.status === 'accepted') statusColor = 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30';
-                                if (paper.status === 'rejected') statusColor = 'bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/30';
-                            }
-                        }
-
-                        return (
-                            <div key={step.key} className="relative z-10 flex flex-col items-center gap-4">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold border-4 transition-all duration-500 ${statusColor}`}>
-                                    {isCompleted ? step.icon : index + 1}
+                    <div className="relative z-10 flex justify-between items-start">
+                        {steps.map((step, index) => (
+                            <div key={step.key} className="flex flex-col items-center w-24">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold border-4 transition-all duration-500 shadow-sm
+                                    ${index <= currentStep 
+                                        ? (index === currentStep && paper.status === 'rejected' ? 'bg-red-500 border-red-500 text-white' : 'bg-emerald-500 border-emerald-500 text-white')
+                                        : 'bg-white border-gray-100 text-gray-300'}`}>
+                                    {index <= currentStep ? step.icon : index + 1}
                                 </div>
-                                <span className={`text-sm font-bold ${isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>{step.label}</span>
+                                <div className="mt-4 text-center">
+                                    <p className={`text-xs font-black transition-colors ${index <= currentStep ? 'text-blue-950' : 'text-gray-400'}`}>
+                                        {step.label}
+                                    </p>
+                                    {index === currentStep && (
+                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full mt-1 inline-block">أنت هنا</span>
+                                    )}
+                                </div>
                             </div>
-                        );
-                    })}
+                        ))}
+                    </div>
                 </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-8">
                     <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-black text-blue-950 mb-4 border-b border-gray-50 pb-4">الملخص</h3>
-                        <p className="leading-loose text-gray-600 font-medium text-justify">{paper.abstract}</p>
+                        <h3 className="text-lg font-black text-blue-950 mb-4 border-b border-gray-50 pb-4">الملخص العلمي</h3>
+                        <p className="leading-loose text-gray-600 font-medium text-justify">{paper.abstract || 'لا يوجد ملخص متاح.'}</p>
                     </div>
 
                     <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-black text-blue-950 mb-4 border-b border-gray-50 pb-4">المشاركون في البحث</h3>
+                        <h3 className="text-lg font-black text-blue-950 mb-4 border-b border-gray-50 pb-4">المؤلفون المشاركون</h3>
                         <div className="space-y-4">
-                            {paper.coauthors && paper.coauthors.map((author, index) => (
+                            {paper.coauthors && paper.coauthors.length > 0 ? paper.coauthors.map((author, index) => (
                                 <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
                                     <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">{index + 1}</div>
                                     <div>
                                         <h4 className="font-bold text-gray-900">{author.full_name}</h4>
-                                        <p className="text-xs text-gray-500">{author.email} - {author.affiliation}</p>
+                                        <p className="text-xs text-gray-500">{author.email} {author.affiliation ? ` - ${author.affiliation}` : ''}</p>
                                     </div>
                                 </div>
-                            ))}
-                            {(!paper.coauthors || paper.coauthors.length === 0) && <div className="text-gray-400 text-sm">لا يوجد مشاركون.</div>}
+                            )) : (
+                                <div className="text-gray-400 text-sm italic p-4 bg-gray-50 rounded-2xl">لا يوجد مؤلفون مشاركون مسجلون لهذا البحث.</div>
+                            )}
                         </div>
                     </div>
 
                     {paper.assignments && paper.assignments.some(a => a.review) && (
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 border-r-4 border-r-indigo-500">
                             <h3 className="text-lg font-black text-blue-950 mb-6 flex items-center gap-3">
-                                <span>📜</span> ملاحظات ونتائج التحكيم
+                                <span>📜</span> تقارير وملاحظات المحكمين
                             </h3>
                             <div className="space-y-8">
                                 {paper.assignments.map((assignment, index) => {
@@ -182,28 +194,53 @@ export default function ResearcherResearchShow() {
                             </div>
                         </div>
                     )}
+
+                    {/* Status History Audit Trail */}
+                    {paper.status_history && paper.status_history.length > 0 && (
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <h3 className="text-lg font-black text-blue-950 mb-6 flex items-center gap-3 font-['Cairo']">
+                                <span className="text-xl">🕒</span> سجل حركات البحث
+                            </h3>
+                            <div className="relative space-y-8 before:absolute before:right-[1.45rem] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
+                                {paper.status_history.map((h, i) => (
+                                    <div key={i} className="relative pr-12">
+                                        <div className="absolute right-4 top-1 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-white z-10"></div>
+                                        <div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-sm font-black text-blue-950">{getStatusInfo(h.status).text}</span>
+                                                <span className="text-[10px] text-gray-400 font-bold">{new Date(h.created_at).toLocaleString('ar-EG')}</span>
+                                            </div>
+                                            {h.note && (
+                                                <p className="mt-1 text-xs text-gray-500 font-medium bg-gray-50 p-2 rounded-lg inline-block">{h.note}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="space-y-6">
                     <div className="bg-blue-950 p-8 rounded-3xl text-white shadow-xl shadow-blue-900/20">
                         <div className="space-y-6">
                             <div>
-                                <p className="text-xs font-black uppercase tracking-widest opacity-60 mb-2">الحالة</p>
+                                <p className="text-xs font-black uppercase tracking-widest opacity-60 mb-2">الحالة الحالية</p>
                                 <span className={`px-4 py-2 rounded-xl text-sm font-black flex items-center gap-2 w-fit ${statusInfo.color.replace('bg-', 'bg-white/10 ').replace('text-', 'text-white ')}`}>
                                     <span>{statusInfo.icon}</span>
                                     {statusInfo.text}
                                 </span>
                             </div>
                             <div>
-                                <p className="text-xs font-black uppercase tracking-widest opacity-60">المؤتمر</p>
+                                <p className="text-xs font-black uppercase tracking-widest opacity-60">المؤتمر المستهدف</p>
                                 <p className="font-bold mt-1 text-blue-200">{paper.conference?.title || 'غير محدد'}</p>
                             </div>
                              <div>
                                 <p className="text-xs font-black uppercase tracking-widest opacity-60">الكلمات المفتاحية</p>
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                    {paper.keywords.split(',').map((k, i) => (
+                                    {paper.keywords ? paper.keywords.split(',').map((k, i) => (
                                         <span key={i} className="px-3 py-1 bg-white/10 rounded-lg text-xs">{k.trim()}</span>
-                                    ))}
+                                    )) : <span className="text-xs opacity-40 italic">لا توجد كلمات مفتاحية</span>}
                                 </div>
                             </div>
                         </div>
@@ -213,7 +250,7 @@ export default function ResearcherResearchShow() {
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center">
                             <div className="text-5xl mb-4">📄</div>
                             <h4 className="font-bold text-gray-900 line-clamp-1 mb-6 text-sm" dir="ltr">{paper.file_name}</h4>
-                            <a href={`/storage/${paper.file_path}`} target="_blank" download className="block w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition">تحميل الملف</a>
+                            <a href={`/storage_file/${paper.file_path}`} target="_blank" download className="block w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition">تحميل نسخة البحث</a>
                         </div>
                     )}
                 </div>

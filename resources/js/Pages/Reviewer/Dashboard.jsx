@@ -9,12 +9,19 @@ const OCEAN = '#0096c7';
 
 export default function ReviewerDashboard() {
     const [stats, setStats] = useState({ pending_reviews: 0, completed_reviews: 0, total_assigned: 0 });
+    const [assignedPapers, setAssignedPapers] = useState([]);
     const [loading, setLoading] = useState(true);
     const user = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
 
     useEffect(() => {
-        axios.get('/api/reviewer/stats')
-            .then(res => setStats(res.data))
+        Promise.all([
+            axios.get('/api/reviewer/stats'),
+            axios.get('/api/reviewer/assignments')
+        ])
+            .then(([statsRes, assignmentsRes]) => {
+                setStats(statsRes.data);
+                setAssignedPapers(assignmentsRes.data);
+            })
             .catch(err => console.error(err))
             .finally(() => setLoading(false));
     }, []);
@@ -24,11 +31,6 @@ export default function ReviewerDashboard() {
         { title: 'تم تحكيمها', value: stats.completed_reviews, icon: '✅', color: '#059669', path: '/reviewer/history' },
         { title: 'إجمالي التكليفات', value: stats.total_assigned, icon: '📄', color: PRUSSIAN, path: '/reviewer/assignments' },
         { title: 'تنبيهات نشطة', value: '4', icon: '🔔', color: '#d97706', path: '#' },
-    ];
-
-    const assignedPapers = [
-        { id: 1, title: 'تأثير الحوسبة السحابية على أمن البيانات', researcher: 'أحمد علي', deadline: '2026-02-01', urgent: true },
-        { id: 2, title: 'خوارزميات التعلم العميق في التشخيص الطبي', researcher: 'سارة محمد', deadline: '2026-02-15', urgent: false },
     ];
 
     return (
@@ -78,25 +80,28 @@ export default function ReviewerDashboard() {
                             </Link>
                         </div>
                         <div className="divide-y" style={{ borderColor: `${TURQUOISE}15` }}>
-                            {assignedPapers.map(paper => (
-                                <div key={paper.id} className="p-5 flex items-center justify-between hover:bg-gray-50 transition group">
-                                    <div className="flex items-center gap-4 flex-1">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
-                                            style={{ background: `${TURQUOISE}15` }}>📋</div>
-                                        <div>
-                                            <h4 className="font-bold text-sm truncate max-w-xs" style={{ color: PRUSSIAN }}>{paper.title}</h4>
-                                            <div className="flex gap-4 mt-1">
-                                                <span className="text-[10px] text-gray-400 font-bold">الباحث: {paper.researcher}</span>
-                                                <span className="text-[10px] font-bold" style={{ color: OCEAN }}>الموعد: {paper.deadline}</span>
+                            {assignedPapers.length === 0 ? (
+                                <div className="p-10 text-center text-gray-400 font-bold">لا توجد تكليفات حالياً</div>
+                            ) : (
+                                assignedPapers.map(assignment => (
+                                    <div key={assignment.id} className="p-5 flex items-center justify-between hover:bg-gray-50 transition group">
+                                        <div className="flex items-center gap-4 flex-1">
+                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                                                style={{ background: `${TURQUOISE}15` }}>📋</div>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-sm truncate max-w-xs" style={{ color: PRUSSIAN }}>{assignment.paper?.title}</h4>
+                                                <div className="flex gap-4 mt-1">
+                                                    <span className="text-[10px] text-gray-400 font-bold">الباحث: {assignment.paper?.author?.full_name}</span>
+                                                    <span className="text-[10px] font-bold" style={{ color: OCEAN }}>الموعد: {assignment.due_date || '—'}</span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <Link to={`/reviewer/form/${assignment.id}`} className="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition shadow-lg shadow-emerald-600/20">
+                                            بدء التحكيم
+                                        </Link>
                                     </div>
-                                    <span className="px-3 py-1 rounded-full text-[10px] font-black shrink-0"
-                                        style={paper.urgent ? { background: '#fee2e2', color: '#dc2626' } : { background: `${TURQUOISE}15`, color: OCEAN }}>
-                                        {paper.urgent ? 'عاجل' : 'طبيعي'}
-                                    </span>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
 

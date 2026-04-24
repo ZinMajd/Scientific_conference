@@ -26,7 +26,7 @@ export default function ReviewerAssignments() {
             return;
         }
         const link = document.createElement('a');
-        link.href = `/storage/${filePath}`;
+        link.href = `/storage_file/${filePath}`;
         link.setAttribute('download', fileName || 'paper.pdf');
         link.setAttribute('target', '_blank');
         document.body.appendChild(link);

@@ -64,6 +64,29 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all unique permissions for the user (direct + via roles).
+     */
+    public function getAllPermissionsAttribute()
+    {
+        if (!$this->relationLoaded('roles') && !$this->id) return collect();
+        
+        $directPermissions = $this->permissions ? $this->permissions->pluck('slug') : collect();
+        $rolePermissions = $this->roles ? $this->roles->flatMap(function ($role) {
+            return $role->permissions ? $role->permissions->pluck('slug') : collect();
+        }) : collect();
+
+        return $directPermissions->merge($rolePermissions)->unique()->values();
+    }
+
+    /**
+     * Check if user has a specific permission.
+     */
+    public function hasPermission($slug)
+    {
+        return $this->getAllPermissionsAttribute()->contains($slug);
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -83,6 +106,11 @@ class User extends Authenticatable
         'is_active',
         'last_login',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     */
+    protected $appends = ['all_permissions'];
 
     /**
      * The attributes that should be hidden for serialization.

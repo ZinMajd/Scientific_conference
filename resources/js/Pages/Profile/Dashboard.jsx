@@ -1,5 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const PRUSSIAN = '#003153';
 const PRUSSIAN_DARK = '#001a2e';
@@ -7,10 +8,55 @@ const TURQUOISE = '#40E0D0';
 const OCEAN = '#0096c7';
 
 export default function Dashboard() {
+    const navigate = useNavigate();
+    const [stats, setStats] = useState([]);
+    const [loading, setLoading] = useState(true);
     const user = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
 
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        const fetchStats = async () => {
+            try {
+                let res;
+                if (user.user_type === 'researcher') {
+                    res = await axios.get('/api/researcher/stats');
+                    setStats([
+                        { label: 'الأبحاث المقدمة', val: res.data.papers_count, icon: '📝', color: OCEAN },
+                        { label: 'مع المحرر/المكتب', val: res.data.with_editor, icon: '👨‍🏫', color: '#f59e0b' },
+                        { label: 'قيد التحكيم', val: res.data.under_review, icon: '⚖️', color: PRUSSIAN },
+                        { label: 'المقبولة', val: res.data.accepted_count, icon: '✅', color: '#059669' },
+                    ]);
+                } else if (user.user_type === 'reviewer') {
+                    res = await axios.get('/api/reviewer/stats');
+                    setStats([
+                        { label: 'بانتظار التحكيم', val: res.data.pending_reviews, icon: '⏳', color: OCEAN },
+                        { label: 'تم تحكيمها', val: res.data.completed_reviews, icon: '✅', color: '#059669' },
+                        { label: 'إجمالي التكليفات', val: res.data.total_assigned, icon: '📄', color: PRUSSIAN },
+                    ]);
+                } else {
+                    res = await axios.get('/api/committee/stats');
+                    setStats([
+                        { label: 'بانتظار الفحص الفني', val: res.data.technical_check_count, icon: '🔍', color: '#f59e0b' },
+                        { label: 'مع المحرر العلمي', val: res.data.with_editor_count, icon: '👨‍🏫', color: OCEAN },
+                        { label: 'قيد التحكيم', val: res.data.under_review_count, icon: '⚖️', color: PRUSSIAN },
+                        { label: 'إجمالي الأبحاث', val: res.data.total_papers, icon: '📚', color: '#059669' },
+                    ]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch stats', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, [user, navigate]);
+
     if (!user) {
-        window.location.href = '/login';
         return null;
     }
 
@@ -30,7 +76,7 @@ export default function Dashboard() {
                 <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 h-fit overflow-hidden relative"
                     style={{ border: `1px solid ${TURQUOISE}20` }}>
                     <div className="text-center mb-8 relative z-10">
-                        <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white shadow-xl relative ring-4 ring-[#40E0D0]10">
+                        <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-4 border-white shadow-xl relative ring-4 ring-[#40E0D0]/10">
                             <img src={`https://ui-avatars.com/api/?name=${user?.full_name || user?.username}&background=003153&color=fff&size=128`} alt="Profile" className="w-full h-full object-cover" />
                         </div>
                         <h3 className="font-black text-xl" style={{ color: PRUSSIAN }}>{user?.full_name || user?.name || 'مستخدم'}</h3>
@@ -63,21 +109,21 @@ export default function Dashboard() {
 
                     {/* Stats */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {[
-                            { label: 'الأبحاث المقدمة', val: '3', icon: '📝', color: OCEAN },
-                            { label: 'المؤتمرات', val: '1', icon: '🏛️', color: PRUSSIAN },
-                            { label: 'الشهادات', val: '5', icon: '📜', color: '#059669' },
-                        ].map((stat, i) => (
-                            <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border hover:shadow-md transition-all"
-                                style={{ border: `1px solid ${TURQUOISE}15` }}>
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-2xl">{stat.icon}</span>
-                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: `${stat.color}15`, color: stat.color }}>إجمالي</span>
+                        {loading ? (
+                            [1, 2, 3].map(i => <div key={i} className="h-32 bg-gray-100 animate-pulse rounded-3xl"></div>)
+                        ) : (
+                            stats.map((stat, i) => (
+                                <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border hover:shadow-md transition-all"
+                                    style={{ border: `1px solid ${TURQUOISE}15` }}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-2xl">{stat.icon}</span>
+                                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: `${stat.color}15`, color: stat.color }}>محدث</span>
+                                    </div>
+                                    <h4 className="text-gray-400 text-xs font-bold mb-1 uppercase tracking-widest">{stat.label}</h4>
+                                    <p className="text-3xl font-black" style={{ color: PRUSSIAN }}>{stat.val}</p>
                                 </div>
-                                <h4 className="text-gray-400 text-xs font-bold mb-1 uppercase tracking-widest">{stat.label}</h4>
-                                <p className="text-3xl font-black" style={{ color: PRUSSIAN }}>{stat.val}</p>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
 
                     {/* Recent Activity */}

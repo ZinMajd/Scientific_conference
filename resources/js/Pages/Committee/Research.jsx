@@ -18,6 +18,13 @@ export default function CommitteeResearch() {
     const [page, setPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
     const location = useLocation();
+    const [user, setUser] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('user')) || {};
+        } catch (e) {
+            return {};
+        }
+    });
 
     useEffect(() => {
         if (location.pathname.endsWith('/decisions')) {
@@ -85,13 +92,15 @@ export default function CommitteeResearch() {
     const getStatusLabel = (status) => {
         switch(status) {
             case 'submitted': return { text: 'مقدم حديثاً', color: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-600' };
-            case 'incomplete': return { text: 'بيانات ناقصة', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-600' };
-            case 'under_review': return { text: 'قيد التحكيم', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-600' };
+            case 'under_screening': return { text: 'جاري الفحص الأولي', color: 'bg-amber-50 text-amber-600', dot: 'bg-amber-600' };
+            case 'resubmitted': return { text: 'تم إعادة الإرسال', color: 'bg-purple-50 text-purple-600', dot: 'bg-purple-600' };
+            case 'revision_required': return { text: 'مطلوب تعديل', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-600' };
+            case 'with_editor': return { text: 'مع المحرر العلمي', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-600' };
+            case 'under_review': return { text: 'قيد التحكيم', color: 'bg-cyan-50 text-cyan-600', dot: 'bg-cyan-600' };
             case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-600' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', dot: 'bg-red-600' };
-            case 'revision_requested': return { text: 'مطلوب تعديل', color: 'bg-amber-50 text-amber-600', dot: 'bg-amber-600' };
             case 'withdrawn': return { text: 'منسحب', color: 'bg-gray-50 text-gray-600', dot: 'bg-gray-600' };
-            default: return { text: 'غير معروف', color: 'bg-gray-50 text-gray-600', dot: 'bg-gray-600' };
+            default: return { text: status, color: 'bg-gray-50 text-gray-600', dot: 'bg-gray-600' };
         }
     };
 
@@ -106,11 +115,17 @@ export default function CommitteeResearch() {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [showDecisionModal, setShowDecisionModal] = useState(false);
     const [showScreeningModal, setShowScreeningModal] = useState(false);
+    const [showAnonymizeModal, setShowAnonymizeModal] = useState(false);
+    const [showAggregationModal, setShowAggregationModal] = useState(false);
+    const [showPublishModal, setShowPublishModal] = useState(false);
     const [selectedPaper, setSelectedPaper] = useState(null);
     const [reviewers, setReviewers] = useState([]);
     const [assignForm, setAssignForm] = useState({ reviewer_id: '', due_date: '' });
     const [decisionForm, setDecisionForm] = useState({ decision: '', notes: '' });
     const [screeningForm, setScreeningForm] = useState({ result: '', notes: '', plagiarism_ratio: '', format_check: true });
+    const [anonymizeForm, setAnonymizeForm] = useState({ blind_file: null, notes: '' });
+    const [publishForm, setPublishForm] = useState({ doi: '', page_numbers: '' });
+    const [aggregationData, setAggregationData] = useState(null);
 
     const openAssignModal = async (paper) => {
         setSelectedPaper(paper);
@@ -136,14 +151,41 @@ export default function CommitteeResearch() {
         setShowScreeningModal(true);
     };
 
+    const openAnonymizeModal = (paper) => {
+        setSelectedPaper(paper);
+        setShowAnonymizeModal(true);
+    };
+
+    const openAggregationModal = async (paper) => {
+        setSelectedPaper(paper);
+        setShowAggregationModal(true);
+        try {
+            const res = await axios.get(`/api/committee/papers/${paper.id}/reviews-aggregation`);
+            setAggregationData(res.data.aggregation);
+        } catch (err) {
+            console.error('Failed to fetch aggregation', err);
+        }
+    };
+
+    const openPublishModal = (paper) => {
+        setSelectedPaper(paper);
+        setShowPublishModal(true);
+    };
+
     const closeModals = () => {
         setShowAssignModal(false);
         setShowDecisionModal(false);
         setShowScreeningModal(false);
+        setShowAnonymizeModal(false);
+        setShowAggregationModal(false);
+        setShowPublishModal(false);
         setSelectedPaper(null);
         setAssignForm({ reviewer_id: '', due_date: '' });
         setDecisionForm({ decision: '', notes: '' });
         setScreeningForm({ result: '', notes: '', plagiarism_ratio: '', format_check: true });
+        setAnonymizeForm({ blind_file: null, notes: '' });
+        setPublishForm({ doi: '', page_numbers: '' });
+        setAggregationData(null);
     };
 
     const submitAssignment = async (e) => {
@@ -186,6 +228,36 @@ export default function CommitteeResearch() {
         }
     };
 
+    const submitPublish = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post(`/api/committee/papers/${selectedPaper.id}/mark-as-published`, publishForm);
+            alert('تم نشر البحث بنجاح');
+            closeModals();
+            fetchPapers();
+        } catch (err) {
+            alert('فشل النشر: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
+    const submitAnonymize = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('blind_file', anonymizeForm.blind_file);
+        formData.append('notes', anonymizeForm.notes);
+
+        try {
+            await axios.post(`/api/papers/${selectedPaper.id}/anonymize`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert('تم رفع النسخة المخفية بنجاح');
+            closeModals();
+            fetchPapers();
+        } catch (err) {
+            alert('فشل الرفع: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     return (
         <div className="space-y-10 animate-in fade-in duration-700 pb-20 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -218,8 +290,10 @@ export default function CommitteeResearch() {
                     <div className="flex gap-3">
                         {[
                             { label: 'الكل', value: 'all' },
+                            { label: 'الفحص الأولي', value: 'under_screening' },
+                            { label: 'تم التعديل', value: 'resubmitted' },
+                            { label: 'مع المحرر', value: 'with_editor' },
                             { label: 'قيد التحكيم', value: 'under_review' },
-                            { label: 'مقدم حديثاً', value: 'submitted' },
                             { label: 'مقبول', value: 'accepted' }
                         ].map((tab, i) => (
                             <button 
@@ -322,9 +396,21 @@ export default function CommitteeResearch() {
                                                 <a href={`/storage_file/${paper.file_path}`} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="عرض الملف">
                                                     👁️
                                                 </a>
-                                                <button onClick={() => openScreeningModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="الفحص الأولي">📋</button>
-                                                <button onClick={() => openAssignModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="إسناد محكم">🔗</button>
-                                                <button onClick={() => openDecisionModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="اتخاذ قرار">⚖️</button>
+                                                {paper.author_id === user.id ? (
+                                                    <div className="px-3 py-1 bg-red-50 text-red-500 text-[10px] font-black rounded-lg border border-red-100 flex items-center gap-1">
+                                                        <span>⚠️</span>
+                                                        <span>تضارب مصالح</span>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <button onClick={() => openScreeningModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="الفحص الأولي">📋</button>
+                                                        <button onClick={() => openAnonymizeModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="إخفاء الهوية">👤</button>
+                                                        <button onClick={() => openAssignModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="إسناد محكم">🔗</button>
+                                                        <button onClick={() => openAggregationModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="تجميع التقييمات">📊</button>
+                                                        <button onClick={() => openDecisionModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="اتخاذ قرار">⚖️</button>
+                                                        <button onClick={() => openPublishModal(paper)} className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition" title="نشر البحث">🌐</button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -445,10 +531,11 @@ export default function CommitteeResearch() {
                                     onChange={e => setScreeningForm({...screeningForm, result: e.target.value})}
                                     required
                                 >
-                                    <option value="">اختر النتيجة...</option>
-                                    <option value="pass">مقبول للتحكيم (Proceed to Review)</option>
-                                    <option value="fail">مرفوض فوراً (Desk Rejection)</option>
-                                    <option value="revision_required">بيانات ناقصة (Incomplete)</option>
+                                    <option value="">اختر الإجراء...</option>
+                                    <option value="technical_pass">نجاح الفحص الفني (تحويل للمحرر العلمي)</option>
+                                    <option value="technical_fail">فشل الفحص الفني (إعادة للباحث)</option>
+                                    <option value="scientific_pass">قبول للتحكيم العلمي (إرسال للمحكمين)</option>
+                                    <option value="desk_reject">رفض مكتبي (Desk Rejection)</option>
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -485,6 +572,151 @@ export default function CommitteeResearch() {
                             </div>
                             <div className="flex gap-3 mt-6">
                                 <button type="submit" className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition">حفظ النتيجة</button>
+                                <button type="button" onClick={closeModals} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showAnonymizeModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+                        <h3 className="text-xl font-black text-emerald-950 mb-6 font-['Cairo']">إخفاء هوية البحث (Anonymization)</h3>
+                        <p className="text-sm text-gray-500 mb-6 font-bold">{selectedPaper?.title}</p>
+                        <form onSubmit={submitAnonymize} className="space-y-6">
+                            <div className="p-6 border-2 border-dashed border-emerald-100 rounded-2xl bg-emerald-50/30 flex flex-col items-center gap-3">
+                                <span className="text-3xl">📄</span>
+                                <p className="text-xs font-black text-emerald-900">رفع نسخة PDF بدون أسماء المؤلفين</p>
+                                <input 
+                                    type="file" 
+                                    accept=".pdf"
+                                    onChange={e => setAnonymizeForm({...anonymizeForm, blind_file: e.target.files[0]})}
+                                    className="hidden" 
+                                    id="blind-file-upload"
+                                    required
+                                />
+                                <label htmlFor="blind-file-upload" className="px-4 py-2 bg-white border border-emerald-200 text-emerald-600 rounded-xl text-[10px] font-black cursor-pointer hover:bg-emerald-50 transition">
+                                    {anonymizeForm.blind_file ? anonymizeForm.blind_file.name : 'اختر ملف PDF'}
+                                </label>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">ملاحظات</label>
+                                <textarea 
+                                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none h-24"
+                                    value={anonymizeForm.notes}
+                                    onChange={e => setAnonymizeForm({...anonymizeForm, notes: e.target.value})}
+                                    placeholder="ملاحظات اختيارية..."
+                                ></textarea>
+                            </div>
+                            <div className="flex gap-3">
+                                <button type="submit" className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition">رفع وحفظ</button>
+                                <button type="button" onClick={closeModals} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showAggregationModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-start mb-6">
+                            <h3 className="text-xl font-black text-emerald-950 font-['Cairo']">تجميع نتائج التحكيم (Aggregation)</h3>
+                            <button onClick={closeModals} className="text-gray-400 hover:text-gray-600">✕</button>
+                        </div>
+                        
+                        {!aggregationData ? (
+                            <div className="py-20 text-center text-gray-400 font-bold">جاري تحليل البيانات...</div>
+                        ) : (
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">متوسط التقييم</p>
+                                        <h4 className="text-3xl font-black text-emerald-950 mt-1">{aggregationData.average_score} / 10</h4>
+                                    </div>
+                                    <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">عدد المحكمين</p>
+                                        <h4 className="text-3xl font-black text-emerald-950 mt-1">{aggregationData.count}</h4>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-sm font-black text-emerald-950 mb-4">توزيع القرارات</h4>
+                                    <div className="space-y-3">
+                                        {Object.entries(aggregationData.decision_counts).map(([decision, count]) => (
+                                            <div key={decision} className="flex items-center gap-4">
+                                                <span className="w-24 text-xs font-bold text-gray-500">{decision}</span>
+                                                <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full ${decision === 'accept' ? 'bg-emerald-500' : decision === 'reject' ? 'bg-red-500' : 'bg-amber-500'}`} 
+                                                        style={{ width: `${(count / aggregationData.count) * 100}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="text-xs font-black text-emerald-950">{count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className={`p-6 rounded-2xl border ${aggregationData.contradiction_detected ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'}`}>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-xl">{aggregationData.contradiction_detected ? '⚠️' : '💡'}</span>
+                                        <h4 className={`font-black ${aggregationData.contradiction_detected ? 'text-red-950' : 'text-blue-950'}`}>التوصية المقترحة</h4>
+                                    </div>
+                                    <p className="text-sm font-bold text-gray-600 mb-4">
+                                        {aggregationData.contradiction_detected 
+                                            ? 'تم اكتشاف تناقض في قرارات المحكمين (قبول ورفض في نفس الوقت). يرجى مراجعة التقارير بدقة أو تعيين محكم ثالث.' 
+                                            : `بناءً على متوسط التقييم وتوزيع القرارات، يقترح النظام: ${aggregationData.suggested_decision}`}
+                                    </p>
+                                    <button 
+                                        onClick={() => {
+                                            setDecisionForm({...decisionForm, decision: aggregationData.suggested_decision});
+                                            setShowAggregationModal(false);
+                                            setShowDecisionModal(true);
+                                        }}
+                                        className={`px-5 py-2 rounded-xl text-xs font-black transition ${aggregationData.contradiction_detected ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}
+                                    >
+                                        تنفيذ هذا القرار
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+            {showPublishModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+                        <h3 className="text-xl font-black text-emerald-950 mb-6 font-['Cairo']">إصدار ونشر البحث (Publication)</h3>
+                        <p className="text-sm text-gray-500 mb-6 font-bold">{selectedPaper?.title}</p>
+                        <form onSubmit={submitPublish} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">رقم المعرف الرقمي (DOI)</label>
+                                <input 
+                                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
+                                    value={publishForm.doi}
+                                    onChange={e => setPublishForm({...publishForm, doi: e.target.value})}
+                                    placeholder="مثال: 10.1234/uoms.2026.001"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">أرقام الصفحات</label>
+                                <input 
+                                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
+                                    value={publishForm.page_numbers}
+                                    onChange={e => setPublishForm({...publishForm, page_numbers: e.target.value})}
+                                    placeholder="مثال: 45-60"
+                                />
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
+                                <span className="text-xl">📢</span>
+                                <p className="text-xs text-blue-900 leading-relaxed font-bold">
+                                    عند تأكيد النشر، سيصل إشعار للباحث برابط النشر النهائي وسجل الأرقام المعيارية.
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button type="submit" className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition">تأكيد النشر النهائي</button>
                                 <button type="button" onClick={closeModals} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
                             </div>
                         </form>

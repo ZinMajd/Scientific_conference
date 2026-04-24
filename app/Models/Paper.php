@@ -16,6 +16,7 @@ class Paper extends Model
         'abstract',
         'keywords',
         'file_path',
+        'blind_file_path',
         'file_name',
         'file_size',
         'file_type',
@@ -36,15 +37,17 @@ class Paper extends Model
     ];
 
     // Lifecycle Statuses
+    // Lifecycle Statuses
     const STATUS_SUBMITTED = 'submitted';
-    const STATUS_INITIAL_SCREENING = 'initial_screening';
-    const STATUS_INCOMPLETE = 'incomplete'; // For "Returned for modification" in Stage 2
-    const STATUS_UNDER_REVIEW = 'under_review';
-    const STATUS_REVISION_REQUESTED = 'revision_requested';
-    const STATUS_REVISION_SUBMITTED = 'revision_submitted';
+    const STATUS_UNDER_SCREENING = 'under_screening'; // جاري الفحص (مكتب التحرير)
+    const STATUS_REVISION_REQUIRED = 'revision_required'; // مطلوب تعديل (بيانات ناقصة/تعديل فني)
+    const STATUS_RESUBMITTED = 'resubmitted'; // تم إعادة الإرسال (جاهز لإعادة الفحص)
+    const STATUS_WITH_EDITOR = 'with_editor'; // مع المحرر العلمي (بعد نجاح الفحص)
+    const STATUS_UNDER_REVIEW = 'under_review'; // قيد التحكيم (مع المحكمين)
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_REJECTED = 'rejected';
     const STATUS_SCHEDULED = 'scheduled';
+    const STATUS_WITHDRAWN = 'withdrawn';
 
     // Presentation Types
     const PRESENTATION_ORAL = 'oral';
@@ -115,9 +118,24 @@ class Paper extends Model
         return $this->hasOne(InitialScreening::class);
     }
 
-    public function attachments()
+    public function statusHistory()
     {
-        return $this->hasMany(PaperAttachment::class);
+        return $this->hasMany(PaperStatusHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Transition to a new status and record in history
+     */
+    public function transitionStatus($newStatus, $note = null, $userId = null)
+    {
+        $this->status = $newStatus;
+        $this->save();
+
+        return $this->statusHistory()->create([
+            'status' => $newStatus,
+            'changed_by' => $userId ?? auth()->id(),
+            'note' => $note
+        ]);
     }
 
     // Helper methods for state transitions

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import Can from '../../../components/Can';
 
 export default function ResearcherResearch() {
     const [papers, setPapers] = useState([]);
@@ -21,9 +22,13 @@ export default function ResearcherResearch() {
     const getStatusInfo = (status) => {
         switch(status) {
             case 'under_review': return { text: 'قيد التحكيم', color: 'bg-blue-50 text-blue-600', icon: '⚖️' };
-            case 'accepted': return { text: 'مقبول', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
+            case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', icon: '❌' };
-            case 'submitted': return { text: 'مقدم', color: 'bg-gray-50 text-gray-600', icon: '📨' };
+            case 'submitted': return { text: 'تم التقديم', color: 'bg-gray-50 text-gray-600', icon: '📨' };
+            case 'under_screening': return { text: 'الفحص الأولي', color: 'bg-amber-50 text-amber-600', icon: '🔍' };
+            case 'with_editor': return { text: 'مع المحرر العلمي', color: 'bg-indigo-50 text-indigo-600', icon: '👨‍🏫' };
+            case 'revision_required': return { text: 'مطلوب تعديل', color: 'bg-rose-50 text-rose-600', icon: '⚠️' };
+            case 'resubmitted': return { text: 'تم إعادة الإرسال', color: 'bg-purple-50 text-purple-600', icon: '♻️' };
             default: return { text: status, color: 'bg-gray-50 text-gray-600', icon: '❓' };
         }
     };
@@ -56,23 +61,29 @@ export default function ResearcherResearch() {
                     <h1 className="text-3xl font-black text-blue-950 font-['Cairo']">أبحاثي العلمية</h1>
                     <p className="text-gray-500 font-medium">متابعة حالة أوراقك البحثية المقدمة للمؤتمرات</p>
                 </div>
-                <Link to="/researcher/research/create" className="px-8 py-4 bg-blue-950 text-white font-bold rounded-2xl shadow-xl hover:bg-blue-900 transition flex items-center gap-3">
-                    <span className="text-xl">➕</span> تقديم بحث جديد
-                </Link>
+                <Can permission="paper.create">
+                    <Link to="/researcher/research/create" className="px-8 py-4 bg-blue-950 text-white font-bold rounded-2xl shadow-xl hover:bg-blue-900 transition flex items-center gap-3">
+                        <span className="text-xl">➕</span> تقديم بحث جديد
+                    </Link>
+                </Can>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                    <p className="text-gray-400 text-xs font-black uppercase tracking-widest">إجمالي الأبحاث</p>
-                    <h3 className="text-3xl font-black text-blue-950 mt-1">{papers.length}</h3>
+                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">إجمالي الأبحاث</p>
+                    <h3 className="text-2xl font-black text-blue-950 mt-1">{papers.length}</h3>
                 </div>
-                <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 shadow-sm">
-                    <p className="text-emerald-600/60 text-xs font-black uppercase tracking-widest">الأبحاث المقبولة</p>
-                    <h3 className="text-3xl font-black text-emerald-700 mt-1">{papers.filter(p => p.status === 'accepted').length}</h3>
+                <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100 shadow-sm">
+                    <p className="text-amber-600/60 text-[10px] font-black uppercase tracking-widest">المحرر / المكتب</p>
+                    <h3 className="text-2xl font-black text-amber-700 mt-1">{papers.filter(p => ['under_screening', 'with_editor', 'revision_required', 'resubmitted'].includes(p.status)).length}</h3>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 shadow-sm">
-                    <p className="text-blue-600/60 text-xs font-black uppercase tracking-widest">قيد المراجعة</p>
-                    <h3 className="text-3xl font-black text-blue-700 mt-1">{papers.filter(p => p.status === 'under_review').length}</h3>
+                    <p className="text-blue-600/60 text-[10px] font-black uppercase tracking-widest">قيد التحكيم</p>
+                    <h3 className="text-2xl font-black text-blue-700 mt-1">{papers.filter(p => p.status === 'under_review').length}</h3>
+                </div>
+                <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 shadow-sm">
+                    <p className="text-emerald-600/60 text-[10px] font-black uppercase tracking-widest">المقبولة</p>
+                    <h3 className="text-2xl font-black text-emerald-700 mt-1">{papers.filter(p => ['accepted', 'scheduled', 'published'].includes(p.status)).length}</h3>
                 </div>
             </div>
 
@@ -116,8 +127,14 @@ export default function ResearcherResearch() {
                                                 <Link to={`/researcher/research/${paper.id}/revision`} className="p-3 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition flex items-center justify-center" title="تقديم التعديلات">📤</Link>
                                             )}
                                             <Link to="/researcher/reviews" className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition flex items-center justify-center" title="سجل التحكيم">📜</Link>
-                                            <Link to={`/researcher/research/${paper.id}/edit`} className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition flex items-center justify-center" title="تعديل">✏️</Link>
-                                            <button onClick={() => handleDelete(paper.id, paper.title)} className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-red-50 hover:text-red-600 transition flex items-center justify-center" title="سحب البحث">🗑️</button>
+                                            
+                                            <Can permission="paper.edit_draft">
+                                                <Link to={`/researcher/research/${paper.id}/edit`} className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition flex items-center justify-center" title="تعديل">✏️</Link>
+                                            </Can>
+
+                                            <Can permission="paper.withdraw">
+                                                <button onClick={() => handleDelete(paper.id, paper.title)} className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-red-50 hover:text-red-600 transition flex items-center justify-center" title="سحب البحث">🗑️</button>
+                                            </Can>
                                         </div>
                                     </td>
                                 </tr>

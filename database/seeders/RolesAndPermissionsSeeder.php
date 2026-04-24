@@ -47,171 +47,79 @@ class RolesAndPermissionsSeeder extends Seeder
             'activity_log.view_personal',
         ];
 
-        // Role-Specific Permissions Matrix
+        // Role-Specific Permissions Matrix based on user requirements
         $roleMatrix = [
-            'researcher' => [
-                'display_name' => 'Researcher',
-                'description' => 'A user who submits papers and registers for conferences.',
+            'author' => [
+                'display_name' => 'Author (Researcher)',
+                'description' => 'Submits papers and manages revisions.',
                 'permissions' => [
-                    // Conference Management
-                    'conferences.view_available',
-                    'conferences.register',
-                    'conferences.cancel_registration',
-
-                    // Paper Management
-                    'papers.submit',
-                    'papers.view_own',
-                    'papers.edit',        // Before review
-                    'papers.reupload',    // Validation request
-                    'papers.withdraw',    // Before final acceptance
-                    'papers.track_status',
-
-                    // Interaction
-                    'comments.view',
-
-                    // Certificates
-                    'certificates.download_participation',
-                    'certificates.download_acceptance',
+                    'paper.create',
+                    'paper.edit_draft',
+                    'paper.upload_files',
+                    'paper.view_status',
+                    'paper.respond_to_reviews',
                 ]
             ],
             'reviewer' => [
                 'display_name' => 'Reviewer',
-                'description' => 'Evaluates assigned papers.',
+                'description' => 'Evaluates assigned blind papers.',
                 'permissions' => [
-                    // Assigned Papers
-                    'papers.view_assigned',
-                    'papers.download',
-
-                    // Review Form
-                    'reviews.fill_form',
-                    'reviews.submit',
-                    'reviews.decision_recommend', // Recommend Accept/Modify/Reject
-
-                    // Management
-                    'reviews.view_completed',
-                    'reviews.view_history',
-                    'guide.view_reviewer',
-
-                    // Notifications
-                    'notifications.assignment_receive',
-                ]
-            ],
-            'scientific_committee' => [
-                'display_name' => 'Scientific Committee',
-                'description' => 'Manages scientific content and reviewers.',
-                'permissions' => [
-                    // Conference Management
-                    'conferences.create',
-                    'conferences.edit',
-                    'conferences.close',
-
-                    // Paper Management
-                    'papers.view_all',
-                    'papers.filter',
-                    'papers.initial_decision',
-
-                    // Reviewer Management
-                    'reviewers.add',
-                    'reviewers.edit',
-                    'reviewers.assign',
-
-                    // Review Results
-                    'reviews.view_evaluations',
-                    'reviews.recommendation', // Recommend Accept/Reject to Chair
-
-                    // Sessions
-                    'sessions.create',
-                    'sessions.schedule',
-                    'sessions.prepare_program',
-
-                    // Certificates
-                    'certificates.generate',
-                    'certificates.approve',
-
-                    // Reports
-                    'reports.papers',
-                    'reports.reviewers',
-                    'reports.stats',
-                ]
-            ],
-            'conference_chair' => [
-                'display_name' => 'Conference Chair',
-                'description' => 'Head of the conference with final approval power.',
-                'permissions' => [
-                    // Monitoring
-                    'conference.monitor',
-                    'kpi.view',
-
-                    // Decisions (Approvals)
-                    'decisions.approve_reviews',
-                    'decisions.approve_final_papers',
-
-                    // Sessions
-                    'sessions.approve',
-                    'program.approve_final',
-
-                    // Reports
-                    'reports.final',
-                    'reports.general_stats',
-                ]
-            ],
-            'editorial_office' => [
-                'display_name' => 'Editorial Office',
-                'description' => 'Handles initial checks and communication.',
-                'permissions' => [
-                    // Initial Check
-                    'papers.check_compliance',
-                    'papers.initial_accept_reject',
-
-                    // Follow-up
-                    'reviews.monitor_progress',
-                    'communication.contact_researchers',
-                    'communication.contact_reviewers',
-                    'communication.manage_official',
-
-                    // Notifications
-                    'notifications.receive_all_workflow',
+                    'review.accept_reject_assignment',
+                    'review.submit',
+                    'review.update',
+                    'paper.view_blind_only',
                 ]
             ],
             'editor' => [
                 'display_name' => 'Editor',
-                'description' => 'Reviews language and technical aspects.',
+                'description' => 'Manages workflow and reviewer assignments.',
                 'permissions' => [
-                    // Review
-                    'papers.review_language',
-                    'papers.review_technical',
-
-                    // Modifications
-                    'papers.request_revision',
-                    'papers.send_to_review',
-                    'papers.approve_final_version',
+                    'reviewer.assign',
+                    'workflow.manage',
+                    'paper.view_all',
+                    'paper.request_revision',
+                    'decision.recommend',
+                ]
+            ],
+            'editorial_office' => [
+                'display_name' => 'Editorial Office',
+                'description' => 'Handles initial screening and validation.',
+                'permissions' => [
+                    'screening.initial',
+                    'file.validation',
+                    'plagiarism.check',
+                    'notifications.manage',
+                    'data_entry.support',
+                ]
+            ],
+            'scientific_committee' => [
+                'display_name' => 'Scientific Committee',
+                'description' => 'Quality control and approval.',
+                'permissions' => [
+                    'reviewer.approve',
+                    'decision.approve',
+                    'quality.evaluate',
+                    'acceptance_threshold.define',
+                ]
+            ],
+            'conference_chair' => [
+                'display_name' => 'Conference Chair',
+                'description' => 'Final authority on conference decisions.',
+                'permissions' => [
+                    'decision.final_override',
+                    'acceptance_list.approve',
+                    'conference_structure.manage',
                 ]
             ],
             'system_admin' => [
                 'display_name' => 'System Administrator',
-                'description' => 'Full system control.',
+                'description' => 'Full system maintenance.',
                 'permissions' => [
-                    // User Management
-                    'users.create',
-                    'users.edit',
-                    'users.delete',
-                    'users.manage_roles',
-
-                    // Conference Management
-                    'conferences.manage_all',
-
-                    // Settings
-                    'settings.general',
-                    'settings.templates',
-                    'settings.security',
-
-                    // Reports
-                    'reports.all',
-
-                    // System
-                    'backups.create',
-                    'backups.restore',
+                    'users.manage',
+                    'system.configure',
                     'logs.view',
+                    'security.manage',
+                    'backup.manage',
                 ]
             ]
         ];

@@ -105,20 +105,36 @@ class PaperController extends Controller
     }
     public function show($id)
     {
-        $paper = Paper::where('author_id', Auth::id())
-            ->with([
-                'conference',
-                'coauthors',
-                'assignments' => function ($query) {
-                    $query->where('status', 'completed')
-                        ->with([
-                            'review' => function ($q) {
-                                $q->where('is_submitted', true);
-                            }
-                        ]);
-                }
-            ])
-            ->findOrFail($id);
+        Log::info('Researcher Paper Show Request', ['paper_id' => $id, 'user_id' => Auth::id()]);
+        
+        $paper = Paper::find($id);
+
+        if (!$paper) {
+            return response()->json(['message' => "البحث رقم {$id} غير موجود في النظام."], 404);
+        }
+
+        if ($paper->author_id !== Auth::id()) {
+            return response()->json([
+                'message' => "غير مصرح لك بعرض هذا البحث. هذا البحث يخص باحثاً آخر.",
+                'debug' => [
+                    'current_user' => Auth::id(),
+                    'paper_author' => $paper->author_id
+                ]
+            ], 403);
+        }
+
+        $paper->load([
+            'conference',
+            'coauthors',
+            'assignments' => function ($query) {
+                $query->where('status', 'completed')
+                    ->with([
+                        'review' => function ($q) {
+                            $q->where('is_submitted', true);
+                        }
+                    ]);
+            }
+        ]);
 
         return response()->json(['paper' => $paper]);
     }

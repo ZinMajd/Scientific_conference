@@ -83,6 +83,9 @@ class AuthController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
 
+            $user->load('roles', 'permissions'); // Preload for attribute
+            $user->append('all_permissions');
+
             return response()->json([
                 'user' => $user,
                 'token' => $user->createToken('auth_token')->plainTextToken
@@ -115,6 +118,9 @@ class AuthController extends Controller
         $request->session()->regenerate();
         $user = Auth::user();
         \Illuminate\Support\Facades\Log::info('User logged in', ['id' => $user->id]);
+
+        $user->load('roles');
+        $user->append('all_permissions');
 
         return response()->json([
             'user' => $user,

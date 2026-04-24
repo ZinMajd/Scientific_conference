@@ -106,7 +106,17 @@ export default function ResearcherLayout() {
                 {isSidebarOpen && user && (
                     <div className="mx-4 mt-4 p-3 rounded-xl" style={{ background: `${TURQUOISE}10`, border: `1px solid ${TURQUOISE}25` }}>
                         <p className="text-white font-bold text-sm truncate">{user?.full_name || user?.name || 'مستخدم'}</p>
-                        <p className="text-xs" style={{ color: TURQUOISE }}>باحث علمي</p>
+                        <p className="text-xs" style={{ color: TURQUOISE }}>
+                            {user?.user_type === 'editor' ? 'المحرر العلمي' : 
+                             user?.user_type === 'chair' ? 'رئيس المؤتمر' : 
+                             user?.user_type === 'office' ? 'مكتب التحرير' : 
+                             user?.user_type === 'admin' ? 'مدير النظام' : 'باحث علمي'}
+                        </p>
+                        {['editor', 'chair', 'office', 'admin'].includes(user?.user_type) && (
+                            <Link to="/committee" className="mt-2 block text-[10px] bg-white/10 text-center py-1 rounded hover:bg-white/20 transition text-white">
+                                العودة للوحة الإدارة ←
+                            </Link>
+                        )}
                     </div>
                 )}
 

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export default function MainLayout() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
     const [user, setUser] = useState(() => {
         try {
             const saved = localStorage.getItem('user');
@@ -13,6 +14,20 @@ export default function MainLayout() {
         }
     });
 
+    // Keep user state in sync with localStorage (e.g. after login/logout in other tabs)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            try {
+                const saved = localStorage.getItem('user');
+                setUser(saved ? JSON.parse(saved) : null);
+            } catch (e) {
+                setUser(null);
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
     const isActive = (path) => location.pathname === path
         ? 'text-[#40E0D0] font-bold border-b-2 border-[#40E0D0] pb-0.5'
         : 'text-white/80 hover:text-[#40E0D0] transition-colors duration-200';
@@ -20,7 +35,8 @@ export default function MainLayout() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/';
+        setUser(null);
+        navigate('/');
     };
 
     return (
@@ -46,7 +62,18 @@ export default function MainLayout() {
                         <Link to="/about" className={isActive('/about')}>عن النظام</Link>
                         <Link to="/faq" className={isActive('/faq')}>الأسئلة الشائعة</Link>
                         <Link to="/support" className={isActive('/support')}>الدعم</Link>
-                        {user && <Link to="/profile" className={isActive('/profile')}>لوحة التحكم</Link>}
+                        {user && (
+                            <Link 
+                                to={
+                                    user.user_type === 'author' ? '/researcher' : 
+                                    ['admin', 'chair', 'editor', 'office', 'committee'].includes(user.user_type) ? '/committee' : 
+                                    user.user_type === 'reviewer' ? '/reviewer' : '/profile'
+                                } 
+                                className={isActive('/profile') || isActive('/researcher') || isActive('/committee') || isActive('/reviewer')}
+                            >
+                                لوحة التحكم
+                            </Link>
+                        )}
                     </nav>
 
                     {/* Auth Actions */}
