@@ -38,6 +38,11 @@ class User extends Authenticatable
         return $this->hasMany(PaperAssignment::class, 'reviewer_id');
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(PaperReview::class, 'reviewer_id');
+    }
+
     public function assignedPapers()
     {
         return $this->hasManyThrough(Paper::class, PaperAssignment::class, 'reviewer_id', 'id', 'id', 'paper_id');
@@ -84,6 +89,22 @@ class User extends Authenticatable
     public function hasPermission($slug)
     {
         return $this->getAllPermissionsAttribute()->contains($slug);
+    }
+
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole($slug): bool
+    {
+        return $this->roles->contains('slug', $slug);
+    }
+
+    /**
+     * Check if user has any of the given roles.
+     */
+    public function hasAnyRole(array $slugs): bool
+    {
+        return $this->roles->whereIn('slug', $slugs)->isNotEmpty();
     }
 
     /**

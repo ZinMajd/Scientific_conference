@@ -44,8 +44,8 @@ export default function CommitteeResults() {
                     <p className="text-gray-500 font-medium">عرض الأبحاث المقبولة نهائياً والمؤرشفة للنشر العلمي</p>
                 </div>
                 <div className="flex gap-4">
-                    <button className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition shadow-sm">📑 أرشيف النشر</button>
-                    <button className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition">📊 تقرير الأصالة</button>
+                    <button onClick={() => alert('سيتم تفعيل أرشيف النشر بعد انتهاء المؤتمر وإصدار السجل العلمي (Proceedings).')} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition shadow-sm">📑 أرشيف النشر</button>
+                    <button onClick={() => alert('جاري ربط تقارير الأصالة (iThenticate / Turnitin) عبر الـ API. سيتم التفعيل قريباً.')} className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition">📊 تقرير الأصالة</button>
                 </div>
             </div>
 

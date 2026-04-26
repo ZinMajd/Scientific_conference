@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const PRUSSIAN = '#003153';
 const PRUSSIAN_DARK = '#001a2e';
@@ -7,6 +8,18 @@ const TURQUOISE = '#40E0D0';
 const OCEAN = '#0096c7';
 
 export default function Home() {
+    const [stats, setStats] = useState({
+        conferences: 0,
+        papers: 0,
+        users: 0
+    });
+
+    useEffect(() => {
+        axios.get('/api/stats')
+            .then(res => setStats(res.data))
+            .catch(err => console.error("Failed to fetch stats", err));
+    }, []);
+
     return (
         <div className="pb-16 min-h-screen bg-white">
             {/* Hero Section */}
@@ -27,10 +40,10 @@ export default function Home() {
                         <br />
                         <span style={{ color: TURQUOISE }}>العلمية</span>
                     </h1>
-                    <p className="text-xl text-white/80 max-w-2xl mx-auto mb-10">
-                        منصة متكاملة لإدارة وتقديم الأوراق البحثية والتحكيم العلمي في مؤتمرات جامعة إقليم سبأ
+                    <p className="text-xl text-white/80 mx-auto text-center leading-relaxed" style={{ marginBottom: '60px' }}>
+                        منصة متكاملة لإدارة وتقديم الأوراق البحثية <br className="hidden md:block" /> والتحكيم العلمي في مؤتمرات جامعة إقليم سبأ
                     </p>
-                    <div className="flex flex-wrap gap-4 justify-center">
+                    <div className="flex flex-wrap gap-4 justify-center" style={{ marginTop: '60px' }}>
                         <Link to="/conferences"
                             className="px-10 py-4 rounded-2xl font-black text-xl shadow-2xl transition-all duration-300 hover:scale-105"
                             style={{ background: `linear-gradient(135deg, ${TURQUOISE}, ${OCEAN})`, color: PRUSSIAN_DARK }}>
@@ -52,9 +65,9 @@ export default function Home() {
             <section className="container mx-auto px-4 py-16">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {[
-                        { count: '+150', label: 'مؤتمر نشط', icon: '🌍' },
-                        { count: '+5000', label: 'ورقة بحثية', icon: '📄' },
-                        { count: '+1200', label: 'باحث ومحكّم', icon: '👨‍🎓' },
+                        { count: `+${stats.conferences}`, label: 'مؤتمر نشط', icon: '🌍' },
+                        { count: `+${stats.papers}`, label: 'ورقة بحثية', icon: '📄' },
+                        { count: `+${stats.users}`, label: 'باحث ومحكّم', icon: '👨‍🎓' },
                     ].map((stat, idx) => (
                         <div key={idx} className="rounded-3xl p-8 flex items-center gap-6 hover:scale-105 transition-all duration-300 shadow-md"
                             style={{ background: 'white', border: `1px solid ${TURQUOISE}30` }}>

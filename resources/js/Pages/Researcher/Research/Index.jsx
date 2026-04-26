@@ -29,6 +29,8 @@ export default function ResearcherResearch() {
             case 'with_editor': return { text: 'مع المحرر العلمي', color: 'bg-indigo-50 text-indigo-600', icon: '👨‍🏫' };
             case 'revision_required': return { text: 'مطلوب تعديل', color: 'bg-rose-50 text-rose-600', icon: '⚠️' };
             case 'resubmitted': return { text: 'تم إعادة الإرسال', color: 'bg-purple-50 text-purple-600', icon: '♻️' };
+            case 'scheduled': return { text: 'تمت الجدولة', color: 'bg-teal-50 text-teal-600', icon: '📅' };
+            case 'published': return { text: 'منشور', color: 'bg-sky-50 text-sky-600', icon: '📑' };
             default: return { text: status, color: 'bg-gray-50 text-gray-600', icon: '❓' };
         }
     };

@@ -168,11 +168,11 @@ export default function CommitteeConferences() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl animate-in zoom-in duration-300 my-10">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-5xl shadow-2xl animate-in zoom-in duration-300 my-10">
                         <h3 className="text-xl font-black text-emerald-950 mb-6">{editingConf ? 'تعديل بيانات المؤتمر' : 'إنشاء مؤتمر جديد'}</h3>
                         <form onSubmit={handleSave} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="md:col-span-2">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="md:col-span-3">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">عنوان المؤتمر</label>
                                     <input 
                                         type="text" 
@@ -183,7 +183,7 @@ export default function CommitteeConferences() {
                                     />
                                     {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title[0]}</p>}
                                 </div>
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-3">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">المكان (Venue)</label>
                                     <input 
                                         type="text" 
@@ -217,7 +217,7 @@ export default function CommitteeConferences() {
                                     {errors.contact_email && <p className="text-red-500 text-xs mt-1">{errors.contact_email[0]}</p>}
                                 </div>
 
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-1">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">رابط الموقع (Website URL)</label>
                                     <input 
                                         type="url" 
@@ -330,7 +330,7 @@ export default function CommitteeConferences() {
                                     {errors.max_papers && <p className="text-red-500 text-xs mt-1">{errors.max_papers[0]}</p>}
                                 </div>
 
-                                <div>
+                                <div className="md:col-span-1">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
                                     <select 
                                         className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"

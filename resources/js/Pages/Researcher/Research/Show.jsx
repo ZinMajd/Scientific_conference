@@ -7,6 +7,8 @@ export default function ResearcherResearchShow() {
     const [paper, setPaper] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [cameraReadyFile, setCameraReadyFile] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -40,6 +42,8 @@ export default function ResearcherResearchShow() {
             case 'with_editor': return { text: 'مع المحرر العلمي (التقييم الأولي)', color: 'bg-blue-50 text-blue-600', icon: '👨‍🏫' };
             case 'under_review': return { text: 'قيد التحكيم (Peer Review)', color: 'bg-cyan-50 text-cyan-600', icon: '⚖️' };
             case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
+            case 'scheduled': return { text: 'مجدول في جلسات المؤتمر', color: 'bg-indigo-50 text-indigo-600', icon: '📅' };
+            case 'published': return { text: 'منشور في السجل العلمي', color: 'bg-blue-50 text-blue-600', icon: '🌐' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', icon: '❌' };
             case 'submitted': return { text: 'تم الاستلام', color: 'bg-gray-50 text-gray-600', icon: '📨' };
             default: return { text: status, color: 'bg-gray-50 text-gray-600', icon: '❓' };
@@ -68,6 +72,31 @@ export default function ResearcherResearchShow() {
         if (s === 'under_review') return 3;
         if (['accepted', 'rejected', 'scheduled', 'published'].includes(s)) return 4;
         return 0;
+    };
+
+
+    const handleCameraReadyUpload = async (e) => {
+        e.preventDefault();
+        if (!cameraReadyFile) return;
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('camera_ready_file', cameraReadyFile);
+        
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(`/api/researcher/papers/${paper.id}/camera-ready`, formData, {
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            alert('تم رفع النسخة النهائية بنجاح');
+            window.location.reload();
+        } catch (err) {
+            alert('فشل الرفع: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setUploading(false);
+        }
     };
 
     const currentStep = getCurrentStepIndex();
@@ -251,6 +280,61 @@ export default function ResearcherResearchShow() {
                             <div className="text-5xl mb-4">📄</div>
                             <h4 className="font-bold text-gray-900 line-clamp-1 mb-6 text-sm" dir="ltr">{paper.file_name}</h4>
                             <a href={`/storage_file/${paper.file_path}`} target="_blank" download className="block w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition">تحميل نسخة البحث</a>
+                        </div>
+                    )}
+
+                    {/* Session Info */}
+                    {paper.status === 'scheduled' && paper.sessions && paper.sessions.length > 0 && (
+                        <div className="bg-emerald-900 p-8 rounded-3xl text-white shadow-xl shadow-emerald-900/20">
+                            <h4 className="font-black mb-4 flex items-center gap-2">
+                                <span>📅</span> تفاصيل العرض في المؤتمر
+                            </h4>
+                            <div className="space-y-4 text-sm font-medium">
+                                <div className="flex justify-between border-b border-white/10 pb-2">
+                                    <span className="opacity-60">الجلسة</span>
+                                    <span>{paper.sessions[0].title}</span>
+                                </div>
+                                <div className="flex justify-between border-b border-white/10 pb-2">
+                                    <span className="opacity-60">القاعة</span>
+                                    <span>{paper.sessions[0].room}</span>
+                                </div>
+                                <div className="flex justify-between border-b border-white/10 pb-2">
+                                    <span className="opacity-60">التوقيت</span>
+                                    <span dir="ltr">{new Date(paper.sessions[0].start_time).toLocaleString('ar-EG')}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="opacity-60">نوع العرض</span>
+                                    <span className="bg-white/20 px-2 py-0.5 rounded uppercase text-[10px]">{paper.presentation_type || 'Oral'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Camera Ready Upload */}
+                    {['accepted', 'scheduled'].includes(paper.status) && (
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border-2 border-dashed border-emerald-200">
+                            <h4 className="font-black text-emerald-900 mb-4 flex items-center gap-2">
+                                <span>📤</span> رفع النسخة النهائية (Camera Ready)
+                            </h4>
+                            <p className="text-xs text-gray-500 mb-6 leading-relaxed">
+                                مبروك! بحثك مقبول. يرجى رفع النسخة النهائية للبحث بعد إجراء أي تعديلات طفيفة طلبها المحكمون.
+                            </p>
+                            <form onSubmit={handleCameraReadyUpload} className="space-y-4">
+                                <input 
+                                    type="file" 
+                                    accept=".pdf" 
+                                    onChange={(e) => setCameraReadyFile(e.target.files[0])}
+                                    className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                                    required
+                                />
+                                <button 
+                                    type="submit" 
+                                    disabled={uploading}
+                                    className="w-full py-3 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-700 transition disabled:opacity-50"
+                                >
+                                    {uploading ? 'جاري الرفع...' : 'رفع النسخة النهائية'}
+                                </button>
+                            </form>
                         </div>
                     )}
                 </div>

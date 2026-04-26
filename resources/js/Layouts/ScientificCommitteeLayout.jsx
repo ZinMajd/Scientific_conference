@@ -58,7 +58,7 @@ export default function ScientificCommitteeLayout() {
             icon: '👨‍🏫',
             path: '/committee/reviewers',
             group: 'المحكمين',
-            allowedRoles: ['committee', 'editor'],
+            allowedRoles: ['committee', 'editor', 'office'],
             subItems: [
                 { title: 'إضافة محكم', path: '/committee/reviewers/add' },
                 { title: 'تعديل بيانات محكم', path: '/committee/reviewers' },
@@ -73,7 +73,7 @@ export default function ScientificCommitteeLayout() {
             allowedRoles: ['committee'],
             subItems: [
                 { title: 'مراجعة التقييمات', path: '/committee/results' },
-                { title: 'التوصية بالقبول/الرفض', path: '/committee/results/recommend' }
+                { title: 'التوصية بالقبول/الرفض', path: '/committee/research/recommend' }
             ]
         },
         {

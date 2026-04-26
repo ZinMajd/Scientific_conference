@@ -153,7 +153,10 @@ class PaperController extends Controller
 
     public function archive(Request $request)
     {
-        $query = Paper::where('is_published', true)
+        $query = Paper::where(function ($q) {
+                $q->where('is_published', true)
+                  ->orWhere('status', 'scheduled');
+            })
             ->with(['conference', 'author'])
             ->orderBy('created_at', 'desc');
 
@@ -197,6 +200,12 @@ class PaperController extends Controller
             'completeness_check' => 'nullable|boolean',
         ]);
 
+        if ($request->result === 'scientific_pass') {
+            if (!$request->user()->hasRole('editor') && !$request->user()->hasRole('scientific_committee') && !$request->user()->hasRole('system_admin')) {
+                return response()->json(['message' => 'ليس لديك صلاحية لقبول البحث للتحكيم العلمي وإرساله للمحكمين. هذه الصلاحية مخصصة للمحرر العلمي واللجنة العلمية.'], 403);
+            }
+        }
+
         return DB::transaction(function () use ($request, $id) {
             $paper = Paper::findOrFail($id);
 
@@ -214,18 +223,17 @@ class PaperController extends Controller
             }
 
             // 2. Map Professional Result to Final Status
-            $statusMap = [
-                'technical_pass' => Paper::STATUS_SCREENED_APPROVED, // Passed to Scientific Editor
-                'technical_fail' => Paper::STATUS_REVISION_REQUIRED,
-                'scientific_pass' => Paper::STATUS_PRELIMINARY_ACCEPTED, // Gateway to Anonymization
-                'desk_reject' => Paper::STATUS_REJECTED
+            $eventMap = [
+                'technical_pass' => 'TECHNICAL_CHECK_PASS',
+                'technical_fail' => 'TECHNICAL_CHECK_FAIL',
+                'scientific_pass' => 'INITIAL_SCREENING_PASS',
+                'desk_reject' => 'DESK_REJECT'
             ];
 
-            $newStatus = $statusMap[$request->result];
             $note = "قرار الفرز الأولي: " . ($request->notes ?: "لا توجد ملاحظات إضافية");
-            
-            // 3. Apply transition with history
-            $paper->transitionStatus($newStatus, $note, Auth::id());
+
+            // 3. Apply transition with history via Workflow Service
+            $this->workflow->transition($paper, $eventMap[$request->result], $note);
 
             // 4. Store in Screening Decisions (The History Layer)
             DB::table('screening_decisions')->insert([
@@ -258,7 +266,7 @@ class PaperController extends Controller
             return response()->json([
                 'message' => 'تم تسجيل القرار الأولي بنجاح.',
                 'system_recommendation' => $systemRecommendation,
-                'final_status' => $newStatus,
+                'final_status' => $paper->status,
                 'paper' => $paper->load('versions')
             ]);
         });
@@ -279,7 +287,7 @@ class PaperController extends Controller
             $path = $file->store('papers/blind', 'public');
 
             // 2. Register in paper_versions and update main paper record
-            \App\Models\PaperVersion::create([
+            PaperVersion::create([
                 'paper_id' => $paper->id,
                 'version_number' => $paper->versions()->count() + 1,
                 'file_path' => $path,
@@ -289,10 +297,9 @@ class PaperController extends Controller
 
             $paper->update([
                 'blind_file_path' => $path,
-                'status' => Paper::STATUS_ANONYMIZING // This will be updated to UNDER_REVIEW on first assignment
             ]);
             
-            $paper->transitionStatus(Paper::STATUS_ANONYMIZING, 'تم رفع النسخة العمياء بنجاح. البحث جاهز الآن للتحكيم.', Auth::id());
+            $this->workflow->transition($paper, 'PAPER_ANONYMIZED', 'تم رفع النسخة العمياء بنجاح. البحث جاهز الآن للتحكيم.');
 
             // 3. Automated Conflict Detection (Institutional)
             $authorInstitution = $paper->author->affiliation ?? null;
@@ -370,7 +377,7 @@ class PaperController extends Controller
 
             // Transition using the professional State Machine
             // This will automatically change status to 'resubmitted' and record in history
-            $paper->transitionStatus(Paper::STATUS_RESUBMITTED, 'تم تعديل البحث وإعادة إرساله للفحص الأولي من قبل الباحث');
+            $this->workflow->transition($paper, 'REVISION_SUBMITTED', 'تم تعديل البحث وإعادة إرساله للفحص الأولي من قبل الباحث');
 
             \Illuminate\Support\Facades\Log::info('STATE_MACHINE_TRANSITION_SUCCESS', [
                 'new_status' => $paper->status,

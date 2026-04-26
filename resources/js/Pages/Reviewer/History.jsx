@@ -5,6 +5,7 @@ export default function ReviewerHistory() {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedReview, setSelectedReview] = useState(null);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -91,7 +92,7 @@ export default function ReviewerHistory() {
                                             {assignment.updated_at ? new Date(assignment.updated_at).toLocaleDateString('ar-EG') : '-'}
                                         </td>
                                         <td className="p-6 text-center">
-                                            <button className="p-3 bg-gray-50 text-indigo-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition inline-flex items-center justify-center" title="عرض التقييم">👁️</button>
+                                            <button onClick={() => setSelectedReview(assignment)} className="p-3 bg-gray-50 text-indigo-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition inline-flex items-center justify-center" title="عرض التقييم">👁️</button>
                                         </td>
                                     </tr>
                                 );
@@ -100,6 +101,71 @@ export default function ReviewerHistory() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Review Details Modal */}
+            {selectedReview && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 className="text-xl font-black text-indigo-950 mb-1">تفاصيل التقييم</h3>
+                                <p className="text-sm text-gray-500 font-bold">{selectedReview.paper?.title}</p>
+                            </div>
+                            <button onClick={() => setSelectedReview(null)} className="text-gray-400 hover:text-red-500 transition">✕</button>
+                        </div>
+                        
+                        <div className="space-y-6 text-right">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gray-50 p-4 rounded-2xl">
+                                    <div className="text-xs text-gray-500 font-bold mb-1">القرار</div>
+                                    <div className="font-black text-indigo-900">{getDecisionLabel(selectedReview.review?.decision).text}</div>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-2xl">
+                                    <div className="text-xs text-gray-500 font-bold mb-1">الدرجة النهائية</div>
+                                    <div className="font-black text-indigo-600">{selectedReview.review?.overall_score}/10</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-50">
+                                <h4 className="text-sm font-black text-indigo-900 mb-4">تفصيل الدرجات</h4>
+                                <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-600 font-bold">الأصالة</span>
+                                        <span className="font-black text-indigo-900">{selectedReview.review?.originality_score}/10</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-600 font-bold">المنهجية</span>
+                                        <span className="font-black text-indigo-900">{selectedReview.review?.methodology_score}/10</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-600 font-bold">النتائج</span>
+                                        <span className="font-black text-indigo-900">{selectedReview.review?.results_score}/10</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-600 font-bold">الوضوح</span>
+                                        <span className="font-black text-indigo-900">{selectedReview.review?.clarity_score}/10</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="text-sm font-black text-indigo-900 mb-2">ملاحظات للمؤلف</h4>
+                                    <div className="bg-gray-50 p-4 rounded-2xl text-sm text-gray-700 leading-relaxed min-h-[100px]">
+                                        {selectedReview.review?.comments_to_author || 'لا توجد ملاحظات.'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black text-amber-900 mb-2">ملاحظات سرية للمحرر</h4>
+                                    <div className="bg-amber-50 p-4 rounded-2xl text-sm text-amber-900 leading-relaxed min-h-[100px] border border-amber-100">
+                                        {selectedReview.review?.comments_to_editor || 'لا توجد ملاحظات سرية.'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

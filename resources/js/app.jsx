@@ -97,6 +97,7 @@ function App() {
                     <Route path="reviewed" element={<ResearcherReviewedPapers />} />
                     <Route path="comments" element={<Notifications />} />
                     <Route path="certificates" element={<Certificates />} />
+                    <Route path="certificates/:type" element={<Certificates />} />
                     <Route path="notifications" element={<Notifications />} />
                 </Route>
 
@@ -120,6 +121,7 @@ function App() {
                     <Route path="research" element={<CommitteeResearch />} />
                     <Route path="research/sort" element={<CommitteeResearch />} />
                     <Route path="research/decisions" element={<CommitteeResearch />} />
+                    <Route path="research/recommend" element={<CommitteeResearch />} />
                     <Route path="reviewers" element={<CommitteeReviewers />} />
                     <Route path="reviewers/add" element={<CommitteeReviewers />} />
                     <Route path="reviewers/assign" element={<CommitteeReviewers />} />

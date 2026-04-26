@@ -238,7 +238,7 @@ export default function CommitteeReviewers() {
                                         className="w-full p-3 rounded-xl border border-gray-200 focus:border-emerald-500 outline-none"
                                         value={inviteForm.affiliation}
                                         onChange={e => setInviteForm({...inviteForm, affiliation: e.target.value})}
-                                        placeholder="جامعة الملك سعود"
+                                        placeholder="جامعة"
                                     />
                                 </div>
                                 <div className="flex gap-3 mt-6">

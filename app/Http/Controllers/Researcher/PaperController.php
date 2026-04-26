@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\Log;
 
 class PaperController extends Controller
 {
+    protected $workflow;
+    
+    public function __construct(\App\Services\PaperWorkflowService $workflow)
+    {
+        $this->workflow = $workflow;
+    }
+
     public function index()
     {
         $papers = Paper::where('author_id', Auth::id())
@@ -89,6 +96,9 @@ class PaperController extends Controller
                         }
                     }
                 }
+
+                // Initialize workflow
+                $this->workflow->transition($paper, 'PAPER_SUBMITTED', 'تقديم البحث لأول مرة');
             });
 
             Log::info('PaperController: Paper submitted successfully');
@@ -127,13 +137,10 @@ class PaperController extends Controller
             'conference',
             'coauthors',
             'statusHistory', // Load audit trail for status timeline
+            'sessions',
             'assignments' => function ($query) {
                 $query->where('status', 'completed')
-                    ->with([
-                        'review' => function ($q) {
-                            $q->where('is_submitted', true);
-                        }
-                    ]);
+                    ->with('review');
             }
         ]);
 
@@ -189,7 +196,7 @@ class PaperController extends Controller
 
                 // Professional State Machine: If paper was "revision_required", change it to "resubmitted" automatically
                 if ($paper->status === Paper::STATUS_REVISION_REQUIRED) {
-                    $paper->transitionStatus(Paper::STATUS_RESUBMITTED, 'تم تحديث بيانات البحث من قبل الباحث (تعديل مباشر)');
+                    $this->workflow->transition($paper, 'REVISION_SUBMITTED', 'تم تحديث بيانات البحث من قبل الباحث (تعديل مباشر)');
                 }
 
                 // Sync Coauthors: Delete existing and recreate

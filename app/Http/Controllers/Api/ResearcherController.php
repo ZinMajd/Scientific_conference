@@ -27,7 +27,7 @@ class ResearcherController extends Controller
     {
         $user = Auth::user();
         return Paper::where('author_id', $user->id)
-            ->with('conference:id,title')
+            ->with(['conference:id,title', 'sessions', 'statusHistory'])
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -37,9 +37,7 @@ class ResearcherController extends Controller
         $user = Auth::user();
         $papers = Paper::where('author_id', $user->id)
             ->with([
-                'assignments.review' => function ($q) {
-                    $q->where('is_submitted', true);
-                },
+                'assignments.review',
                 'conference:id,title'
             ])
             ->get();
@@ -52,10 +50,10 @@ class ResearcherController extends Controller
                         'id' => $assignment->review->id,
                         'paper_title' => $paper->title,
                         'conference' => $paper->conference->title,
-                        'decision' => $assignment->review->decision,
-                        'score' => $assignment->review->overall_score,
-                        'comments' => $assignment->review->comments_author,
-                        'date' => $assignment->review->submission_date ? $assignment->review->submission_date->format('Y-m-d') : $assignment->review->updated_at->format('Y-m-d'),
+                        'decision' => $assignment->review->recommendation,
+                        'score' => $assignment->review->total_avg_score,
+                        'comments' => $assignment->review->comments_to_author,
+                        'date' => $assignment->review->created_at ? $assignment->review->created_at->format('Y-m-d') : null,
                     ];
                 }
             }
@@ -80,5 +78,36 @@ class ResearcherController extends Controller
             ->with('conference:id,title')
             ->orderBy('updated_at', 'desc')
             ->get();
+    }
+    public function submitCameraReady(Request $request, $id)
+    {
+        $request->validate([
+            'camera_ready_file' => 'required|file|mimes:pdf|max:20480',
+            'notes' => 'nullable|string',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+
+        if ($paper->author_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($paper->status !== Paper::STATUS_ACCEPTED && $paper->status !== Paper::STATUS_SCHEDULED) {
+            return response()->json(['message' => 'البحث لم يتم قبوله نهائياً بعد.'], 422);
+        }
+
+        $file = $request->file('camera_ready_file');
+        $path = $file->store('papers/camera_ready');
+
+        // Create a new version
+        \App\Models\PaperVersion::create([
+            'paper_id' => $paper->id,
+            'version_number' => $paper->versions()->count() + 1,
+            'file_path' => $path,
+            'type' => 'camera_ready',
+            'author_comments' => $request->notes,
+        ]);
+
+        return response()->json(['message' => 'تم رفع النسخة النهائية (Camera Ready) بنجاح.']);
     }
 }

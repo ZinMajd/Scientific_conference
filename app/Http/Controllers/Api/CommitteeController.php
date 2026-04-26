@@ -47,7 +47,7 @@ class CommitteeController extends Controller
             'total_reviewers' => User::where('user_type', 'reviewer')->count(),
             'total_attendees' => Attendee::count(),
             'technical_check_count' => Paper::whereIn('status', [Paper::STATUS_SUBMITTED, Paper::STATUS_UNDER_SCREENING, Paper::STATUS_RESUBMITTED])->count(),
-            'with_editor_count' => Paper::where('status', Paper::STATUS_SCREENED_APPROVED)->count(),
+            'with_editor_count' => Paper::where('status', Paper::STATUS_WITH_EDITOR)->count(),
             'under_review_count' => Paper::where('status', Paper::STATUS_UNDER_REVIEW)->count(),
         ]);
     }
@@ -120,6 +120,10 @@ class CommitteeController extends Controller
 
     public function assignReviewer(Request $request, $id)
     {
+        if (!$request->user()->hasRole('editor') && !$request->user()->hasRole('scientific_committee') && !$request->user()->hasRole('system_admin')) {
+            return response()->json(['message' => 'ليس لديك صلاحية تعيين المحكمين. هذه الصلاحية مخصصة للمحرر العلمي واللجنة العلمية.'], 403);
+        }
+
         try {
             $request->validate([
                 'reviewer_id' => 'required|exists:users,id',
@@ -167,8 +171,17 @@ class CommitteeController extends Controller
                 'status' => 'assigned'
             ]);
 
-            // Update paper status to under_review if not already
-            $this->workflow->transition($paper, 'REVIEWERS_ASSIGNED', 'Reviewer assigned: ' . $request->reviewer_id);
+            // ✅ ننتقل إلى under_review فقط في المرة الأولى (عند إسناد أول محكم)
+            // إذا كانت الحالة already under_review نضيف المحكم بدون تغيير الحالة
+            if ($paper->status === Paper::STATUS_READY_FOR_REVIEW) {
+                $this->workflow->transition($paper, 'REVIEWERS_ASSIGNED', 'بدأت عملية التحكيم العلمي (تم إرسال البحث للمحكمين)');
+            } elseif ($paper->status === Paper::STATUS_UNDER_REVIEW) {
+                // البحث قيد التحكيم بالفعل — نضيف المحكم الإضافي فقط
+                \Log::info('Additional reviewer assigned to paper already under review', [
+                    'paper_id' => $paper->id,
+                    'reviewer_id' => $request->reviewer_id,
+                ]);
+            }
 
             // Create notification safely
             try {
@@ -225,6 +238,37 @@ class CommitteeController extends Controller
         return response()->json(['message' => 'Decision recorded successfully', 'paper' => $paper]);
     }
 
+    public function submitDecisionLevel(Request $request, $id)
+    {
+        $request->validate([
+            'level' => 'required|in:editor,committee,chair',
+            'decision' => 'required|in:accept,reject,minor_fixes,major_fixes',
+            'notes' => 'nullable|string'
+        ]);
+
+        $paper = Paper::findOrFail($id);
+        
+        $decision = \App\Models\PaperDecision::create([
+            'paper_id' => $id,
+            'user_id' => Auth::id(),
+            'decision_level' => $request->level,
+            'decision' => $request->decision,
+            'notes' => $request->notes
+        ]);
+
+        // If it's a chair decision, it might trigger a final status change
+        if ($request->level === 'chair') {
+            $event = ($request->decision === 'accept' || $request->decision === 'minor_fixes') ? 'FINAL_ACCEPT' : 'FINAL_REJECT';
+            $this->workflow->transition($paper, $event, $request->notes);
+        }
+
+        return response()->json([
+            'message' => 'تم تسجيل القرار بنجاح (' . $request->level . ')',
+            'decision' => $decision,
+            'paper' => $paper->load('statusHistory')
+        ]);
+    }
+
     public function reviewsAggregation($id)
     {
         $paper = Paper::findOrFail($id);
@@ -244,22 +288,41 @@ class CommitteeController extends Controller
             'participation_mode' => 'required|in:physical,online,none',
             'publication_selected' => 'nullable|boolean',
             'access_link' => 'nullable|string|url',
+            'session_id' => 'nullable|exists:scientific_sessions,id',
+            'presentation_order' => 'nullable|integer',
         ]);
 
-        $paper = Paper::findOrFail($id);
+        return DB::transaction(function () use ($request, $id) {
+            $paper = Paper::findOrFail($id);
 
-        $paper->update([
-            'status' => Paper::STATUS_SCHEDULED,
-            'presentation_type' => $request->presentation_type,
-            'participation_mode' => $request->participation_mode,
-            'publication_selected' => $request->publication_selected ?? $paper->publication_selected,
-            'access_link' => $request->access_link,
-        ]);
+            // Use workflow to transition to SCHEDULED
+            $this->workflow->transition($paper, 'SCHEDULED', 'تمت الجدولة في جلسة المؤتمر');
 
-        return response()->json([
-            'message' => 'تم تصنيف المشاركة وجدولتها بنجاح',
-            'paper' => $paper
-        ]);
+            $paper->update([
+                'presentation_type' => $request->presentation_type,
+                'participation_mode' => $request->participation_mode,
+                'publication_selected' => $request->publication_selected ?? $paper->publication_selected,
+                'access_link' => $request->access_link,
+            ]);
+
+            if ($request->session_id) {
+                // Remove from other sessions first to ensure it's only in one
+                DB::table('session_papers')->where('paper_id', $id)->delete();
+                
+                DB::table('session_papers')->insert([
+                    'session_id' => $request->session_id,
+                    'paper_id' => $id,
+                    'presentation_order' => $request->presentation_order ?? 1,
+                    'duration_minutes' => 15, // Default
+                    'presentation_time' => null, // Can be calculated from session start + order
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'تم تصنيف المشاركة وجدولتها بنجاح',
+                'paper' => $paper->load('sessions')
+            ]);
+        });
     }
 
     public function markAsPublished(Request $request, $id)
@@ -273,6 +336,7 @@ class CommitteeController extends Controller
 
         $paper->update([
             'is_published' => true,
+            'status' => 'published',
             'doi' => $request->doi,
             'page_numbers' => $request->page_numbers,
         ]);
@@ -285,7 +349,7 @@ class CommitteeController extends Controller
 
     public function sendAuthorInvitation(Request $request, $id)
     {
-        $paper = Paper::findOrFail($id);
+        $paper = Paper::with(['conference', 'author', 'sessions'])->findOrFail($id);
 
         // Logic to generate and send official invitation
         // For now, mark as sent
@@ -293,15 +357,21 @@ class CommitteeController extends Controller
             'invitation_sent_at' => now(),
         ]);
 
+        $sessionInfo = "";
+        if ($paper->sessions->isNotEmpty()) {
+            $session = $paper->sessions->first();
+            $sessionInfo = "في جلسة: {$session->title} بقاعة {$session->room} بتاريخ " . $session->start_time->format('Y-m-d H:i');
+        }
+
         NotificationLog::create([
             'user_id' => $paper->author_id,
             'title' => 'Official Conference Invitation',
-            'message' => 'You are officially invited to present your paper: ' . $paper->title,
+            'message' => "يسرنا دعوتكم رسمياً لتقديم بحثكم: '{$paper->title}' {$sessionInfo}. يرجى الحضور قبل الموعد بـ 15 دقيقة.",
             'notification_type' => 'conference',
             'related_id' => $id
         ]);
 
-        return response()->json(['message' => 'تم إرسال الدعوة بنجاح']);
+        return response()->json(['message' => 'تم إرسال الدعوة الرسمية بنجاح']);
     }
 
     public function reviewers()
@@ -376,6 +446,21 @@ class CommitteeController extends Controller
                 return response()->json(['message' => 'User is not a reviewer'], 403);
             }
 
+            // Check if reviewer is linked to any paper assignments
+            $hasAssignments = \App\Models\PaperAssignment::where('reviewer_id', $user->id)->exists();
+            $hasReviews = \App\Models\PaperReview::where('reviewer_id', $user->id)->exists();
+
+            if ($hasAssignments || $hasReviews) {
+                return response()->json([
+                    'message' => 'لا يمكن حذف المحكم لارتباطه بتقييمات وأبحاث مسجلة في النظام. لحفظ السجل العلمي، يرجى إبقاء الحساب.'
+                ], 400);
+            }
+
+            // Clean up safe-to-delete non-critical records if needed
+            \Illuminate\Support\Facades\DB::table('paper_status_history')->where('changed_by', $user->id)->update(['changed_by' => null]);
+            \Illuminate\Support\Facades\DB::table('paper_events')->where('user_id', $user->id)->update(['user_id' => null]);
+            \Illuminate\Support\Facades\DB::table('reviewer_invitations')->where('email', $user->email)->delete();
+
             $user->delete();
             return response()->json(['message' => 'Reviewer deleted successfully']);
         } catch (\Exception $e) {
@@ -390,6 +475,7 @@ class CommitteeController extends Controller
             'email' => 'required|email|unique:users,email|unique:reviewer_invitations,email',
             'name' => 'required|string|max:255',
             'affiliation' => 'nullable|string|max:255',
+            'paper_id' => 'nullable|exists:papers,id',
         ]);
 
         $token = \Illuminate\Support\Str::random(40);
@@ -398,6 +484,7 @@ class CommitteeController extends Controller
             'email' => $validated['email'],
             'name' => $validated['name'],
             'affiliation' => $validated['affiliation'],
+            'paper_id' => $validated['paper_id'] ?? null,
             'token' => $token,
             'invited_by' => Auth::id(),
             'expires_at' => now()->addDays(7),
@@ -464,7 +551,77 @@ class CommitteeController extends Controller
                 'updated_at' => now()
             ]);
 
+            // If the invitation was linked to a specific paper, assign it automatically
+            if ($invitation->paper_id) {
+                $paper = Paper::find($invitation->paper_id);
+                if ($paper && in_array($paper->status, [Paper::STATUS_READY_FOR_REVIEW, Paper::STATUS_UNDER_REVIEW])) {
+                    \App\Models\PaperAssignment::create([
+                        'paper_id' => $paper->id,
+                        'reviewer_id' => $user->id,
+                        'assigned_by' => $invitation->invited_by,
+                        'due_date' => now()->addDays(14),
+                        'status' => 'assigned'
+                    ]);
+
+                    \App\Models\PaperEvent::create([
+                        'paper_id' => $paper->id,
+                        'user_id' => $invitation->invited_by,
+                        'event_type' => 'reviewer_assigned',
+                        'notes' => 'تم تعيين المحكم الخارجي تلقائياً بعد التسجيل'
+                    ]);
+
+                    if ($paper->status === Paper::STATUS_READY_FOR_REVIEW) {
+                        app(\App\Services\PaperWorkflowService::class)->transition($paper, 'REVIEWERS_ASSIGNED', 'بدأت عملية التحكيم العلمي عبر تسجيل محكم خارجي');
+                    }
+                }
+            }
+
             return response()->json(['message' => 'تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.']);
         });
+    }
+    public function sessions()
+    {
+        return \App\Models\ScientificSession::with(['conference', 'chair', 'papers.author'])->get();
+    }
+
+    public function storeSession(Request $request)
+    {
+        $validated = $request->validate([
+            'conf_id' => 'required|exists:conferences,id',
+            'title' => 'required|string|max:200',
+            'description' => 'nullable|string',
+            'session_type' => 'required|in:oral,poster,keynote,workshop',
+            'room' => 'nullable|string|max:100',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'chair_id' => 'nullable|exists:users,id',
+        ]);
+
+        $session = \App\Models\ScientificSession::create($validated);
+        return response()->json($session, 201);
+    }
+
+    public function updateSession(Request $request, $id)
+    {
+        $session = \App\Models\ScientificSession::findOrFail($id);
+        $validated = $request->validate([
+            'title' => 'required|string|max:200',
+            'description' => 'nullable|string',
+            'session_type' => 'required|in:oral,poster,keynote,workshop',
+            'room' => 'nullable|string|max:100',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'chair_id' => 'nullable|exists:users,id',
+        ]);
+
+        $session->update($validated);
+        return response()->json($session);
+    }
+
+    public function deleteSession($id)
+    {
+        $session = \App\Models\ScientificSession::findOrFail($id);
+        $session->delete();
+        return response()->json(['message' => 'Session deleted successfully']);
     }
 }

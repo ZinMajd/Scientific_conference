@@ -50,7 +50,7 @@ export default function Conferences() {
                 <div className="container mx-auto">
                     <h1 className="text-4xl font-black text-white mb-2">المؤتمرات المتاحة</h1>
                     <div className="w-20 h-1 rounded-full mb-4" style={{ background: TURQUOISE }}></div>
-                    <p className="text-white/70 text-lg">اكتشف المؤتمرات العلمية المفتوحة للتسجيل وتقديم الأوراق البحثية</p>
+                    <p className="text-white/70 text-lg">يسعدنا دعوتكم للاطلاع على المؤتمرات العلمية المفتوحة للتسجيل والمشاركة بأوراقكم البحثية</p>
                 </div>
             </div>
 

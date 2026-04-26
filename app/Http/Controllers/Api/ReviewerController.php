@@ -130,7 +130,13 @@ class ReviewerController extends Controller
                     'paper' => $assignment->paper,
                     'review' => $review ? [
                         'decision' => $review->recommendation,
-                        'overall_score' => $review->total_avg_score
+                        'overall_score' => $review->total_avg_score,
+                        'originality_score' => $review->originality_score,
+                        'methodology_score' => $review->methodology_score,
+                        'results_score' => $review->results_score,
+                        'clarity_score' => $review->clarity_score,
+                        'comments_to_author' => $review->comments_to_author,
+                        'comments_to_editor' => $review->comments_to_editor,
                     ] : null
                 ];
             });

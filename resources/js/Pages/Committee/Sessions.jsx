@@ -44,12 +44,69 @@ export default function CommitteeSessions() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/committee/sessions', formData);
+            if (formData.id) {
+                await axios.put(`/api/committee/sessions/${formData.id}`, formData);
+                alert('تم تحديث الجلسة بنجاح');
+            } else {
+                await axios.post('/api/committee/sessions', formData);
+                alert('تم إنشاء الجلسة بنجاح');
+            }
             setShowModal(false);
+            setFormData({ title: '', conf_id: '', room: '', start_time: '', end_time: '', session_type: 'oral' });
             fetchData();
-            alert('تم إنشاء الجلسة بنجاح');
         } catch (error) {
-            alert('فشل إنشاء الجلسة');
+            alert('فشل حفظ الجلسة');
+        }
+    };
+
+    const addToSession = async (paperId, sessionId) => {
+        try {
+            await axios.post(`/api/committee/papers/${paperId}/classify-schedule`, {
+                session_id: sessionId,
+                presentation_type: 'oral', // Default
+                participation_mode: 'physical', // Default
+            });
+            fetchData();
+        } catch (error) {
+            alert('فشل إضافة البحث إلى الجلسة');
+        }
+    };
+
+    const removeFromSession = async (paperId) => {
+        if (!confirm('هل أنت متأكد من إزالة هذا البحث من الجلسة؟')) return;
+        try {
+            // Re-classify to 'none' session
+            await axios.post(`/api/committee/papers/${paperId}/classify-schedule`, {
+                session_id: null,
+                presentation_type: 'none',
+                participation_mode: 'none',
+            });
+            fetchData();
+        } catch (error) {
+            alert('فشل إزالة البحث');
+        }
+    };
+
+    const editSession = (session) => {
+        setFormData({
+            id: session.id,
+            title: session.title,
+            conf_id: session.conf_id,
+            room: session.room,
+            start_time: session.start_time.replace(' ', 'T').substring(0, 16),
+            end_time: session.end_time.replace(' ', 'T').substring(0, 16),
+            session_type: session.session_type
+        });
+        setShowModal(true);
+    };
+
+    const deleteSession = async (id) => {
+        if (!confirm('هل أنت متأكد من حذف هذه الجلسة؟')) return;
+        try {
+            await axios.delete(`/api/committee/sessions/${id}`);
+            fetchData();
+        } catch (error) {
+            alert('فشل حذف الجلسة');
         }
     };
 
@@ -76,11 +133,17 @@ export default function CommitteeSessions() {
                         sessions.map(session => (
                             <div key={session.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-100 space-y-6">
                                 <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="text-xl font-black text-emerald-950">{session.title}</h3>
-                                        <p className="text-sm font-bold text-gray-400 mt-1">📍 {session.room} | ⏰ {new Date(session.start_time).toLocaleString('ar-YE')}</p>
+                                    <div className="flex items-center gap-2">
+                                        <div>
+                                            <h3 className="text-xl font-black text-emerald-950">{session.title}</h3>
+                                            <p className="text-sm font-bold text-gray-400 mt-1">📍 {session.room} | ⏰ {new Date(session.start_time).toLocaleString('ar-YE')}</p>
+                                        </div>
                                     </div>
-                                    <span className="px-4 py-2 bg-emerald-50 text-emerald-600 text-xs font-black rounded-xl uppercase tracking-widest">{session.session_type}</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => editSession(session)} className="p-2 bg-gray-50 text-gray-400 rounded-xl hover:text-emerald-600 transition">✏️</button>
+                                        <button onClick={() => deleteSession(session.id)} className="p-2 bg-gray-50 text-gray-400 rounded-xl hover:text-red-600 transition">🗑️</button>
+                                        <span className="px-4 py-2 bg-emerald-50 text-emerald-600 text-xs font-black rounded-xl uppercase tracking-widest">{session.session_type}</span>
+                                    </div>
                                 </div>
                                 
                                 <div className="space-y-3">
@@ -93,7 +156,7 @@ export default function CommitteeSessions() {
                                                     <h5 className="text-sm font-bold text-gray-900 line-clamp-1">{paper.title}</h5>
                                                     <p className="text-[10px] text-gray-400 font-bold mt-0.5">{paper.author?.full_name}</p>
                                                 </div>
-                                                <button className="p-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition">❌</button>
+                                                <button onClick={() => removeFromSession(paper.id)} className="p-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition" title="إزالة من الجلسة">❌</button>
                                             </div>
                                         ))
                                     ) : (
@@ -119,7 +182,20 @@ export default function CommitteeSessions() {
                                         <h5 className="text-sm font-bold text-white line-clamp-2">{paper.title}</h5>
                                         <div className="flex justify-between items-center mt-3">
                                             <span className="text-[10px] text-emerald-300/60 font-black">{paper.author?.full_name}</span>
-                                            <button className="text-[10px] font-black bg-emerald-500 text-white px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">إضافة إلى جلسة</button>
+                                            <div className="relative group/menu">
+                                                <button className="text-[10px] font-black bg-emerald-500 text-white px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">إضافة إلى جلسة</button>
+                                                <div className="absolute left-0 bottom-full mb-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden hidden group-hover/menu:block z-20">
+                                                    {sessions.map(s => (
+                                                        <button 
+                                                            key={s.id}
+                                                            onClick={() => addToSession(paper.id, s.id)}
+                                                            className="w-full text-right px-4 py-2 text-[10px] font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition border-b border-gray-50 last:border-0"
+                                                        >
+                                                            {s.title}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 ))

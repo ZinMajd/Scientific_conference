@@ -44,6 +44,7 @@ Route::prefix('api')->group(function () {
     Route::get('/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'index']);
     Route::get('/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'show']);
     Route::get('/archive', [\App\Http\Controllers\Api\PaperController::class, 'archive']);
+    Route::get('/stats', [\App\Http\Controllers\Api\PublicStatsController::class, 'index']);
 
     Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
     Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
@@ -60,11 +61,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         // Researcher Routes
-        Route::middleware(['role:researcher'])->group(function () {
+        Route::middleware(['role:author'])->group(function () {
             Route::get('/researcher/stats', [\App\Http\Controllers\Api\ResearcherController::class, 'stats']);
             Route::get('/researcher/papers', [\App\Http\Controllers\Api\ResearcherController::class, 'papers']);
             Route::get('/researcher/reviews', [\App\Http\Controllers\Api\ResearcherController::class, 'reviews']);
             Route::get('/researcher/reviewed-papers', [\App\Http\Controllers\Api\ResearcherController::class, 'reviewedPapers']);
+            Route::post('/researcher/papers/{id}/camera-ready', [\App\Http\Controllers\Api\ResearcherController::class, 'submitCameraReady']);
         });
 
         // Reviewer Routes
@@ -77,12 +79,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         // Committee Routes (Shared between all committee roles)
-        Route::middleware(['role:scientific_committee|editor|editorial_office|conference_chair'])->group(function () {
+        Route::middleware(['role:scientific_committee,editor,editorial_office,conference_chair'])->group(function () {
             Route::get('/committee/stats', [\App\Http\Controllers\Api\CommitteeController::class, 'stats']);
             Route::get('/committee/papers', [\App\Http\Controllers\Api\CommitteeController::class, 'papers']);
             Route::get('/committee/papers/export', [\App\Http\Controllers\Api\CommitteeController::class, 'exportPapers']);
             Route::get('/committee/reviewers', [\App\Http\Controllers\Api\CommitteeController::class, 'reviewers']);
             Route::post('/committee/reviewers', [\App\Http\Controllers\Api\CommitteeController::class, 'addReviewer']);
+            Route::delete('/committee/reviewers/{id}', [\App\Http\Controllers\Api\CommitteeController::class, 'deleteReviewer']);
             Route::post('/committee/reviewers/invite', [\App\Http\Controllers\Api\CommitteeController::class, 'sendInvitation']);
             Route::get('/committee/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'committeeIndex']);
             
@@ -92,9 +95,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
             
             // Scientific Committee Specific
             Route::post('/committee/papers/{id}/decision', [\App\Http\Controllers\Api\CommitteeController::class, 'decision']);
+            Route::post('/committee/papers/{id}/decision-level', [\App\Http\Controllers\Api\CommitteeController::class, 'submitDecisionLevel']);
+            Route::post('/committee/papers/{id}/classify-schedule', [\App\Http\Controllers\Api\CommitteeController::class, 'classifyAndSchedule']);
+            Route::post('/committee/papers/{id}/send-invitation', [\App\Http\Controllers\Api\CommitteeController::class, 'sendAuthorInvitation']);
             
             Route::post('/committee/papers/{id}/mark-as-published', [\App\Http\Controllers\Api\CommitteeController::class, 'markAsPublished']);
             
+            // Sessions
+            Route::get('/committee/sessions', [\App\Http\Controllers\Api\CommitteeController::class, 'sessions']);
+            Route::post('/committee/sessions', [\App\Http\Controllers\Api\CommitteeController::class, 'storeSession']);
+            Route::put('/committee/sessions/{id}', [\App\Http\Controllers\Api\CommitteeController::class, 'updateSession']);
+            Route::delete('/committee/sessions/{id}', [\App\Http\Controllers\Api\CommitteeController::class, 'deleteSession']);
+
             // Office Specific
             Route::get('/committee/reports/papers', [\App\Http\Controllers\Api\ReportController::class, 'papers']);
             Route::get('/committee/reports/reviewers', [\App\Http\Controllers\Api\ReportController::class, 'reviewers']);
@@ -102,7 +114,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         // Conference Management (Admin/Chair/Editor)
-        Route::middleware(['role:conference_chair|editor|system_admin'])->group(function () {
+        Route::middleware(['role:conference_chair,editor,system_admin'])->group(function () {
             Route::post('/committee/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'store']);
             Route::put('/committee/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'update']);
             Route::delete('/committee/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'destroy']);

@@ -40,7 +40,7 @@ export default function Archive() {
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #40E0D0 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <h1 className="text-4xl md:text-5xl font-black mb-4">الأرشيف العلمي العام</h1>
-                    <p className="text-xl text-gray-300 max-w-2xl">استكشف الأبحاث والنتائج العلمية المنشورة في مؤتمراتنا الدولية الموثقة.</p>
+                    <p className="text-xl text-gray-300 max-w-2xl">نرحب بزيارتكم للاطلاع على الأبحاث والنتائج العلمية المنشورة في مؤتمراتنا الدولية الموثقة.</p>
                 </div>
             </div>
 
@@ -78,10 +78,21 @@ export default function Archive() {
                             {papers.map((paper) => (
                                 <div key={paper.id} className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm hover:shadow-2xl transition-all duration-500 group flex flex-col h-full">
                                     <div className="flex justify-between items-start mb-6">
-                                        <span className="px-4 py-1.5 bg-teal-50 text-teal-700 rounded-full text-[10px] font-black uppercase tracking-wider">
-                                            {paper.conference?.title.split(' ').slice(0, 3).join(' ')}...
-                                        </span>
-                                        <span className="text-[10px] font-bold text-gray-400">#{paper.id}</span>
+                                        <div className="flex gap-2 flex-wrap">
+                                            <span className="px-4 py-1.5 bg-teal-50 text-teal-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                {paper.conference?.title.split(' ').slice(0, 3).join(' ')}...
+                                            </span>
+                                            {paper.is_published ? (
+                                                <span className="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                    ✔ منشور (Published)
+                                                </span>
+                                            ) : (
+                                                <span className="px-4 py-1.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                    📅 مجدول (Scheduled)
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-400 mt-2">#{paper.id}</span>
                                     </div>
                                     
                                     <h3 className="text-xl font-black text-slate-900 mb-4 flex-1 line-clamp-3 leading-relaxed group-hover:text-teal-600 transition">
