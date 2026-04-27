@@ -12,6 +12,8 @@ const statusMap = {
     under_review: { label: 'قيد التحكيم', color: '#d97706', bg: '#fef3c7' },
     accepted: { label: 'مقبول', color: '#059669', bg: '#d1fae5' },
     rejected: { label: 'مرفوض', color: '#dc2626', bg: '#fee2e2' },
+    production_revision_required: { label: 'مطلوب تعديل التنسيق', color: '#ea580c', bg: '#ffedd5' },
+    in_production: { label: 'قيد الإنتاج', color: '#2563eb', bg: '#dbeafe' },
 };
 
 export default function ResearcherDashboard() {

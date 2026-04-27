@@ -21,7 +21,11 @@ class ConferenceController extends Controller
 
     public function show($id)
     {
-        return Conference::findOrFail($id);
+        return Conference::with(['papers' => function($query) {
+            $query->where('status', \App\Models\Paper::STATUS_PUBLISHED)
+                ->with('author')
+                ->orderBy('created_at', 'desc');
+        }])->findOrFail($id);
     }
 
     public function committeeIndex()

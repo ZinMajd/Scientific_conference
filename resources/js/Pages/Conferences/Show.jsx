@@ -112,7 +112,7 @@ export default function Show() {
                             المحاور العلمية
                         </h2>
                         <ul className="grid sm:grid-cols-2 gap-4">
-                            {['تطبيقات الذكاء الاصطناعي', 'أمن المعلومات', 'البيانات الضخمة', 'الروبوتات الذكية', 'الحوسبة السحابية', 'انترنت الأشياء'].map((track, idx) => (
+                            {['تطبيقات الذكاء الاصطناعي', 'أمن المعلومات', 'البيانات الضخمة', 'الروبوتات الذكية', 'الحوسبة السباحية', 'انترنت الأشياء'].map((track, idx) => (
                                 <li key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                     <span className="font-medium text-gray-700">{track}</span>
@@ -120,6 +120,36 @@ export default function Show() {
                             ))}
                         </ul>
                     </section>
+
+                    {conference.papers && conference.papers.length > 0 && (
+                        <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                                <span className="w-2 h-8 bg-emerald-600 rounded-full"></span>
+                                الأبحاث المنشورة في هذا المؤتمر
+                            </h2>
+                            <div className="grid gap-6">
+                                {conference.papers.map(paper => (
+                                    <div key={paper.id} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 hover:border-emerald-200 transition group">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h4 className="text-lg font-black text-indigo-950 group-hover:text-emerald-600 transition">{paper.title}</h4>
+                                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">PDF</span>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm text-gray-500 font-bold mb-4">
+                                            <span>👤 {paper.author?.full_name}</span>
+                                            {paper.doi && <span>🆔 DOI: {paper.doi}</span>}
+                                        </div>
+                                        <a 
+                                            href={`/storage_file/${paper.final_file_path || paper.file_path}`} 
+                                            target="_blank"
+                                            className="inline-flex items-center gap-2 text-emerald-600 font-black text-sm hover:underline"
+                                        >
+                                            📥 عرض وتحميل البحث الكامل
+                                        </a>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
 
                 {/* Sidebar */}

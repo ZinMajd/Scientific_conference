@@ -4,8 +4,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import MainLayout from './Layouts/MainLayout';
 import Home from './Pages/Home';
+import About from './Pages/About';
+import FAQ from './Pages/FAQ';
 import Conferences from './Pages/Conferences/Index';
 import ConferenceDetails from './Pages/Conferences/Show';
+import Support from './Pages/Support';
+
 import Login from './Pages/Auth/Login';
 import Register from './Pages/Auth/Register';
 import ReviewerRegister from './Pages/Auth/ReviewerRegister';
@@ -53,11 +57,17 @@ import CommitteeReports from './Pages/Committee/Reports';
 import CommitteeCertificatesGenerate from './Pages/Committee/Certificates/Generate';
 import CommitteeCertificatesApprove from './Pages/Committee/Certificates/Approve';
 
+// Production Layout
+import ProductionLayout from './Layouts/ProductionLayout';
+
+import ProductionDashboard from './Pages/Production/Dashboard';
+
 // Shared Pages
 import Certificates from './Pages/Shared/Certificates';
 import Notifications from './Pages/Shared/Notifications';
 
 import '../css/app.css'; 
+
 
 function App() {
     return (
@@ -66,9 +76,13 @@ function App() {
                 {/* Public Website Routes */}
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
+                    <Route path="about" element={<About />} />
+                    <Route path="faq" element={<FAQ />} />
                     <Route path="conferences" element={<Conferences />} />
                     <Route path="archive" element={<Archive />} />
+                    <Route path="support" element={<Support />} />
                     <Route path="conferences/:id" element={<ConferenceDetails />} />
+
                     
                     {/* Auth Routes */}
                     <Route path="login" element={<Login />} />
@@ -139,6 +153,15 @@ function App() {
                     <Route path="reports/stats" element={<CommitteeReports />} />
                     <Route path="notifications" element={<Notifications />} />
                 </Route>
+
+                {/* Production Office Routes */}
+                <Route path="production" element={<ProductionLayout />}>
+                    <Route index element={<ProductionDashboard />} />
+                    <Route path="stats" element={<ProductionDashboard />} />
+                    <Route path="notifications" element={<Notifications />} />
+                </Route>
+
+
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />

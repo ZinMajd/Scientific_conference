@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\SystemNotification;
 
 class CommitteeController extends Controller
 {
@@ -183,17 +184,17 @@ class CommitteeController extends Controller
                 ]);
             }
 
-            // Create notification safely
+            // إرسال إشعار للمحكم عبر الإيميل والنظام
             try {
-                NotificationLog::create([
-                    'user_id' => $request->reviewer_id,
-                    'title' => 'New Paper Assignment',
-                    'message' => 'You have been assigned a new paper: ' . $paper->title,
-                    'notification_type' => 'paper',
-                    'related_id' => $id
-                ]);
+                $reviewer = User::find($request->reviewer_id);
+                $reviewer->notify(new SystemNotification(
+                    'دعوة لتحكيم بحث علمي جديد ⚖️',
+                    'تم اختياركم وتكليفكم بمراجعة البحث العلمي بعنوان: "' . $paper->title . '". يرجى الدخول للمنصة لقبول المهمة أو الاعتذار عنها.',
+                    url('/reviewer/assignments'),
+                    'info'
+                ));
             } catch (\Exception $e) {
-                \Log::error('Notification Error: ' . $e->getMessage());
+                \Log::error('Reviewer Notification Error: ' . $e->getMessage());
             }
 
             return response()->json(['message' => 'Reviewer assigned successfully', 'assignment' => $assignment]);
@@ -222,17 +223,31 @@ class CommitteeController extends Controller
 
         $this->workflow->transition($paper, $eventMap[$request->decision], $request->notes);
 
-        // Notification to author
+        // إرسال إشعار للمؤلف بالقرار
         try {
-            NotificationLog::create([
-                'user_id' => $paper->author_id,
-                'title' => 'Paper Decision: ' . ucfirst($request->decision),
-                'message' => 'A decision has been made on your paper: ' . $paper->title,
-                'notification_type' => 'paper',
-                'related_id' => $id
-            ]);
+            $msg = [
+                'accept' => [
+                    'title' => 'تهانينا! تم قبول بحثك 🟢',
+                    'msg' => 'يسرنا إبلاغكم بأنه تم قبول بحثكم المودع للمشاركة في جلسات المؤتمر.'
+                ],
+                'reject' => [
+                    'title' => 'نعتذر: تم رفض البحث 🔴',
+                    'msg' => 'نعتذر منكم، لم يتم قبول بحثكم للمشاركة في هذه الدورة بناءً على تقارير المحكمين.'
+                ],
+                'revision_requested' => [
+                    'title' => 'مطلوب تعديل البحث ⚠️',
+                    'msg' => 'يتطلب بحثكم بعض التعديلات العلمية المقترحة، يرجى مراجعة ملاحظات المحكمين وإعادة الإرسال.'
+                ]
+            ];
+            $decision = $msg[$request->decision] ?? ['title' => 'تحديث بخصوص بحثك', 'msg' => 'تم اتخاذ قرار بخصوص بحثكم.'];
+            $paper->author->notify(new SystemNotification(
+                $decision['title'],
+                $decision['msg'],
+                url('/researcher/research/' . $paper->id),
+                $request->decision === 'reject' ? 'error' : 'info'
+            ));
         } catch (\Exception $e) {
-            \Log::error('Notification Error: ' . $e->getMessage());
+            \Log::error('Author Notification Error: ' . $e->getMessage());
         }
 
         return response()->json(['message' => 'Decision recorded successfully', 'paper' => $paper]);
@@ -447,8 +462,8 @@ class CommitteeController extends Controller
             }
 
             // Check if reviewer is linked to any paper assignments
-            $hasAssignments = \App\Models\PaperAssignment::where('reviewer_id', $user->id)->exists();
-            $hasReviews = \App\Models\PaperReview::where('reviewer_id', $user->id)->exists();
+            $hasAssignments = PaperAssignment::where('reviewer_id', $user->id)->exists();
+            $hasReviews = DB::table('paper_reviews')->where('reviewer_id', $user->id)->exists();
 
             if ($hasAssignments || $hasReviews) {
                 return response()->json([
@@ -457,9 +472,9 @@ class CommitteeController extends Controller
             }
 
             // Clean up safe-to-delete non-critical records if needed
-            \Illuminate\Support\Facades\DB::table('paper_status_history')->where('changed_by', $user->id)->update(['changed_by' => null]);
-            \Illuminate\Support\Facades\DB::table('paper_events')->where('user_id', $user->id)->update(['user_id' => null]);
-            \Illuminate\Support\Facades\DB::table('reviewer_invitations')->where('email', $user->email)->delete();
+            DB::table('paper_status_history')->where('changed_by', $user->id)->update(['changed_by' => null]);
+            DB::table('paper_events')->where('user_id', $user->id)->update(['user_id' => null]);
+            DB::table('reviewer_invitations')->where('email', $user->email)->delete();
 
             $user->delete();
             return response()->json(['message' => 'Reviewer deleted successfully']);

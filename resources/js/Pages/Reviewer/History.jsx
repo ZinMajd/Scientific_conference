@@ -147,7 +147,6 @@ export default function ReviewerHistory() {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="space-y-4">
                                 <div>
                                     <h4 className="text-sm font-black text-indigo-900 mb-2">ملاحظات للمؤلف</h4>
@@ -161,6 +160,20 @@ export default function ReviewerHistory() {
                                         {selectedReview.review?.comments_to_editor || 'لا توجد ملاحظات سرية.'}
                                     </div>
                                 </div>
+
+                                {selectedReview.review?.report_file_path && (
+                                    <div className="pt-4 border-t border-gray-100">
+                                        <a 
+                                            href={`/storage_file/${selectedReview.review.report_file_path}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100"
+                                        >
+                                            <span>📂</span>
+                                            عرض تقرير التقييم المرفق
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

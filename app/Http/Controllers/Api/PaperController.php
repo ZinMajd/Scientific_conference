@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\SystemNotification;
 
 class PaperController extends Controller
 {
@@ -140,6 +141,33 @@ class PaperController extends Controller
                     }
                 }
 
+                // إشعار للباحث (استلام البحث)
+                try {
+                    $paper->author->notify(new SystemNotification(
+                        'تم استلام بحثك بنجاح 📝',
+                        'تم استلام البحث بعنوان: "' . $paper->title . '" وهو الآن تحت الفحص الأولي.',
+                        url('/researcher/research/' . $paper->id),
+                        'success'
+                    ));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Author Notification Error: ' . $e->getMessage());
+                }
+
+                // إشعار لمكتب التحرير (وصول بحث جديد)
+                try {
+                    $officeUsers = User::role('editorial_office')->get();
+                    foreach ($officeUsers as $officeUser) {
+                        $officeUser->notify(new SystemNotification(
+                            'وصول بحث جديد يحتاج فحص 🆕',
+                            'تم تقديم بحث جديد بعنوان: "' . $paper->title . '" من قبل ' . $paper->author->full_name,
+                            url('/committee/research'),
+                            'info'
+                        ));
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Office Notification Error: ' . $e->getMessage());
+                }
+
                 return response()->json([
                     'message' => 'تم تقديم البحث بنجاح',
                     'paper' => $paper->load('coauthors'),
@@ -263,6 +291,37 @@ class PaperController extends Controller
 
             $paper->refresh(); // Refresh to get the latest status from DB
 
+            // إرسال إشعار للمؤلف بالنتيجة
+            try {
+                $statusAr = [
+                    'technical_pass' => [
+                        'title' => 'تحديث: اجتياز الفحص الفني ✅',
+                        'msg' => 'اجتاز بحثكم الفحص الفني وهو الآن تحت المراجعة العلمية.'
+                    ],
+                    'technical_fail' => [
+                        'title' => 'مطلوب تعديل: الفحص الفني ⚠️',
+                        'msg' => 'لم يجتز البحث الفحص الفني، يرجى مراجعة الملاحظات وتعديل البحث.'
+                    ],
+                    'scientific_pass' => [
+                        'title' => 'تحديث: اجتياز الفرز الأولي 🟢',
+                        'msg' => 'اجتاز بحثكم الفرز الأولي وتم إرساله للمحكمين.'
+                    ],
+                    'desk_reject' => [
+                        'title' => 'نعتذر: تم رفض البحث 🔴',
+                        'msg' => 'تم رفض البحث في مرحلة الفرز الأولي. نتمنى لكم التوفيق في مشاركات القادمة.'
+                    ]
+                ];
+                $decision = $statusAr[$request->result] ?? ['title' => 'تحديث بخصوص بحثك', 'msg' => 'تم تحديث حالة بحثكم.'];
+                $paper->author->notify(new SystemNotification(
+                    $decision['title'],
+                    $decision['msg'],
+                    url('/researcher/research/' . $paper->id),
+                    $request->result === 'desk_reject' ? 'error' : 'info'
+                ));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Notification Error: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'تم تسجيل القرار الأولي بنجاح.',
                 'system_recommendation' => $systemRecommendation,
@@ -384,6 +443,33 @@ class PaperController extends Controller
                 'paper_id' => $paper->id
             ]);
 
+            // إشعار للمؤلف (تأكيد استلام التعديل)
+            try {
+                $paper->author->notify(new SystemNotification(
+                    'تم استلام النسخة المعدلة بنجاح 🔄',
+                    'تم استلام النسخة المعدلة من بحثكم بنجاح وهي قيد المراجعة الآن.',
+                    url('/researcher/research/' . $paper->id),
+                    'success'
+                ));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Author Notification Error: ' . $e->getMessage());
+            }
+
+            // إشعار لمكتب التحرير (إعادة إرسال)
+            try {
+                $officeUsers = User::role('editorial_office')->get();
+                foreach ($officeUsers as $officeUser) {
+                    $officeUser->notify(new SystemNotification(
+                        'إعادة إرسال من الباحث 🔄',
+                        'قام الباحث ' . $paper->author->full_name . ' برفع نسخة معدلة من البحث: "' . $paper->title . '"',
+                        url('/committee/research'),
+                        'info'
+                    ));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Office Notification Error: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'تم إعادة إرسال البحث بنجاح. ستظهر الآن لمكتب التحرير كنسخة معدلة جاهزة للفحص.',
                 'paper' => $paper
@@ -410,6 +496,18 @@ class PaperController extends Controller
         $this->workflow->transition($paper, 'FINAL_ACCEPT', $request->notes, [
             'publication_selected' => $request->publication_selected ?? false,
         ]);
+
+        // إشعار بالقبول النهائي
+        try {
+            $paper->author->notify(new SystemNotification(
+                'تهانينا! تم قبول بحثك قبولاً نهائياً 🎊',
+                'مبارك! تم قبول بحثكم بعنوان "' . $paper->title . '" قبولاً نهائياً للمشاركة في المؤتمر.',
+                url('/researcher/research/' . $paper->id),
+                'success'
+            ));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Notification Error: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'تم إصدار قرار القبول النهائي للبحث بنجاح.',

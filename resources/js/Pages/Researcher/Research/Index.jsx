@@ -21,6 +21,8 @@ export default function ResearcherResearch() {
 
     const getStatusInfo = (status) => {
         switch(status) {
+            case 'production_revision_required': return { text: 'تعديل التنسيق', color: 'bg-orange-50 text-orange-600', icon: '⚠️' };
+            case 'in_production': return { text: 'قيد الإنتاج', color: 'bg-blue-50 text-blue-600', icon: '🛠️' };
             case 'under_review': return { text: 'قيد التحكيم', color: 'bg-blue-50 text-blue-600', icon: '⚖️' };
             case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', icon: '❌' };

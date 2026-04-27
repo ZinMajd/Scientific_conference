@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import NotificationBell from '../Components/NotificationBell';
 
 const PRUSSIAN_GRADIENT = 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)';
 const TURQUOISE = '#40E0D0';
@@ -14,6 +15,7 @@ export default function ReviewerLayout() {
             return saved ? JSON.parse(saved) : null;
         } catch (e) { return null; }
     })();
+    const token = localStorage.getItem('token');
 
     const menuItems = [
         { title: 'لوحة التحكم', icon: '🏠', path: '/reviewer', group: 'عام' },
@@ -36,7 +38,7 @@ export default function ReviewerLayout() {
     };
 
     return (
-        <div className="min-h-screen flex flex-row-reverse bg-gray-50" style={{ fontFamily: "'Cairo', sans-serif" }} dir="rtl">
+        <div className="min-h-screen flex flex-row bg-gray-50" style={{ fontFamily: "'Cairo', sans-serif" }} dir="rtl">
             <aside className={`${isSidebarOpen ? 'w-72' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
                 style={{ background: PRUSSIAN_GRADIENT, borderLeft: `1px solid ${TURQUOISE}20` }}>
                 <div className="p-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${TURQUOISE}20` }}>
@@ -88,6 +90,13 @@ export default function ReviewerLayout() {
             </aside>
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
+                {/* Header */}
+                <header className="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-end px-8 shrink-0 z-40">
+                    <div className="flex items-center gap-4">
+                        <NotificationBell token={token} theme="light" />
+                    </div>
+                </header>
+                
                 <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
                     <div className="max-w-7xl mx-auto"><Outlet /></div>
                 </div>

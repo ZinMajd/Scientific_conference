@@ -20,7 +20,7 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:6',
                 'full_name' => 'required|string',
-                'user_type' => 'required|in:admin,chair,author,reviewer,committee,editor,office',
+                'user_type' => 'required|in:admin,chair,author,reviewer,committee,editor,office,production_office',
                 'affiliation' => 'nullable|string|max:200',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string',
@@ -48,6 +48,7 @@ class AuthController extends Controller
                 'address' => $data['address'] ?? null,
                 'bio' => $data['bio'] ?? null,
                 'cv_path' => $cvPath,
+                'email_verified_at' => now(), // Auto-verify: no email confirmation needed
             ]);
 
             // Save expertise if user is a reviewer
@@ -70,12 +71,20 @@ class AuthController extends Controller
                 'office' => 'editorial_office',
                 'editor' => 'editor',
                 'admin' => 'system_admin',
+                'production_office' => 'production_office',
             ];
 
             $roleSlug = $roleMap[$user->user_type] ?? 'researcher';
             $role = \App\Models\Role::where('slug', $roleSlug)->first();
             if ($role) {
                 $user->roles()->attach($role->id);
+            }
+
+            // إرسال بريد التحقق
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send verification email', ['error' => $e->getMessage()]);
             }
 
             \Illuminate\Support\Facades\Log::info('User created successfully', ['id' => $user->id]);
@@ -103,28 +112,69 @@ class AuthController extends Controller
     {
         \Illuminate\Support\Facades\Log::info('Login attempt', ['login' => $request->login]);
 
-        $credentials = $request->validate([
+        // 1. التحقق من المدخلات
+        $request->validate([
             'login' => 'required|string',
             'password' => 'required|string',
+            'role' => 'required|string', // الدور القادم من واجهة تسجيل الدخول
         ]);
 
         $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
+        // 2. التحقق من صحة بيانات الدخول (Authentication)
         if (!Auth::attempt([$login_type => $request->login, 'password' => $request->password])) {
             \Illuminate\Support\Facades\Log::warning('Login failed - invalid credentials');
-            return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);
+            return response()->json(['message' => 'بيانات الدخول (البريد أو كلمة المرور) غير صحيحة.'], 401);
         }
 
-        $request->session()->regenerate();
         $user = Auth::user();
-        \Illuminate\Support\Facades\Log::info('User logged in', ['id' => $user->id]);
+
+        // 3. التحقق من تفعيل الحساب (Account Status Verification)
+        if (!$user->is_active) {
+            Auth::logout();
+            return response()->json(['message' => 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.'], 403);
+        }
+
+        // 4. التحقق من تفعيل البريد الإلكتروني - معطّل (يتم التفعيل تلقائياً عند التسجيل)
+        // if ($user->email_verified_at === null) {
+        //     Auth::logout();
+        //     return response()->json(['message' => 'يرجى تفعيل بريدك الإلكتروني أولاً.', 'needs_verification' => true], 403);
+        // }
+
+
+        // 5. التحقق من الدور (Role Authorization Check)
+        $roleMap = [
+            'إدارة النظام' => 'admin',
+            'رئيس المؤتمر' => 'chair',
+            'باحث' => 'author',
+            'محكم' => 'reviewer',
+            'اللجنة العلمية' => 'committee',
+            'محرر' => 'editor',
+            'مكتب التحرير' => 'office',
+            'مكتب الإنتاج والنشر' => 'production_office'
+        ];
+        
+        $expectedRole = $roleMap[$request->role] ?? null;
+
+        if ($user->user_type !== $expectedRole) {
+            Auth::logout();
+            return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
+        }
+
+        // 6. إنشاء الجلسة والتوكن (Session & Sanctum Token)
+        $request->session()->regenerate();
+        $user->last_login = now();
+        $user->save();
 
         $user->load('roles');
         $user->append('all_permissions');
 
+        \Illuminate\Support\Facades\Log::info('User logged in successfully', ['id' => $user->id]);
+
         return response()->json([
             'user' => $user,
-            'token' => $user->createToken('auth_token')->plainTextToken
+            'token' => $user->createToken('auth_token')->plainTextToken,
+            'message' => 'تم تسجيل الدخول بنجاح!'
         ]);
     }
 

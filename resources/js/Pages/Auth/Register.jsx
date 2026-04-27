@@ -7,6 +7,14 @@ const PRUSSIAN_DARK = '#001a2e';
 const TURQUOISE = '#40E0D0';
 const OCEAN = '#0096c7';
 
+const ROLE_MAP = {
+    'إدارة النظام': 'admin', 'رئيس المؤتمر': 'chair',
+    'باحث': 'author', 'محكم': 'reviewer',
+    'اللجنة العلمية': 'committee', 'محرر': 'editor', 'مكتب التحرير': 'office',
+    'مكتب الإنتاج والنشر': 'production_office'
+};
+
+
 export default function Register() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -24,24 +32,18 @@ export default function Register() {
         setLoading(true);
         setError('');
 
-        const roleMap = {
-            'إدارة النظام': 'admin', 'رئيس المؤتمر': 'chair',
-            'باحث': 'author', 'محكم': 'reviewer',
-            'اللجنة العلمية': 'committee', 'محرر': 'editor', 'مكتب التحرير': 'office'
-        };
-
         try {
             await axios.post('/api/register', {
                 ...formData,
-                user_type: roleMap[formData.role]
+                user_type: ROLE_MAP[formData.role]
             });
 
             navigate('/login', { 
                 state: { 
-                    message: 'تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول باستخدام بياناتك',
-                    username: formData.username
+                    message: 'تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول باستخدام بياناتك'
                 } 
             });
+
         } catch (err) {
             if (err.response && err.response.status === 422) {
                 const validationErrors = err.response.data.errors;
@@ -58,7 +60,7 @@ export default function Register() {
         <div className="min-h-screen flex items-center justify-center py-8 px-4"
             style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK}08 0%, ${TURQUOISE}10 100%)` }}>
             
-            <div className="w-full max-w-xl bg-white rounded-[3rem] shadow-2xl overflow-hidden"
+            <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden"
                 style={{ border: `1px solid ${TURQUOISE}30` }}>
                 
                 {/* Header Strip */}
@@ -82,71 +84,73 @@ export default function Register() {
                         </div>
 
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>الاسم الكامل</label>
-                            <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} required
+                            <label htmlFor="full_name" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>الاسم الكامل</label>
+                            <input type="text" id="full_name" name="full_name" value={formData.full_name} onChange={handleChange} required
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
-                                placeholder="أدخل اسمك الكامل" />
+                                placeholder="أدخل اسمك الكامل" autoComplete="name" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>اسم المستخدم</label>
-                            <input type="text" name="username" value={formData.username} onChange={handleChange} required
+                            <label htmlFor="username" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>اسم المستخدم</label>
+                            <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} required
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
-                                placeholder="Username" />
+                                placeholder="Username" autoComplete="username" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>البريد الإلكتروني</label>
-                            <input type="email" name="email" value={formData.email} onChange={handleChange} required
+                            <label htmlFor="email" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>البريد الإلكتروني</label>
+                            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
-                                placeholder="example@mail.com" />
+                                placeholder="example@mail.com" autoComplete="email" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>كلمة المرور</label>
-                            <input type="password" name="password" value={formData.password} onChange={handleChange} required
+                            <label htmlFor="password" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>كلمة المرور</label>
+                            <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
-                                placeholder="••••••••" />
+                                placeholder="••••••••" autoComplete="new-password" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>نوع الحساب</label>
-                            <select name="role" value={formData.role} onChange={handleChange}
+                            <label htmlFor="role" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>نوع الحساب</label>
+                            <select id="role" name="role" value={formData.role} onChange={handleChange}
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-black text-gray-700"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}>
-                                <option>باحث</option>
-                                <option>محكم</option>
-                                <option>مكتب التحرير</option>
-                                <option>محرر</option>
-                                <option>رئيس المؤتمر</option>
-                                <option>اللجنة العلمية</option>
-                                <option>إدارة النظام</option>
+                                <option value="باحث">باحث</option>
+                                <option value="محكم">محكم</option>
+                                <option value="مكتب التحرير">مكتب التحرير</option>
+                                <option value="محرر">محرر</option>
+                                <option value="رئيس المؤتمر">رئيس المؤتمر</option>
+                                <option value="اللجنة العلمية">اللجنة العلمية</option>
+                                <option value="مكتب الإنتاج والنشر">مكتب الإنتاج والنشر</option>
+                                <option value="إدارة النظام">إدارة النظام</option>
+
                             </select>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>الجهة / الجامعة</label>
-                            <input type="text" name="affiliation" value={formData.affiliation} onChange={handleChange}
+                            <label htmlFor="affiliation" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>الجهة / الجامعة</label>
+                            <input type="text" id="affiliation" name="affiliation" value={formData.affiliation} onChange={handleChange}
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
-                                placeholder="مثال: جامعة إقليم سبأ" />
+                                placeholder="مثال: جامعة إقليم سبأ" autoComplete="organization" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>رقم الهاتف</label>
-                            <input type="text" name="phone" value={formData.phone} onChange={handleChange}
+                            <label htmlFor="phone" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>رقم الهاتف</label>
+                            <input type="text" id="phone" name="phone" value={formData.phone} onChange={handleChange}
                                 className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
-                                placeholder="00967..." />
+                                placeholder="00967..." autoComplete="tel" />
                         </div>
 
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>نبذة تعريفية</label>
-                            <textarea name="bio" value={formData.bio} onChange={handleChange} rows="2"
+                            <label htmlFor="bio" className="text-xs font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>نبذة تعريفية</label>
+                            <textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} rows="2"
                                 className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none transition-all duration-300 font-bold focus:bg-white resize-none"
                                 style={{ border: `1px solid ${PRUSSIAN}15` }}
                                 placeholder="اكتب نبذة عن تخصصك..." />
@@ -154,7 +158,7 @@ export default function Register() {
 
                         <div className="md:col-span-2 pt-4">
                             <button type="submit" disabled={loading}
-                                className="w-full py-5 rounded-[2rem] text-white font-black text-xl shadow-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70"
+                                className="w-full py-5 rounded-3xl text-white font-black text-xl shadow-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70"
                                 style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})` }}>
                                 {loading ? 'جاري المعالجة...' : 'تأكيد إنشاء الحساب ←'}
                             </button>

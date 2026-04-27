@@ -99,6 +99,14 @@ class PaperController extends Controller
 
                 // Initialize workflow
                 $this->workflow->transition($paper, 'PAPER_SUBMITTED', 'تقديم البحث لأول مرة');
+                
+                // إرسال إشعار وايميل للباحث بتأكيد الاستلام
+                Auth::user()->notify(new \App\Notifications\SystemNotification(
+                    'تأكيد استلام البحث',
+                    'تم استلام بحثك بعنوان "' . $paper->title . '" بنجاح ضمن مؤتمر: ' . $paper->conference->title,
+                    '/researcher/research/' . $paper->id,
+                    'success'
+                ));
             });
 
             Log::info('PaperController: Paper submitted successfully');

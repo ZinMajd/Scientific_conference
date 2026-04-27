@@ -187,7 +187,8 @@ class PaperWorkflowService
                     ],
                     'total' => $r->total_avg_score,
                     'recommendation' => $r->recommendation,
-                    'comments_to_editor' => $r->comments_to_editor
+                    'comments_to_editor' => $r->comments_to_editor,
+                    'report_file_path' => $r->report_file_path
                 ];
             })
         ];
@@ -235,10 +236,33 @@ class PaperWorkflowService
             ],
             Paper::STATUS_ACCEPTED => [
                 'SCHEDULED' => Paper::STATUS_SCHEDULED,
+                'SEND_TO_PRODUCTION' => Paper::STATUS_IN_PRODUCTION,
+                'MARK_READY_FOR_PUBLISH' => Paper::STATUS_READY_TO_PUBLISH,
+                'RETURN_TO_AUTHOR' => Paper::STATUS_PRODUCTION_REVISION_REQUIRED,
+                'PUBLISH' => Paper::STATUS_PUBLISHED,
             ],
+            Paper::STATUS_IN_PRODUCTION => [
+                'MARK_READY_FOR_PUBLISH' => Paper::STATUS_READY_TO_PUBLISH,
+                'RETURN_TO_AUTHOR' => Paper::STATUS_PRODUCTION_REVISION_REQUIRED,
+                'PUBLISH' => Paper::STATUS_PUBLISHED,
+            ],
+            Paper::STATUS_PRODUCTION_REVISION_REQUIRED => [
+                'REVISION_SUBMITTED' => Paper::STATUS_IN_PRODUCTION,
+                'PAPER_WITHDRAWN' => Paper::STATUS_WITHDRAWN,
+            ],
+            Paper::STATUS_READY_TO_PUBLISH => [
+                'PUBLISH' => Paper::STATUS_PUBLISHED,
+                'MARK_READY_FOR_PUBLISH' => Paper::STATUS_READY_TO_PUBLISH,
+                'RETURN_TO_AUTHOR' => Paper::STATUS_PRODUCTION_REVISION_REQUIRED,
+            ],
+
             Paper::STATUS_SCHEDULED => [
                 'PUBLISHED' => Paper::STATUS_PUBLISHED,
+                'PUBLISH' => Paper::STATUS_PUBLISHED,
+                'SEND_TO_PRODUCTION' => Paper::STATUS_IN_PRODUCTION,
+                'RETURN_TO_AUTHOR' => Paper::STATUS_PRODUCTION_REVISION_REQUIRED,
             ],
+
         ];
 
         // Handle Rejections - they can happen at almost any stage, but we define them explicitly

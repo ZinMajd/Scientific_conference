@@ -16,7 +16,8 @@ export default function ReviewerForm() {
         clarity_score: 5,
         comments_to_author: '',
         comments_to_editor: '',
-        recommendation: 'accept'
+        recommendation: 'accept',
+        report_file: null
     });
 
     useEffect(() => {
@@ -39,7 +40,20 @@ export default function ReviewerForm() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await axios.post(`/api/reviewer/assignments/${id}/review`, form);
+            const formData = new FormData();
+            Object.keys(form).forEach(key => {
+                if (key === 'report_file') {
+                    if (form[key]) formData.append(key, form[key]);
+                } else {
+                    formData.append(key, form[key]);
+                }
+            });
+
+            await axios.post(`/api/reviewer/assignments/${id}/review`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             alert('تم إرسال تقييمك العلمي بنجاح. شكراً لك.');
             navigate('/reviewer/assignments');
         } catch (err) {
@@ -76,9 +90,39 @@ export default function ReviewerForm() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-10 py-10 animate-in slide-in-from-bottom duration-700">
-            <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
-                <h1 className="text-3xl font-black text-indigo-950 mb-2 font-['Cairo']">نموذج التقييم العلمي</h1>
-                <p className="text-gray-500 font-medium">Paper ID: #{assignment.paper_id} - <span className="text-indigo-600 italic">"{assignment.paper?.title}"</span></p>
+            <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <h1 className="text-3xl font-black text-indigo-950 mb-2 font-['Cairo']">نموذج التقييم العلمي</h1>
+                    <p className="text-gray-500 font-medium">Paper ID: #{assignment.paper_id} - <span className="text-indigo-600 italic">"{assignment.paper?.title}"</span></p>
+                </div>
+                <div className="flex flex-col items-end">
+                    <input 
+                        type="file" 
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        onChange={e => setForm({...form, report_file: e.target.files[0]})}
+                        className="hidden" 
+                        id="top_report_file"
+                    />
+                    <label 
+                        htmlFor="top_report_file"
+                        className={`flex items-center gap-3 px-6 py-4 rounded-2xl cursor-pointer transition-all duration-300 ${form.report_file ? 'bg-green-50 text-green-700 border-green-200 border shadow-sm' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100'}`}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span className="font-bold text-sm">
+                            {form.report_file ? 'تغيير التقرير المرفق' : 'رفع تقرير التقييم'}
+                        </span>
+                    </label>
+                    {form.report_file && (
+                        <div className="mt-2 flex items-center gap-2 text-xs font-bold text-green-600 animate-in fade-in slide-in-from-top-1">
+                            <span className="truncate max-w-[200px]">{form.report_file.name}</span>
+                            <button type="button" onClick={() => setForm({...form, report_file: null})} className="text-red-500 hover:text-red-700">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -114,7 +158,7 @@ export default function ReviewerForm() {
                     <div>
                         <label className="block text-sm font-black text-indigo-950 mb-4">التوصية النهائية (Recommendation)</label>
                         <select 
-                            className="w-full p-4 rounded-xl border border-gray-200 focus:border-indigo-500 outline-none font-bold text-gray-700"
+                            className="w-full p-4 rounded-xl border border-gray-200 focus:border-indigo-500 outline-none font-bold text-gray-700 mb-8"
                             value={form.recommendation}
                             onChange={e => setForm({...form, recommendation: e.target.value})}
                         >
@@ -124,6 +168,8 @@ export default function ReviewerForm() {
                             <option value="reject">❌ رفض البحث (Reject)</option>
                         </select>
                     </div>
+
+
                 </div>
 
                 <div className="flex gap-4">

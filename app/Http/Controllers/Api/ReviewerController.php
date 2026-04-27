@@ -9,6 +9,8 @@ use App\Models\PaperReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 
 class ReviewerController extends Controller
 {
@@ -74,9 +76,18 @@ class ReviewerController extends Controller
             'comments_to_author' => 'required|string',
             'comments_to_editor' => 'nullable|string',
             'recommendation' => 'required|in:accept,minor_revision,major_revision,reject',
+            'report_file' => 'nullable|file|max:10240|extensions:pdf,doc,docx',
         ]);
 
-        return DB::transaction(function () use ($validated, $assignment, $user) {
+        $reportPath = null;
+        if ($request->hasFile('report_file')) {
+            $file = $request->file('report_file');
+            $extension = $file->getClientOriginalExtension();
+            $filename = uniqid('report_') . '_' . time() . '.' . $extension;
+            $reportPath = $file->storeAs('reviewer_reports', $filename, 'public');
+        }
+
+        return DB::transaction(function () use ($validated, $assignment, $user, $reportPath) {
             // Calculate Average
             $avg = ($validated['originality_score'] + $validated['methodology_score'] + 
                     $validated['results_score'] + $validated['clarity_score']) / 4;
@@ -93,9 +104,37 @@ class ReviewerController extends Controller
                 'comments_to_author' => $validated['comments_to_author'],
                 'comments_to_editor' => $validated['comments_to_editor'],
                 'recommendation' => $validated['recommendation'],
+                'report_file_path' => $reportPath,
             ]);
 
             $assignment->update(['status' => 'completed']);
+
+            // إشعار للمحكم (تأكيد استلام التقييم)
+            try {
+                $user->notify(new SystemNotification(
+                    'تأكيد استلام التقييم ✅',
+                    'شكراً لك. تم استلام تقييمك للبحث: "' . $assignment->paper->title . '". نقدر جهودكم العلمية.',
+                    url('/reviewer/history'),
+                    'success'
+                ));
+            } catch (\Exception $e) {
+                \Log::error('Reviewer Notification Error: ' . $e->getMessage());
+            }
+
+            // إشعار للمحررين (اكتمال تقييم)
+            try {
+                $editors = User::role(['editor', 'scientific_committee'])->get();
+                foreach ($editors as $editor) {
+                    $editor->notify(new SystemNotification(
+                        'استلام تقييم محكم 📊',
+                        'تم استلام تقييم من المحكم ' . $user->full_name . ' للبحث: "' . $assignment->paper->title . '"',
+                        url('/committee/research'),
+                        'info'
+                    ));
+                }
+            } catch (\Exception $e) {
+                \Log::error('Editor Notification Error: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'message' => 'تم رفع التقييم العلمي بنجاح. شكراً لمساهمتك.',
@@ -137,6 +176,7 @@ class ReviewerController extends Controller
                         'clarity_score' => $review->clarity_score,
                         'comments_to_author' => $review->comments_to_author,
                         'comments_to_editor' => $review->comments_to_editor,
+                        'report_file_path' => $review->report_file_path,
                     ] : null
                 ];
             });

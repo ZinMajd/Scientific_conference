@@ -9,6 +9,8 @@ export default function ResearcherResearchShow() {
     const [error, setError] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [cameraReadyFile, setCameraReadyFile] = useState(null);
+    const [productionRevisionFile, setProductionRevisionFile] = useState(null);
+    const [productionUploading, setProductionUploading] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -36,6 +38,9 @@ export default function ResearcherResearchShow() {
 
     const getStatusInfo = (status) => {
         switch(status) {
+            case 'production_revision_required': return { text: 'مطلوب تعديل التنسيق (مكتب الإنتاج)', color: 'bg-orange-50 text-orange-600', icon: '️⚠' };
+            case 'in_production': return { text: 'قيد التنسيق والإنتاج', color: 'bg-blue-50 text-blue-600', icon: '🛠️' };
+            case 'ready_to_publish': return { text: 'جاهز للنشر المجدول', color: 'bg-amber-50 text-amber-600', icon: '⏳' };
             case 'under_screening': return { text: 'جاري الفحص الأولي (مكتب التحرير)', color: 'bg-amber-50 text-amber-600', icon: '🔍' };
             case 'resubmitted': return { text: 'تم إعادة الإرسال (بانتظار الفحص)', color: 'bg-purple-50 text-purple-600', icon: '♻️' };
             case 'revision_required': return { text: 'مطلوب تعديلات (بيانات ناقصة)', color: 'bg-rose-50 text-rose-600', icon: '⚠️' };
@@ -96,6 +101,25 @@ export default function ResearcherResearchShow() {
             alert('فشل الرفع: ' + (err.response?.data?.message || err.message));
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleProductionResubmit = async (e) => {
+        e.preventDefault();
+        if (!productionRevisionFile) return;
+        setProductionUploading(true);
+        const formData = new FormData();
+        formData.append('revised_file', productionRevisionFile);
+        try {
+            await axios.post(`/api/papers/${paper.id}/resubmit-production`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert('تم إرسال النسخة المُعدّلة بنجاح لمكتب الإنتاج');
+            window.location.reload();
+        } catch (err) {
+            alert('فشل الإرسال: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setProductionUploading(false);
         }
     };
 
@@ -307,6 +331,41 @@ export default function ResearcherResearchShow() {
                                     <span className="bg-white/20 px-2 py-0.5 rounded uppercase text-[10px]">{paper.presentation_type || 'Oral'}</span>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Production Revision Re-submit */}
+                    {paper.status === 'production_revision_required' && (
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border-2 border-orange-200">
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className="text-2xl">⚠️</span>
+                                <div>
+                                    <h4 className="font-black text-orange-900">تعديلات مطلوبة من مكتب الإنتاج</h4>
+                                    <p className="text-xs text-orange-600 mt-1">يرجى مراجعة الملاحظات الواردة في سجل الحركات أدناه ثم رفع الملف المُعدَّل.</p>
+                                </div>
+                            </div>
+                            <form onSubmit={handleProductionResubmit} className="space-y-4">
+                                <div className="p-4 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/30 flex flex-col items-center gap-3">
+                                    <span className="text-3xl">📄</span>
+                                    <input
+                                        type="file"
+                                        accept=".pdf"
+                                        onChange={(e) => setProductionRevisionFile(e.target.files[0])}
+                                        className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                                        required
+                                    />
+                                    {productionRevisionFile && (
+                                        <p className="text-xs font-bold text-orange-700">{productionRevisionFile.name}</p>
+                                    )}
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={productionUploading}
+                                    className="w-full py-3 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-700 transition disabled:opacity-50"
+                                >
+                                    {productionUploading ? 'جاري الإرسال...' : '📤 إرسال النسخة المُعدَّلة لمكتب الإنتاج'}
+                                </button>
+                            </form>
                         </div>
                     )}
 

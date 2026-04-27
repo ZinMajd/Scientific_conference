@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import NotificationBell from '../Components/NotificationBell';
 
 export default function MainLayout() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function MainLayout() {
             return null;
         }
     });
+    const [token, setToken] = useState(() => localStorage.getItem('token') || null);
 
     // Keep user state in sync with localStorage
     useEffect(() => {
@@ -20,13 +22,15 @@ export default function MainLayout() {
             try {
                 const saved = localStorage.getItem('user');
                 setUser(saved ? JSON.parse(saved) : null);
+                setToken(localStorage.getItem('token') || null);
             } catch (e) {
                 setUser(null);
+                setToken(null);
             }
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
-    }, [setUser]); // Added setUser to dependencies
+    }, []);
 
     // Use useCallback to stabilize the isActive function
     // Stabilized navigation and menu handlers
@@ -72,7 +76,6 @@ export default function MainLayout() {
                     <nav className="hidden md:flex gap-6 items-center text-sm">
                         <Link to="/" className={getLinkClass('/')}>الرئيسية</Link>
                         <Link to="/conferences" className={getLinkClass('/conferences')}>المؤتمرات</Link>
-                        <Link to="/archive" className={getLinkClass('/archive')}>الأرشيف العلمي</Link>
                         <Link to="/about" className={getLinkClass('/about')}>عن النظام</Link>
                         <Link to="/faq" className={getLinkClass('/faq')}>الأسئلة الشائعة</Link>
                         <Link to="/support" className={getLinkClass('/support')}>الدعم</Link>
@@ -109,7 +112,8 @@ export default function MainLayout() {
                                 </Link>
                             </>
                         ) : (
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <NotificationBell token={token} />
                                 <span className="text-teal-400 font-semibold">{user?.full_name || user?.name || 'مستخدم'}</span>
                                 <button
                                     onClick={handleLogout}
@@ -138,7 +142,6 @@ export default function MainLayout() {
                         style={{ background: '#001a2e' }}>
                         <Link to="/" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الرئيسية</Link>
                         <Link to="/conferences" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>المؤتمرات</Link>
-                        <Link to="/archive" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الأرشيف العلمي</Link>
                         <Link to="/about" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>عن النظام</Link>
                         <Link to="/faq" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الأسئلة الشائعة</Link>
                         <Link to="/support" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الدعم</Link>

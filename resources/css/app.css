@@ -1,12 +1,7 @@
 /* eslint-disable */
 @import "tailwindcss";
 
-/* tailwind-ignore-unknown-at-rule */
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-@source '../**/*.jsx';
+/* Tailwind v4 automatically handles local sources. Removing @source to fix IDE warnings. */
 
 @theme {
     --font-sans:
@@ -27,14 +22,11 @@
     --color-ocean: #0096c7;
 }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+/* Custom Scrollbar - Hidden globally as requested */
+*::-webkit-scrollbar {
+    display: none;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #40E0D0;
-    border-radius: 99px;
+* {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

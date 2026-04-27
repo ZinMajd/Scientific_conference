@@ -92,20 +92,24 @@ export default function RegisterReviewer() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-black text-gray-700">كلمة المرور</label>
+                                <label htmlFor="password" title="password" className="text-sm font-black text-gray-700">كلمة المرور</label>
                                 <input 
+                                    id="password"
                                     type="password" 
                                     required
+                                    autoComplete="new-password"
                                     className="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-indigo-600"
                                     value={form.password}
                                     onChange={e => setForm({...form, password: e.target.value})}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-black text-gray-700">تأكيد كلمة المرور</label>
+                                <label htmlFor="password_confirmation" className="text-sm font-black text-gray-700">تأكيد كلمة المرور</label>
                                 <input 
+                                    id="password_confirmation"
                                     type="password" 
                                     required
+                                    autoComplete="new-password"
                                     className="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-indigo-600"
                                     value={form.password_confirmation}
                                     onChange={e => setForm({...form, password_confirmation: e.target.value})}
@@ -114,8 +118,9 @@ export default function RegisterReviewer() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-black text-gray-700">مجالات الخبرة (اختياري)</label>
+                            <label htmlFor="expertise" className="text-sm font-black text-gray-700">مجالات الخبرة (اختياري)</label>
                             <textarea 
+                                id="expertise"
                                 className="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-indigo-600 h-24"
                                 placeholder="مثال: الذكاء الاصطناعي، الأمن السيبراني..."
                                 value={form.expertise}

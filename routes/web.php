@@ -54,32 +54,37 @@ Route::prefix('api')->group(function () {
 
     Route::get('/invitation/verify', [\App\Http\Controllers\Api\CommitteeController::class, 'verifyInvitation']);
     Route::post('/invitation/complete', [\App\Http\Controllers\Api\CommitteeController::class, 'registerFromInvitation']);
+    Route::post('/support', [\App\Http\Controllers\SupportController::class, 'store']);
+
 
 Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/user', function (Request $request) {
             return $request->user();
         });
 
-        // Researcher Routes
-        Route::middleware(['role:author'])->group(function () {
-            Route::get('/researcher/stats', [\App\Http\Controllers\Api\ResearcherController::class, 'stats']);
-            Route::get('/researcher/papers', [\App\Http\Controllers\Api\ResearcherController::class, 'papers']);
-            Route::get('/researcher/reviews', [\App\Http\Controllers\Api\ResearcherController::class, 'reviews']);
-            Route::get('/researcher/reviewed-papers', [\App\Http\Controllers\Api\ResearcherController::class, 'reviewedPapers']);
-            Route::post('/researcher/papers/{id}/camera-ready', [\App\Http\Controllers\Api\ResearcherController::class, 'submitCameraReady']);
-        });
+        // Notifications
+        Route::get('/notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
 
-        // Reviewer Routes
-        Route::middleware(['role:reviewer'])->group(function () {
-            Route::get('/reviewer/stats', [\App\Http\Controllers\Api\ReviewerController::class, 'stats']);
-            Route::get('/reviewer/assignments', [\App\Http\Controllers\Api\ReviewerController::class, 'assignments']);
-            Route::get('/reviewer/assignments/{id}', [\App\Http\Controllers\Api\ReviewerController::class, 'assignment']);
-            Route::post('/reviewer/assignments/{id}/submit', [\App\Http\Controllers\Api\ReviewerController::class, 'submitReview']);
-            Route::get('/reviewer/history', [\App\Http\Controllers\Api\ReviewerController::class, 'history']);
-        });
+        // Researcher Routes (Available to all authenticated users)
+        Route::get('/researcher/stats', [\App\Http\Controllers\Api\ResearcherController::class, 'stats']);
+        Route::get('/researcher/papers', [\App\Http\Controllers\Api\ResearcherController::class, 'papers']);
+        Route::get('/researcher/reviews', [\App\Http\Controllers\Api\ResearcherController::class, 'reviews']);
+        Route::get('/researcher/reviewed-papers', [\App\Http\Controllers\Api\ResearcherController::class, 'reviewedPapers']);
+        Route::post('/researcher/papers/{id}/camera-ready', [\App\Http\Controllers\Api\ResearcherController::class, 'submitCameraReady']);
+
+        // Reviewer Routes (Available to all authenticated users who have assignments)
+        Route::get('/reviewer/stats', [\App\Http\Controllers\Api\ReviewerController::class, 'stats']);
+        Route::get('/reviewer/assignments', [\App\Http\Controllers\Api\ReviewerController::class, 'assignments']);
+        Route::get('/reviewer/assignments/{id}', [\App\Http\Controllers\Api\ReviewerController::class, 'assignment']);
+        Route::post('/reviewer/assignments/{id}/submit', [\App\Http\Controllers\Api\ReviewerController::class, 'submitReview']);
+        Route::get('/reviewer/history', [\App\Http\Controllers\Api\ReviewerController::class, 'history']);
+
 
         // Committee Routes (Shared between all committee roles)
-        Route::middleware(['role:scientific_committee,editor,editorial_office,conference_chair'])->group(function () {
+        Route::middleware(['role:scientific_committee,editor,editorial_office,conference_chair,production_office'])->group(function () {
+
             Route::get('/committee/stats', [\App\Http\Controllers\Api\CommitteeController::class, 'stats']);
             Route::get('/committee/papers', [\App\Http\Controllers\Api\CommitteeController::class, 'papers']);
             Route::get('/committee/papers/export', [\App\Http\Controllers\Api\CommitteeController::class, 'exportPapers']);
@@ -111,7 +116,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/committee/reports/papers', [\App\Http\Controllers\Api\ReportController::class, 'papers']);
             Route::get('/committee/reports/reviewers', [\App\Http\Controllers\Api\ReportController::class, 'reviewers']);
             Route::get('/committee/reports/attendees', [\App\Http\Controllers\Api\ReportController::class, 'attendees']);
+
+            // Production Office Routes
+            Route::get('/production/papers', [\App\Http\Controllers\Api\ProductionController::class, 'papers']);
+            Route::post('/production/papers/{id}/send', [\App\Http\Controllers\Api\ProductionController::class, 'sendToProduction']);
+            Route::post('/production/papers/{id}/update', [\App\Http\Controllers\Api\ProductionController::class, 'updateProduction']);
+            Route::post('/production/papers/{id}/ready', [\App\Http\Controllers\Api\ProductionController::class, 'markReadyForPublish']);
+            Route::post('/production/papers/{id}/publish', [\App\Http\Controllers\Api\ProductionController::class, 'publishNow']);
+            Route::post('/production/papers/{id}/return', [\App\Http\Controllers\Api\ProductionController::class, 'returnToAuthor']);
         });
+
 
         // Conference Management (Admin/Chair/Editor)
         Route::middleware(['role:conference_chair,editor,system_admin'])->group(function () {
@@ -129,6 +143,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/papers/{id}/anonymize', [\App\Http\Controllers\Api\PaperController::class, 'anonymize']);
         Route::post('/papers/{id}/revision', [\App\Http\Controllers\Api\PaperController::class, 'submitRevision']);
         Route::post('/papers/{id}/finalize', [\App\Http\Controllers\Api\PaperController::class, 'finalAcceptance']);
+        Route::post('/papers/{id}/resubmit-production', [\App\Http\Controllers\Api\ProductionController::class, 'resubmitToProduction']);
+
 
         // Logout
         Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);

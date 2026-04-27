@@ -20,7 +20,8 @@ class PaperReview extends Model
         'total_avg_score',
         'comments_to_author',
         'comments_to_editor',
-        'recommendation'
+        'recommendation',
+        'report_file_path'
     ];
 
     public function paper()

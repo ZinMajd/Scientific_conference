@@ -33,7 +33,9 @@ class Paper extends Model
         'decision_notes',
         'is_published',
         'doi',
-        'page_numbers'
+        'page_numbers',
+        'publish_at',
+        'final_file_path'
     ];
 
     // Lifecycle Statuses
@@ -48,7 +50,11 @@ class Paper extends Model
     const STATUS_ANONYMIZING = 'anonymizing'; 
     const STATUS_READY_FOR_REVIEW = 'ready_for_review'; 
     const STATUS_UNDER_REVIEW = 'under_review'; 
+    const STATUS_IN_PRODUCTION = 'in_production';
+    const STATUS_READY_TO_PUBLISH = 'ready_to_publish';
+    const STATUS_PRODUCTION_REVISION_REQUIRED = 'production_revision_required';
     const STATUS_ACCEPTED = 'accepted';
+
     const STATUS_REJECTED = 'rejected';
     const STATUS_SCHEDULED = 'scheduled';
     const STATUS_PUBLISHED = 'published';
@@ -146,8 +152,9 @@ class Paper extends Model
     // Helper methods for state transitions
     public function canSubmitRevision()
     {
-        return $this->status === self::STATUS_REVISION_REQUIRED;
+        return $this->status === self::STATUS_REVISION_REQUIRED || $this->status === self::STATUS_PRODUCTION_REVISION_REQUIRED;
     }
+
 
     public function isAccepted()
     {

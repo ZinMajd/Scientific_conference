@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import NotificationBell from '../Components/NotificationBell';
 
 export default function ScientificCommitteeLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -13,6 +14,7 @@ export default function ScientificCommitteeLayout() {
             return null;
         }
     })();
+    const token = localStorage.getItem('token');
 
     const userType = user?.user_type || 'committee'; // fallback
     const hasAccess = (allowedRoles) => {
@@ -113,6 +115,7 @@ export default function ScientificCommitteeLayout() {
         },
         {
             title: 'الإشعارات',
+
             icon: '🔔',
             path: '/committee/notifications',
             group: 'النظام',
@@ -146,7 +149,7 @@ export default function ScientificCommitteeLayout() {
     const isSubActive = (path) => location.pathname === path ? 'text-teal-400 font-bold border-r-2 border-teal-400 pr-4 -mr-4' : 'text-gray-400 hover:text-teal-400 transition';
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-row-reverse font-['Cairo', sans-serif]" dir="rtl">
+        <div className="min-h-screen bg-gray-50 flex flex-row font-['Cairo', sans-serif]" dir="rtl">
             {/* Sidebar */}
             <aside 
                 className={`${isSidebarOpen ? 'w-80' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
@@ -158,6 +161,7 @@ export default function ScientificCommitteeLayout() {
                             <span className="text-xl font-black text-white truncate">
                                 {user?.user_type === 'chair' ? 'رئيس المؤتمر' : 
                                  user?.user_type === 'office' ? 'مكتب التحرير' : 
+                                 user?.user_type === 'production_office' ? 'مكتب الإنتاج والنشر' : 
                                  user?.user_type === 'editor' ? 'المحرر العلمي' : 
                                  user?.user_type === 'admin' ? 'إدارة النظام' : 'اللجنة العلمية'}
                             </span>
@@ -220,7 +224,11 @@ export default function ScientificCommitteeLayout() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                {/* Header removed as requested */}
+                <header className="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-end px-8 shrink-0 z-40">
+                    <div className="flex items-center gap-4">
+                        <NotificationBell token={token} theme="light" />
+                    </div>
+                </header>
 
                 {/* Page Content */}
                 <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
