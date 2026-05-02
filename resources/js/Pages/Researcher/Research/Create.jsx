@@ -35,13 +35,11 @@ export default function ResearchCreate() {
         axios
             .get("/api/conferences", config)
             .then((response) => {
-                console.log("Conferences response:", response.data);
                 const confs = Array.isArray(response.data) ? response.data : (response.data.data || []);
                 setConferences(confs);
                 
                 // Explicitly set conf_id if preselectedConfId is provided and exists in confs
                 if (preselectedConfId && confs.some(c => String(c.id) === String(preselectedConfId))) {
-                    console.log("Pre-selecting conference:", preselectedConfId);
                     setFormData(prev => ({ ...prev, conf_id: preselectedConfId }));
                 }
 
@@ -127,7 +125,6 @@ export default function ResearchCreate() {
         });
 
         try {
-            console.log("Submitting paper with file:", formData.paper_file);
             const token = localStorage.getItem("token");
             const response = await axios.post("/api/papers", data, {
                 headers: {
@@ -311,23 +308,7 @@ export default function ResearchCreate() {
                 </div>
 
                 <div className="space-y-6">
-                    {/* Template Preview Section */}
-                    <div className="bg-white p-4 rounded-3xl shadow-lg border border-blue-50 flex flex-col items-center gap-3 group cursor-pointer hover:shadow-xl hover:border-blue-200 transition-all" onClick={() => window.open('/images/template-preview.jpg', '_blank')}>
-                        <div className="text-center space-y-1">
-                            <h2 className="text-sm font-black text-blue-950 font-['Cairo'] flex items-center justify-center gap-1">
-                                <span className="text-blue-500 text-base">📄</span> شكل قالب البحث المعتمد
-                            </h2>
-                            <p className="text-gray-500 font-bold text-[10px] leading-relaxed px-2">
-                                هذا نموذج يوضح الشكل المعتمد للصفحة الأولى من البحث. يرجى الالتزام بنفس التنسيق والهيكلية الموضحة في الصورة عند كتابة ورفع بحثك لتجنب رفضه في مرحلة الفحص الأولي من قبل اللجان.
-                            </p>
-                        </div>
-                        <div className="w-full rounded-2xl overflow-hidden shadow-md border border-gray-100 relative">
-                            <div className="absolute inset-0 bg-blue-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                                <span className="text-white font-black text-sm bg-blue-900/80 px-4 py-2 rounded-xl shadow-md">🔍 اضغط للتكبير</span>
-                            </div>
-                            <img src="/images/template-preview.jpg" alt="Template Preview" className="w-full h-auto object-cover max-h-[400px] object-top group-hover:scale-105 transition-transform duration-700" />
-                        </div>
-                    </div>
+                    {/* Publishing Settings Section */}
 
                     <div className="rounded-[3rem] text-white shadow-2xl shadow-blue-900/40 overflow-hidden"
                          style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)' }}>
@@ -371,25 +352,41 @@ export default function ResearchCreate() {
                         </div>
                     </div>
 
-                    <div className="p-8 rounded-4xl border border-blue-100 shadow-xl"
-                         style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}>
-                        <h4 className="font-black text-blue-900 mb-4 flex items-center gap-2 text-lg">
-                            <span className="text-2xl">💡</span> تعليمات هامة:
-                        </h4>
-                        <ul className="text-sm text-blue-800/80 space-y-4 font-bold">
-                            <li className="flex gap-3 items-start">
-                                <span className="text-teal-500 mt-1">•</span>
-                                <span>تأكد من مراجعة القواعد اللغوية والإملائية بدقة قبل الإرسال.</span>
-                            </li>
-                            <li className="flex gap-3 items-start">
-                                <span className="text-teal-500 mt-1">•</span>
-                                <span>يجب ألا يتجاوز الملخص 500 كلمة كحد أقصى.</span>
-                            </li>
-                            <li className="flex gap-3 items-start">
-                                <span className="text-teal-500 mt-1">•</span>
-                                <span>احرص على ذكر كافة المؤلفين المشاركين وبياناتهم بدقة تامة.</span>
-                            </li>
-                        </ul>
+                    {/* Consolidated Instructions and Template Preview at the bottom */}
+                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-blue-50 space-y-6">
+                        <div className="space-y-4">
+                            <h4 className="font-black text-blue-950 flex items-center gap-2 text-xl">
+                                <span className="text-2xl">💡</span> تعليمات هامة:
+                            </h4>
+                            <ul className="text-sm text-gray-600 space-y-3 font-bold leading-relaxed pr-2">
+                                <li className="flex gap-3 items-start">
+                                    <span className="text-blue-500 mt-1">•</span>
+                                    <span>تأكد من مراجعة القواعد اللغوية والإملائية بدقة قبل الإرسال.</span>
+                                </li>
+                                <li className="flex gap-3 items-start">
+                                    <span className="text-blue-500 mt-1">•</span>
+                                    <span>يجب ألا يتجاوز الملخص 500 كلمة كحد أقصى.</span>
+                                </li>
+                                <li className="flex gap-3 items-start">
+                                    <span className="text-blue-500 mt-1">•</span>
+                                    <span>احرص على ذكر كافة المؤلفين المشاركين وبياناتهم بدقة تامة.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-gray-100">
+                            <div className="bg-blue-50/50 p-4 rounded-3xl border border-blue-100 flex flex-col items-center gap-4 group cursor-pointer hover:bg-blue-50 transition-all" onClick={() => window.open('/images/template-preview.jpg', '_blank')}>
+                                <h2 className="text-sm font-black text-blue-950 flex items-center gap-2">
+                                    <span className="text-blue-500 text-lg">📄</span> شكل قالب البحث المعتمد
+                                </h2>
+                                <div className="w-full rounded-2xl overflow-hidden border border-gray-200 relative">
+                                    <img src="/images/template-preview.jpg" alt="Template Preview" className="w-full h-auto object-cover max-h-[300px] object-top group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-blue-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                                        <span className="text-white font-black text-sm bg-blue-900/80 px-4 py-2 rounded-xl shadow-md">🔍 اضغط للتكبير</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>

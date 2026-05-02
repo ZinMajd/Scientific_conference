@@ -133,6 +133,9 @@ export default function ResearcherResearchShow() {
                     <p className="text-gray-500 mt-2 font-medium">تم التقديم في: {paper.created_at ? new Date(paper.created_at).toLocaleDateString('ar-EG') : '---'}</p>
                 </div>
                 <div className="flex gap-3">
+                    {(paper.status === 'published' || paper.status === 'scheduled') && (
+                        <Link to={`/archive/${paper.id}`} target="_blank" className="px-6 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition">مشاهدة الصفحة المنشورة</Link>
+                    )}
                     {['submitted', 'revision_required'].includes(paper.status) && (
                         <Link to={`/researcher/research/${paper.id}/edit`} className="px-6 py-3 bg-amber-50 text-amber-600 font-bold rounded-xl hover:bg-amber-100 transition">تعديل البحث</Link>
                     )}

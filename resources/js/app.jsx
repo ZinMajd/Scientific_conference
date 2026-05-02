@@ -20,6 +20,11 @@ import ProfileEdit from './Pages/Profile/Edit';
 import Security from './Pages/Profile/Security';
 import ActivityLog from './Pages/Profile/ActivityLog';
 import Archive from './Pages/Archive';
+import ArticleView from './Pages/ArticleView';
+import Submissions from './Pages/Submissions';
+import EditorialTeam from './Pages/EditorialTeam';
+import TopicalCollection from './Pages/TopicalCollection';
+import Announcements from './Pages/Announcements';
 
 // Profile Layout
 import ProfileLayout from './Layouts/ProfileLayout';
@@ -80,6 +85,11 @@ function App() {
                     <Route path="faq" element={<FAQ />} />
                     <Route path="conferences" element={<Conferences />} />
                     <Route path="archive" element={<Archive />} />
+                    <Route path="article/:id" element={<ArticleView />} />
+                    <Route path="submissions" element={<Submissions />} />
+                    <Route path="editorial-team" element={<EditorialTeam />} />
+                    <Route path="topical-collection" element={<TopicalCollection />} />
+                    <Route path="announcements" element={<Announcements />} />
                     <Route path="support" element={<Support />} />
                     <Route path="conferences/:id" element={<ConferenceDetails />} />
 

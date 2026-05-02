@@ -22,7 +22,11 @@ class ConferenceController extends Controller
     public function show($id)
     {
         return Conference::with(['papers' => function($query) {
-            $query->where('status', \App\Models\Paper::STATUS_PUBLISHED)
+            $query->where(function($q) {
+                    $q->where('is_published', true)
+                      ->orWhere('status', 'scheduled')
+                      ->orWhere('status', 'published');
+                })
                 ->with('author')
                 ->orderBy('created_at', 'desc');
         }])->findOrFail($id);

@@ -44,6 +44,13 @@ Route::prefix('api')->group(function () {
     Route::get('/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'index']);
     Route::get('/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'show']);
     Route::get('/archive', [\App\Http\Controllers\Api\PaperController::class, 'archive']);
+    Route::get('/article/{id}', [\App\Http\Controllers\Api\PaperController::class, 'publicShow']);
+    Route::post('/article/{id}/download-stat', [\App\Http\Controllers\Api\PaperController::class, 'recordDownload']);
+    
+    // Journal Specific Routes
+    Route::get('/journal/announcements', [\App\Http\Controllers\Api\PublicJournalController::class, 'announcements']);
+    Route::get('/journal/editorial-team', [\App\Http\Controllers\Api\PublicJournalController::class, 'editorialTeam']);
+    Route::get('/journal/topical-collections', [\App\Http\Controllers\Api\PublicJournalController::class, 'topicalCollections']);
     Route::get('/stats', [\App\Http\Controllers\Api\PublicStatsController::class, 'index']);
 
     Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);

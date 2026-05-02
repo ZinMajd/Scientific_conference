@@ -207,6 +207,28 @@ class PaperController extends Controller
         return response()->json($paper);
     }
 
+    public function publicShow($id)
+    {
+        $paper = Paper::where(function($q) {
+                $q->where('is_published', true)
+                  ->orWhere('status', 'scheduled');
+            })
+            ->with(['conference', 'author', 'coauthors', 'topics'])
+            ->findOrFail($id);
+        
+        // Increment view count
+        $paper->increment('view_count');
+        
+        return response()->json($paper);
+    }
+
+    public function recordDownload($id)
+    {
+        $paper = Paper::findOrFail($id);
+        $paper->increment('download_count');
+        return response()->json(['success' => true]);
+    }
+
     public function download($id)
     {
         $paper = Paper::findOrFail($id);

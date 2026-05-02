@@ -35,7 +35,9 @@ class Paper extends Model
         'doi',
         'page_numbers',
         'publish_at',
-        'final_file_path'
+        'final_file_path',
+        'view_count',
+        'download_count'
     ];
 
     // Lifecycle Statuses
