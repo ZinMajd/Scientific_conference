@@ -37,7 +37,8 @@ class Paper extends Model
         'publish_at',
         'final_file_path',
         'view_count',
-        'download_count'
+        'download_count',
+        'thumbnail_path'
     ];
 
     // Lifecycle Statuses
