@@ -155,7 +155,7 @@ export default function MainLayout() {
             </header>
 
             {/* Main Content */}
-            <main className="grow bg-gray-50">
+            <main className="grow bg-white">
                 <Outlet />
             </main>
 

@@ -45,7 +45,7 @@ export default function Archive() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-['Cairo'] pb-20 flex flex-col items-center w-full" dir="rtl">
+        <div className="min-h-screen bg-white font-['Cairo'] pb-20 flex flex-col items-center w-full" dir="rtl">
             <div className="w-full border-b border-gray-100 py-4 px-4 md:px-16 lg:px-48 bg-white sticky top-0 z-50 shadow-sm flex justify-center">
                 <div className="w-full max-w-5xl flex justify-between items-center">
                     <Link to="/archive" className="flex items-center gap-4 hover:opacity-80 transition">
@@ -61,18 +61,15 @@ export default function Archive() {
 
 
             {/* Journal Header Banner */}
-            <div className="w-full relative py-12 px-4 md:px-16 lg:px-48 overflow-hidden flex justify-center">
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}></div>
-                </div>
+            <div className="w-full relative py-16 px-4 md:px-16 lg:px-48 overflow-hidden flex justify-center bg-white border-b border-gray-100">
                 <div className="w-full max-w-5xl relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
-                    <div className="text-white text-right">
-                        <div className="inline-block mb-3 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase" style={{ background: 'rgba(64, 224, 208, 0.1)', border: `1px solid ${TURQUOISE}4d`, color: TURQUOISE }}>
+                    <div className="text-right">
+                        <div className="inline-block mb-4 px-3 py-1 rounded-none text-[10px] font-black tracking-widest uppercase border border-gray-200" style={{ color: '#0077a3' }}>
                             منشور • ٢٠٢٦
                         </div>
-                        <h2 className="text-4xl font-black mb-2 tracking-tighter">السجلات العلمية</h2>
-                        <p className="text-white/70 text-sm font-bold tracking-widest uppercase mb-6">الأرشيف العلمي العام</p>
-                        <p className="text-white/60 text-xs leading-relaxed max-w-xl font-medium">
+                        <h2 className="text-4xl font-black mb-2 tracking-tighter" style={{ color: PRUSSIAN_DARK }}>السجلات العلمية</h2>
+                        <p className="text-sm font-bold tracking-widest uppercase mb-6" style={{ color: '#0077a3' }}>الأرشيف العلمي العام</p>
+                        <p className="text-slate-600 text-sm leading-relaxed max-w-xl font-medium">
                             تصفح الأبحاث المنشورة في مؤتمراتنا الدولية. السجل العلمي هو أرشيف دولي محكم ومفتوح الوصول يعزز التبادل الأكاديمي والابتكار التكنولوجي.
                         </p>
                     </div>
@@ -132,15 +129,17 @@ export default function Archive() {
                         </p>
 
                         <div className="space-y-4 mb-10 text-slate-700 font-bold text-base">
-                            <p className="flex items-center justify-end gap-3">المكان: جامعة إقليم سبأ - اليمن <span className="text-[8px] text-teal-600">■</span></p>
-                            <p className="flex items-center justify-end gap-3">التكرار: دوري <span className="text-[8px] text-teal-600">■</span></p>
-                            <p className="flex items-center justify-end gap-3">اللغة: العربية/الإنجليزية <span className="text-[8px] text-teal-600">■</span></p>
-                            <p className="flex items-center justify-end gap-3">research@sabauni.edu.ye :البريد الإلكتروني <span className="text-[8px] text-teal-600">■</span></p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> المكان: جامعة إقليم سبأ - اليمن</p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> التكرار: دوري</p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> اللغة: العربية/الإنجليزية</p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> البريد الإلكتروني: research@sabauni.edu.ye</p>
                         </div>
 
-                        <Link to="/login" className="inline-block bg-[#a00000] text-white px-10 py-3 font-bold text-lg hover:bg-red-800 transition shadow-xl">
-                            إرسال المخطوطة
-                        </Link>
+                        <div className="flex justify-start">
+                            <Link to="/login" className="inline-block bg-[#a00000] text-white px-10 py-3 font-bold text-lg hover:bg-red-800 transition shadow-xl">
+                                إرسال المخطوطة
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -173,23 +172,26 @@ export default function Archive() {
                                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-red-700"></div>
                             </div>
                         ) : papers.length === 0 ? (
-                            <div className="text-center py-20 bg-gray-50 rounded-sm italic text-gray-400">لم يتم العثور على أبحاث في الأرشيف حالياً.</div>
+                            <div className="text-center py-20 bg-white rounded-sm italic text-gray-400">لم يتم العثور على أبحاث في الأرشيف حالياً.</div>
                         ) : (
-                        <div className="bg-slate-50 p-6 md:p-10 rounded-sm flex flex-col gap-16">
+                        <div className="bg-white p-6 md:p-10 flex flex-col gap-16">
                                     {papers.map((paper) => (
-                                        <div key={paper.id} className="bg-white border border-gray-100 p-6 flex flex-col md:flex-row gap-8 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-sm">
+                                        <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300">
                                             {/* Left Column: Small Thumbnail */}
                                             <div className="md:w-[150px] shrink-0 flex flex-col">
                                                 <div 
-                                                    className="w-full aspect-[3/4] bg-white border border-gray-200 shadow-inner mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
+                                                    className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
                                                     onClick={() => paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
                                                 >
                                                     {paper.thumbnail_path ? (
-                                                        <img 
-                                                            src={`/storage_file/${paper.thumbnail_path}`} 
-                                                            alt={paper.title} 
-                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                                                        />
+                                                        <>
+                                                            <img 
+                                                                src={`/storage_file/${paper.thumbnail_path}`} 
+                                                                alt={paper.title} 
+                                                                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
+                                                        </>
                                                     ) : (
                                                         <div className="p-6 text-[7px] text-gray-300 leading-tight select-none">
                                                             <div className="h-1.5 bg-gray-200 w-3/4 mb-2"></div>
@@ -215,7 +217,7 @@ export default function Archive() {
                                                         <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
                                                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
                                                     </div>
-                                                    <div className="w-px h-4 bg-gray-100"></div>
+                                                    <div className="w-px h-4 bg-gray-200"></div>
                                                     <div className="flex flex-col items-center">
                                                         <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
                                                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
@@ -226,12 +228,12 @@ export default function Archive() {
                                             {/* Right Column: Info */}
                                             <div className="flex-1 flex flex-col">
                                                 <div className="flex flex-wrap gap-2 mb-4">
-                                                    <span className="bg-red-700 text-white px-2 py-0.5 rounded-sm text-[8px] font-black uppercase tracking-widest">مقال</span>
-                                                    <span className="bg-slate-800 text-white px-2 py-0.5 rounded-sm text-[8px] font-black uppercase tracking-widest">معرف المقال: {paper.id}</span>
+                                                    <span className="text-white px-10 py-5 rounded-none text-[14px] font-black uppercase tracking-widest" style={{ backgroundColor: '#a00000' }}>مقال</span>
+                                                    <span className="text-white px-10 py-5 rounded-none text-[14px] font-black uppercase tracking-widest" style={{ backgroundColor: PRUSSIAN }}>رقم تعريف المقال : {paper.id}</span>
                                                 </div>
 
                                                 <Link to={`/article/${paper.id}`} className="group mb-4">
-                                                    <h3 className="text-xl font-black leading-[1.2] transition-colors" style={{ color: PRUSSIAN }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = PRUSSIAN}>
+                                                    <h3 className="text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = '#0077a3'}>
                                                         {paper.title}
                                                     </h3>
                                                 </Link>
@@ -251,40 +253,51 @@ export default function Archive() {
                                                 </div>
 
                                                 <div className="flex flex-wrap gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">
-                                                    <span>المجلد {paper.volume || 5}</span>
-                                                    <span>العدد {paper.issue || 1}</span>
-                                                    <span>({paper.conference?.start_date ? new Date(paper.conference.start_date).getFullYear() : 2026}).</span>
+
                                                     <span className="text-slate-800">DOI:</span>
-                                                    <a 
-                                                        href={paper.doi?.startsWith('10.') ? `https://doi.org/${paper.doi}` : `https://doi.org/10.54963/jic.v5i1.${paper.id}`} 
-                                                        target="_blank" 
+                                                    <Link 
+                                                        to={`/article/${paper.id}`}
                                                         className="hover:underline normal-case"
-                                                        style={{ color: OCEAN }}
+                                                        style={{ color: '#0077a3' }}
                                                     >
                                                         {paper.doi && paper.doi.startsWith('10.') ? `https://doi.org/${paper.doi}` : `https://doi.org/10.54963/jic.v5i1.${paper.id}`}
-                                                    </a>
+                                                    </Link>
                                                 </div>
 
-                                                <div className="text-sm text-slate-600 leading-relaxed mb-8 line-clamp-4 font-medium italic border-l-4 border-slate-100 pl-4">
+                                                <div className="text-sm text-slate-600 leading-relaxed mb-8 line-clamp-[7] font-medium border-r-4 border-slate-100 pr-4">
                                                     {paper.abstract}
                                                 </div>
 
                                                 <div className="mt-auto flex justify-between items-center pt-6 border-t border-slate-100">
                                                     <button 
-                                                        onClick={() => window.open(`/storage_file/${paper.file_path}`, '_blank')}
-                                                        className="flex items-center gap-3 text-xs font-black text-[#8b0000] hover:text-red-600 transition-colors uppercase tracking-widest"
+                                                        onClick={async () => {
+                                                            try {
+                                                                await axios.post(`/api/article/${paper.id}/download-stat`);
+                                                                // Update local state to show increment immediately
+                                                                setPapers(prev => prev.map(p => 
+                                                                    p.id === paper.id ? { ...p, download_count: (p.download_count || 0) + 1 } : p
+                                                                ));
+                                                            } catch (e) { console.error(e); }
+                                                            window.open(`/storage_file/${paper.final_file_path || paper.file_path}`, '_blank');
+                                                        }}
+                                                        className="flex items-center gap-3 text-xs font-black text-[#b30000] hover:text-red-600 transition-colors uppercase tracking-widest group"
                                                     >
-                                                        <span className="text-2xl leading-none">📕</span>
-                                                        <span className="border-b-2 border-transparent hover:border-[#8b0000] pb-0.5">قراءة PDF</span>
+                                                        <img 
+                                                            src="/images/pdf_icon.png" 
+                                                            alt="PDF" 
+                                                            className="w-8 h-10 object-contain group-hover:scale-110 transition-transform" 
+                                                        />
+                                                        <span className="border-b-2 border-transparent hover:border-[#b30000] pb-0.5 transition-all">عرض ملف PDF</span>
                                                     </button>
                                                     <Link 
                                                         to={`/article/${paper.id}`} 
-                                                        className="flex items-center gap-2 text-xs font-black text-slate-800 transition-all group uppercase tracking-widest"
+                                                        className="flex items-center gap-2 text-xs font-black transition-all group uppercase tracking-widest"
+                                                        style={{ color: '#0077a3' }}
                                                         onMouseEnter={(e) => e.target.style.color = OCEAN}
-                                                        onMouseLeave={(e) => e.target.style.color = 'inherit'}
+                                                        onMouseLeave={(e) => e.target.style.color = '#0077a3'}
                                                     >
                                                         اقرأ المزيد 
-                                                        <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
+                                                        <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
                                                     </Link>
                                                 </div>
                                             </div>
@@ -364,23 +377,28 @@ export default function Archive() {
                 </div>
             </div>
 
-            {/* Image Lightbox Modal */}
+            {/* Image Floating Preview (Non-blocking) */}
             {selectedImage && (
                 <div 
-                    className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 md:p-12 cursor-zoom-out animate-in fade-in duration-300"
-                    onClick={() => setSelectedImage(null)}
+                    className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-500"
                 >
-                    <button 
-                        className="absolute top-6 right-6 text-white text-4xl hover:scale-110 transition"
-                        onClick={() => setSelectedImage(null)}
+                    <div 
+                        className="relative max-w-xl max-h-[70vh] flex items-center justify-center animate-in zoom-in-95 fade-in duration-500 pointer-events-auto"
                     >
-                        &times;
-                    </button>
-                    <img 
-                        src={selectedImage} 
-                        alt="Research Detail" 
-                        className="max-w-full max-h-full object-contain shadow-2xl rounded-sm animate-in zoom-in-95 duration-300" 
-                    />
+                        <button 
+                            className="absolute -top-4 -right-4 z-[110] text-white bg-red-700 hover:bg-red-800 text-xl w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+                            onClick={() => setSelectedImage(null)}
+                        >
+                            &times;
+                        </button>
+                        <div className="cursor-zoom-out" onClick={() => setSelectedImage(null)}>
+                            <img 
+                                src={selectedImage} 
+                                alt="Research Detail" 
+                                className="max-w-full max-h-full object-contain shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-none border border-gray-200 bg-white" 
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

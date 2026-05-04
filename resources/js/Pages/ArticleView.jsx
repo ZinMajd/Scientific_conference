@@ -44,7 +44,7 @@ export default function ArticleView() {
     );
 
     if (!paper) return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 font-['Cairo']">
+        <div className="min-h-screen flex items-center justify-center bg-white font-['Cairo']">
             <div className="text-center">
                 <h1 className="text-2xl font-bold text-gray-800 mb-4">Article Not Found</h1>
                 <Link to="/archive" className="text-teal-600 hover:underline">Back to Archive</Link>
@@ -53,7 +53,7 @@ export default function ArticleView() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 font-['Cairo'] pb-20" dir="ltr">
+        <div className="min-h-screen bg-white font-['Cairo'] pb-20" dir="ltr">
             {/* Top Navigation / Logo Bar */}
             <div className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-50 shadow-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -106,7 +106,7 @@ export default function ArticleView() {
             </div>
 
             {/* Breadcrumbs */}
-            <div className="bg-gray-50 border-b border-gray-100 py-2 px-6">
+            <div className="bg-white border-b border-gray-100 py-2 px-6">
                 <div className="max-w-7xl mx-auto flex gap-2 text-[10px] font-bold text-gray-400 items-center uppercase tracking-widest">
                     <Link to="/archive" className="hover:text-slate-800">مركز المعلومات المشتركة</Link>
                     <span>/</span>
@@ -136,13 +136,13 @@ export default function ArticleView() {
                         {/* Abstract */}
                         <section className="mb-12">
                             <h3 className="text-xl font-black text-slate-800 mb-6 border-b-2 border-slate-800 w-fit pb-1">الخلاصة (Abstract)</h3>
-                            <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-lg text-justify whitespace-pre-line bg-white p-10 rounded-sm italic border-r-4 border-slate-200 shadow-sm">
+                            <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-lg text-justify whitespace-pre-line bg-gray-50 p-10 italic">
                                 {paper.abstract}
                             </div>
                         </section>
 
                         {/* DOI and Citation Info */}
-                        <section className="mb-12 p-8 text-white rounded-sm shadow-xl" style={{ background: PRUSSIAN_DARK }}>
+                        <section className="mb-12 p-8 text-white rounded-sm" style={{ background: PRUSSIAN_DARK }}>
                             <div className="grid md:grid-cols-2 gap-8">
                                 <div>
                                     <h4 className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: TURQUOISE }}>معرف الكائن الرقمي (DOI)</h4>
@@ -190,7 +190,7 @@ export default function ArticleView() {
                         </button>
 
                         {/* Issue Details Card */}
-                        <div className="bg-white border border-gray-100 p-6 rounded-sm shadow-sm">
+                        <div className="bg-white border border-gray-100 p-6 rounded-sm">
                             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-200">العدد الحالي</h4>
                             <div className="flex gap-4 items-start mb-4">
                                 <div className="w-16 h-20 flex-shrink-0 flex items-center justify-center text-white font-black text-xs p-2 text-center leading-none rounded-sm" style={{ background: PRUSSIAN_DARK }}>

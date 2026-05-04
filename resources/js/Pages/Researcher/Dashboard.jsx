@@ -130,17 +130,35 @@ export default function ResearcherDashboard() {
                             <span style={{ color: TURQUOISE }}>⚡</span> إجراءات سريعة
                         </h3>
                         {[
-                            { label: 'تقديم بحث جديد', path: '/researcher/research/create' },
-                            { label: 'سجل التحكيم', path: '/researcher/reviews' },
-                            { label: 'المؤتمرات المتاحة', path: '/conferences' },
+                            { label: 'تقديم بحث جديد', path: '/researcher/research/create', icon: '📝' },
+                            { label: 'سجل التحكيم', path: '/researcher/reviews', icon: '📋' },
+                            { label: 'المؤتمرات المتاحة', path: '/conferences', icon: '🌐' },
                         ].map((item, i) => (
                             <Link key={i} to={item.path}
                                 className="w-full flex items-center justify-between p-3 rounded-xl mb-2 transition-all hover:scale-[1.02]"
                                 style={{ background: `${TURQUOISE}15`, border: `1px solid ${TURQUOISE}20` }}>
-                                <span className="font-semibold text-sm">{item.label}</span>
+                                <span className="font-semibold text-sm flex items-center gap-2">
+                                    <span>{item.icon}</span> {item.label}
+                                </span>
                                 <span style={{ color: TURQUOISE }}>←</span>
                             </Link>
                         ))}
+                        
+                        {/* Download Template Button */}
+                        <a href="/templates/research_template.doc" download
+                            className="w-full flex items-center justify-between p-4 rounded-xl mt-4 transition-all hover:scale-[1.02] shadow-md group"
+                            style={{ background: `linear-gradient(135deg, ${OCEAN}, ${PRUSSIAN})`, border: `1px solid ${TURQUOISE}40` }}>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl group-hover:rotate-12 transition-transform">
+                                    📄
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-black text-sm block text-white">تحميل قالب الأبحاث</span>
+                                    <span className="text-[10px] text-white/70 block">Word Template (.doc)</span>
+                                </div>
+                            </div>
+                            <span className="text-white text-xl">⬇️</span>
+                        </a>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl shadow-sm"

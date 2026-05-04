@@ -78,7 +78,7 @@ export default function EditorialTeam() {
             </div>
 
             {/* Breadcrumbs */}
-            <div className="bg-gray-50 border-b border-gray-100 py-2 px-6">
+            <div className="bg-white border-b border-gray-100 py-2 px-6">
                 <div className="max-w-7xl mx-auto flex gap-2 text-[10px] font-bold text-gray-400 items-center uppercase tracking-widest">
                     <Link to="/archive" className="hover:text-slate-800">مركز المعلومات المشتركة</Link>
                     <span>/</span>

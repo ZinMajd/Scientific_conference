@@ -77,6 +77,7 @@ class ProductionController extends Controller
     {
         $request->validate([
             'final_file' => 'nullable|file|mimes:pdf|max:20480',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'doi' => 'nullable|string',
             'page_numbers' => 'nullable|string',
             'publish_delay_days' => 'nullable|integer|min:0',
@@ -88,6 +89,11 @@ class ProductionController extends Controller
         if ($request->hasFile('final_file')) {
             $path = $request->file('final_file')->store('papers/final', 'public');
             $paper->final_file_path = $path;
+        }
+
+        if ($request->hasFile('thumbnail')) {
+            $thumbPath = $request->file('thumbnail')->store('papers/thumbnails', 'public');
+            $paper->thumbnail_path = $thumbPath;
         }
 
         if ($request->has('doi')) $paper->doi = $request->doi;

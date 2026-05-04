@@ -57,7 +57,7 @@ export default function TopicalCollection() {
             </div>
 
             {/* Breadcrumbs */}
-            <div className="bg-gray-50 border-b border-gray-100 py-2 px-6">
+            <div className="bg-white border-b border-gray-100 py-2 px-6">
                 <div className="max-w-7xl mx-auto flex gap-2 text-[10px] font-bold text-gray-400 items-center uppercase tracking-widest">
                     <Link to="/archive" className="hover:text-slate-800">مركز المعلومات المشتركة</Link>
                     <span>/</span>
@@ -73,11 +73,11 @@ export default function TopicalCollection() {
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-slate-900"></div>
                     </div>
                 ) : collections.length === 0 ? (
-                    <div className="text-center py-20 bg-gray-50 rounded-sm italic text-gray-400">No active topical collections at this time.</div>
+                    <div className="text-center py-20 bg-white rounded-sm italic text-gray-400">No active topical collections at this time.</div>
                 ) : (
                     <div className="grid gap-12">
                         {collections.map((item, idx) => (
-                            <div key={idx} className="p-10 bg-gray-50/50 rounded-sm border border-gray-100 hover:border-teal-200 transition relative overflow-hidden group">
+                            <div key={idx} className="p-10 bg-white rounded-sm border border-gray-100 hover:border-teal-200 transition relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 px-4 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase">Open for Submission</div>
                                 <h2 className="text-2xl font-black text-slate-800 mb-6 group-hover:text-red-700 transition">{item.title}</h2>
                                 

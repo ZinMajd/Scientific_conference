@@ -11,7 +11,7 @@ export default function Submissions() {
     const [editorialOpen, setEditorialOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-50 font-['Cairo'] pb-20" dir="ltr">
+        <div className="min-h-screen bg-white font-['Cairo'] pb-20" dir="ltr">
             {/* Header */}
             <div className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-50 shadow-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -54,7 +54,7 @@ export default function Submissions() {
             </div>
 
             {/* Breadcrumbs */}
-            <div className="bg-gray-50 border-b border-gray-100 py-2 px-6">
+            <div className="bg-white border-b border-gray-100 py-2 px-6">
                 <div className="max-w-7xl mx-auto flex gap-2 text-[10px] font-bold text-gray-400 items-center uppercase tracking-widest">
                     <Link to="/archive" className="hover:text-slate-800">مركز المعلومات المشتركة</Link>
                     <span>/</span>

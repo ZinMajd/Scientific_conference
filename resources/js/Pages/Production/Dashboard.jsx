@@ -14,6 +14,7 @@ export default function ProductionDashboard() {
         page_numbers: '',
         publish_delay_days: 2,
         final_file: null,
+        thumbnail: null,
         notes: ''
     });
 
@@ -69,6 +70,7 @@ export default function ProductionDashboard() {
             page_numbers: paper.page_numbers || '',
             publish_delay_days: 2,
             final_file: null,
+            thumbnail: null,
             notes: paper.production_notes || ''
         });
         setShowProcessModal(true);
@@ -81,6 +83,9 @@ export default function ProductionDashboard() {
         formData.append('page_numbers', processForm.page_numbers);
         if (processForm.final_file) {
             formData.append('final_file', processForm.final_file);
+        }
+        if (processForm.thumbnail) {
+            formData.append('thumbnail', processForm.thumbnail);
         }
 
         try {
@@ -276,22 +281,42 @@ export default function ProductionDashboard() {
                                 </div>
                             </div>
 
-                            <div className="p-8 border-2 border-dashed border-indigo-100 rounded-3xl bg-indigo-50/30 flex flex-col items-center gap-4 group hover:border-indigo-300 transition">
-                                <div className="p-4 bg-white rounded-2xl shadow-sm text-3xl group-hover:scale-110 transition">📄</div>
-                                <div className="text-center">
-                                    <p className="text-sm font-black text-indigo-900">رفع النسخة النهائية المنسقة (Camera-Ready PDF)</p>
-                                    <p className="text-xs text-gray-400 mt-1">يجب أن تحتوي على ترويسة المؤتمر وأرقام الصفحات</p>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="p-8 border-2 border-dashed border-indigo-100 rounded-3xl bg-indigo-50/30 flex flex-col items-center gap-4 group hover:border-indigo-300 transition">
+                                    <div className="p-4 bg-white rounded-2xl shadow-sm text-3xl group-hover:scale-110 transition">📄</div>
+                                    <div className="text-center">
+                                        <p className="text-sm font-black text-indigo-900">رفع النسخة النهائية (PDF)</p>
+                                        <p className="text-[10px] text-gray-400 mt-1">Camera-Ready Manuscript</p>
+                                    </div>
+                                    <input 
+                                        type="file" 
+                                        accept=".pdf"
+                                        className="hidden" 
+                                        id="final-file-upload"
+                                        onChange={e => setProcessForm({...processForm, final_file: e.target.files[0]})}
+                                    />
+                                    <label htmlFor="final-file-upload" className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-600 rounded-xl text-xs font-black cursor-pointer hover:bg-indigo-600 hover:text-white transition">
+                                        {processForm.final_file ? processForm.final_file.name : 'اختر ملف PDF'}
+                                    </label>
                                 </div>
-                                <input 
-                                    type="file" 
-                                    accept=".pdf"
-                                    className="hidden" 
-                                    id="final-file-upload"
-                                    onChange={e => setProcessForm({...processForm, final_file: e.target.files[0]})}
-                                />
-                                <label htmlFor="final-file-upload" className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-600 rounded-xl text-xs font-black cursor-pointer hover:bg-indigo-600 hover:text-white transition">
-                                    {processForm.final_file ? processForm.final_file.name : 'اختر ملف PDF النهائي'}
-                                </label>
+
+                                <div className="p-8 border-2 border-dashed border-emerald-100 rounded-3xl bg-emerald-50/30 flex flex-col items-center gap-4 group hover:border-emerald-300 transition">
+                                    <div className="p-4 bg-white rounded-2xl shadow-sm text-3xl group-hover:scale-110 transition">🖼️</div>
+                                    <div className="text-center">
+                                        <p className="text-sm font-black text-emerald-900">صورة البحث (Thumbnail)</p>
+                                        <p className="text-[10px] text-gray-400 mt-1">تظهر في الأرشيف والبحث</p>
+                                    </div>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        className="hidden" 
+                                        id="thumbnail-upload"
+                                        onChange={e => setProcessForm({...processForm, thumbnail: e.target.files[0]})}
+                                    />
+                                    <label htmlFor="thumbnail-upload" className="px-6 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl text-xs font-black cursor-pointer hover:bg-emerald-600 hover:text-white transition">
+                                        {processForm.thumbnail ? processForm.thumbnail.name : 'اختر صورة'}
+                                    </label>
+                                </div>
                             </div>
 
                             <div className="flex gap-4">

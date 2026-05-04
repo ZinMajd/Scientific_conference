@@ -69,6 +69,13 @@ class PaperController extends Controller
                 'coauthors.*.full_name' => 'required|string',
                 'coauthors.*.email' => 'required|email',
                 'coauthors.*.affiliation' => 'nullable|string',
+            ], [
+                'paper_files.*.mimes' => 'صيغة الملف غير مدعومة. يرجى رفع ملفات بصيغة (PDF, DOC, DOCX, ZIP).',
+                'paper_files.*.max' => 'حجم الملف كبير جداً. الحد الأقصى هو 20 ميجابايت.',
+                'paper_files.required' => 'يرجى إرفاق ملف البحث الرئيسي.',
+                'conf_id.required' => 'يرجى اختيار المؤتمر المستهدف.',
+                'title.required' => 'عنوان البحث مطلوب.',
+                'abstract.required' => 'ملخص البحث مطلوب.',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Illuminate\Support\Facades\Log::warning('Paper validation failed', ['errors' => $e->errors()]);
