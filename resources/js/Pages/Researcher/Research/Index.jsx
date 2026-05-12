@@ -8,9 +8,15 @@ export default function ResearcherResearch() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('/researcher/papers', { headers: { 'Accept': 'application/json' } })
+        const token = localStorage.getItem('token');
+        axios.get('/api/researcher/papers', { 
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json' 
+            } 
+        })
             .then(response => {
-                setPapers(response.data.papers || []);
+                setPapers(Array.isArray(response.data) ? response.data : (response.data.papers || []));
                 setLoading(false);
             })
             .catch(error => {
@@ -33,6 +39,11 @@ export default function ResearcherResearch() {
             case 'resubmitted': return { text: 'تم إعادة الإرسال', color: 'bg-purple-50 text-purple-600', icon: '♻️' };
             case 'scheduled': return { text: 'تمت الجدولة', color: 'bg-teal-50 text-teal-600', icon: '📅' };
             case 'published': return { text: 'منشور', color: 'bg-sky-50 text-sky-600', icon: '📑' };
+            case 'preliminary_accepted': return { text: 'مقبول مبدئياً', color: 'bg-blue-50 text-blue-600', icon: '📋' };
+            case 'anonymizing': return { text: 'إخفاء الهوية', color: 'bg-gray-50 text-gray-600', icon: '🎭' };
+            case 'ready_for_review': return { text: 'جاهز للتحكيم', color: 'bg-indigo-50 text-indigo-600', icon: '📨' };
+            case 'ready_to_publish': return { text: 'جاهز للنشر', color: 'bg-amber-50 text-amber-600', icon: '⏳' };
+            case 'withdrawn': return { text: 'مسحوب', color: 'bg-gray-50 text-gray-600', icon: '🛑' };
             default: return { text: status, color: 'bg-gray-50 text-gray-600', icon: '❓' };
         }
     };
@@ -111,12 +122,12 @@ export default function ResearcherResearch() {
                                             <div className="w-12 h-12 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center text-xl group-hover:bg-blue-50 group-hover:text-blue-600 transition">📄</div>
                                             <div>
                                                 <h4 className="font-bold text-gray-900 group-hover:text-blue-950 transition line-clamp-1">{paper.title}</h4>
-                                                <p className="text-xs text-gray-400 font-medium mt-1">تاريخ التقديم: {paper.date}</p>
+                                                <p className="text-xs text-gray-400 font-medium mt-1">تاريخ التقديم: {paper.created_at ? new Date(paper.created_at).toLocaleDateString('ar-EG') : '---'}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-8">
-                                        <span className="text-sm font-bold text-gray-600">{paper.conf}</span>
+                                        <span className="text-sm font-bold text-gray-600">{paper.conference ? paper.conference.title : 'غير محدد'}</span>
                                     </td>
                                     <td className="px-8 py-8 text-center">
                                         <span className={`px-4 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-2 mx-auto w-fit ${status.color}`}>

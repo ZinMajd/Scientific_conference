@@ -23,37 +23,34 @@ export default function Home() {
     return (
         <div className="pb-16 min-h-screen bg-white">
             {/* Hero Section */}
-            <section className="relative h-[90vh] flex items-center overflow-hidden">
+            <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-[#001a2e]">
                 <div className="absolute inset-0 z-0">
                     <img src="/images/hero_conference.png" alt="Conference Hall"
-                        className="w-full h-full object-cover" />
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK}e6 0%, ${PRUSSIAN}cc 60%, ${OCEAN}99 100%)` }}></div>
+                        className="w-full h-full object-cover opacity-40" />
                 </div>
 
-                <div className="container mx-auto px-4 relative z-10 text-center text-white">
-                    <div className="inline-block mb-6 px-5 py-2 rounded-full text-sm font-bold"
-                        style={{ background: `${TURQUOISE}25`, border: `1px solid ${TURQUOISE}50`, color: TURQUOISE }}>
-                        ✦ منصة المؤتمرات العلمية الرسمية ✦
-                    </div>
-                    <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6 drop-shadow-2xl">
-                        نظام إدارة المؤتمرات
-                        <br />
-                        <span style={{ color: TURQUOISE }}>العلمية</span>
-                    </h1>
-                    <p className="text-xl text-white/80 mx-auto text-center leading-relaxed" style={{ marginBottom: '60px' }}>
-                        منصة متكاملة لإدارة وتقديم الأوراق البحثية <br className="hidden md:block" /> والتحكيم العلمي في مؤتمرات جامعة إقليم سبأ
-                    </p>
-                    <div className="flex flex-wrap gap-4 justify-center" style={{ marginTop: '60px' }}>
-                        <Link to="/conferences"
-                            className="px-10 py-4 rounded-2xl font-black text-xl shadow-2xl transition-all duration-300 hover:scale-105"
-                            style={{ background: `linear-gradient(135deg, ${TURQUOISE}, ${OCEAN})`, color: PRUSSIAN_DARK }}>
-                            تصفح المؤتمرات ←
-                        </Link>
-                        <Link to="/register"
-                            className="px-10 py-4 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105"
-                            style={{ background: 'rgba(255,255,255,0.1)', border: `2px solid ${TURQUOISE}60`, color: 'white', backdropFilter: 'blur(10px)' }}>
-                            انضم إلينا الآن
-                        </Link>
+                <div className="container mx-auto px-4 relative z-10 text-center text-white flex flex-col items-center">
+                    <div className="max-w-3xl w-full">
+                        <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                            نظام إدارة المؤتمرات
+                            <br />
+                            <span style={{ color: TURQUOISE }}>العلمية</span>
+                        </h1>
+                        <p className="text-xl text-white mx-auto leading-relaxed drop-shadow-md" style={{ marginBottom: '40px' }}>
+                            منصة متكاملة لإدارة وتقديم الأوراق البحثية <br className="hidden md:block" /> والتحكيم العلمي في مؤتمرات جامعة إقليم سبأ
+                        </p>
+                        <div className="flex flex-wrap gap-4 justify-center">
+                            <Link to="/conferences"
+                                className="px-10 py-4 rounded-none font-black text-xl shadow-2xl transition-all duration-300 hover:scale-105"
+                                style={{ background: `linear-gradient(135deg, ${TURQUOISE}, ${OCEAN})`, color: PRUSSIAN_DARK }}>
+                                تصفح المؤتمرات ←
+                            </Link>
+                            <Link to="/register"
+                                className="px-10 py-4 rounded-none font-bold text-xl transition-all duration-300 hover:scale-105"
+                                style={{ background: 'rgba(255,255,255,0.1)', border: `2px solid ${TURQUOISE}60`, color: 'white', backdropFilter: 'blur(10px)' }}>
+                                انضم إلينا الآن
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -69,9 +66,9 @@ export default function Home() {
                         { count: `+${stats.papers}`, label: 'ورقة بحثية', icon: '📄' },
                         { count: `+${stats.users}`, label: 'باحث ومحكّم', icon: '👨‍🎓' },
                     ].map((stat, idx) => (
-                        <div key={idx} className="rounded-3xl p-8 flex items-center gap-6 hover:scale-105 transition-all duration-300 shadow-md"
+                        <div key={idx} className="rounded-none p-8 flex items-center gap-6 hover:scale-105 transition-all duration-300 shadow-md"
                             style={{ background: 'white', border: `1px solid ${TURQUOISE}30` }}>
-                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg"
+                            <div className="w-16 h-16 rounded-none flex items-center justify-center text-3xl shadow-lg"
                                 style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})` }}>
                                 {stat.icon}
                             </div>
@@ -92,7 +89,7 @@ export default function Home() {
                         <div className="w-20 h-1 rounded-full mx-auto md:mx-0" style={{ background: TURQUOISE }}></div>
                     </div>
                     <Link to="/conferences"
-                        className="px-6 py-3 rounded-full font-bold transition-all hover:scale-105"
+                        className="px-6 py-3 rounded-none font-bold transition-all hover:scale-105"
                         style={{ border: `2px solid ${PRUSSIAN}`, color: PRUSSIAN }}>
                         عرض جميع المؤتمرات
                     </Link>
@@ -104,12 +101,12 @@ export default function Home() {
                         { id: 2, title: 'مؤتمر اليمن للأمن السيبراني', tag: '#الأمن_السيبراني', img: '/images/conf_cyber.png' },
                         { id: 3, title: 'ملتقى الابتكار الأكاديمي', tag: '#ابتكار', img: '/images/conf_innovation.png' },
                     ].map((item) => (
-                        <div key={item.id} className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border flex flex-col"
+                        <div key={item.id} className="group bg-white rounded-none overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border flex flex-col"
                             style={{ borderColor: `${TURQUOISE}30` }}>
                             <div className="h-52 relative overflow-hidden" style={{ background: PRUSSIAN_DARK }}>
                                 <img src={item.img} alt={item.title}
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" />
-                                <div className="absolute top-3 right-3 text-xs font-bold px-3 py-1 rounded-full"
+                                <div className="absolute top-3 right-3 text-xs font-bold px-3 py-1 rounded-none"
                                     style={{ background: TURQUOISE, color: PRUSSIAN_DARK }}>
                                     متاح للتسجيل
                                 </div>
@@ -122,7 +119,7 @@ export default function Home() {
                                     <span className="border-r pr-4" style={{ borderColor: `${TURQUOISE}30` }}>📍 مأرب، اليمن</span>
                                 </div>
                                 <Link to={`/conferences/${item.id}`}
-                                    className="block w-full text-center py-3 rounded-2xl font-bold transition-all duration-200 group-hover:scale-105"
+                                    className="block w-full text-center py-3 rounded-none font-bold transition-all duration-200 group-hover:scale-105"
                                     style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})`, color: 'white' }}>
                                     عرض التفاصيل والتسجيل
                                 </Link>

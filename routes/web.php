@@ -4,10 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-Route::middleware(['auth:sanctum'])->prefix('researcher')->name('researcher.')->group(function () {
-    Route::resource('papers', \App\Http\Controllers\Researcher\PaperController::class);
-    Route::post('papers/{id}/revision', [\App\Http\Controllers\Api\PaperController::class, 'submitRevision']);
-});
 
 
 // Temporary fix for serving files on Windows due to symlink issues

@@ -15,6 +15,27 @@ export default function MainLayout() {
         }
     });
     const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+    
+    // Language Dropdown State
+    const [langMenuOpen, setLangMenuOpen] = useState(false);
+    const [currentLang, setCurrentLang] = useState('ar');
+
+    const switchLanguage = (langCode) => {
+        // 1. Instantly trigger Google Translate BEFORE React re-renders
+        const select = document.querySelector('.goog-te-combo');
+        if (select) {
+            select.value = langCode;
+            select.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+        }
+        
+        // 2. Update React State
+        setCurrentLang(langCode);
+        setLangMenuOpen(false);
+        
+        // 3. Keep the cookie updated in the background
+        document.cookie = `googtrans=/ar/${langCode}; path=/`;
+        document.cookie = `googtrans=/ar/${langCode}; path=/; domain=${window.location.hostname}`;
+    };
 
     // Keep user state in sync with localStorage
     useEffect(() => {
@@ -33,7 +54,6 @@ export default function MainLayout() {
     }, []);
 
     // Use useCallback to stabilize the isActive function
-    // Stabilized navigation and menu handlers
     const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
     const handleLogout = useCallback(() => {
@@ -44,12 +64,11 @@ export default function MainLayout() {
         navigate('/');
     }, [navigate, closeMenu]);
 
-    // Simplified link class generator
     const getLinkClass = useCallback((path) => {
         const isActive = location.pathname === path;
         return isActive 
-            ? 'text-teal-400 font-bold border-b-2 border-teal-400 pb-0.5'
-            : 'text-white/80 hover:text-teal-400 transition-colors duration-200';
+            ? 'text-teal-400 font-bold border-b-2 border-teal-400 pb-1'
+            : 'text-white/90 hover:text-teal-400 transition-colors duration-200';
     }, [location.pathname]);
 
     const isDashboardPath = useCallback(() => {
@@ -58,22 +77,50 @@ export default function MainLayout() {
 
     return (
         <div className="min-h-screen flex flex-col" style={{ fontFamily: "'Cairo', sans-serif" }} dir="rtl">
+            <style>{`
+                /* Hide ALL Google Translate Artifacts */
+                body { top: 0px !important; position: static !important; }
+                
+                /* Hide the top banner and tooltips */
+                .skiptranslate iframe,
+                iframe.goog-te-banner-frame,
+                iframe.goog-te-balloon-frame,
+                .goog-te-banner-frame,
+                .goog-te-balloon-frame,
+                #goog-gt-tt,
+                .goog-tooltip {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                }
+                
+                /* Hide obfuscated modern Google translate classes */
+                .VIpgJd-Zvi9od-ORhb-OEVmcd,
+                .VIpgJd-Zvi9od-aZ2wEe-wOHMyf,
+                .VIpgJd-Zvi9od-aZ2wEe-OiiCO {
+                    display: none !important;
+                }
+
+                /* Disable text highlight */
+                .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; border: none !important; }
+            `}</style>
             {/* Header */}
             <header style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)' }}
                 className="shadow-2xl sticky top-0 z-50 border-b border-teal-400/20">
-                <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-lg border-2 border-teal-400/40">
+                <div className="w-full px-4 lg:px-8 py-3 flex items-center justify-between min-h-[80px]">
+                    {/* Logo Section - Right Side */}
+                    <div className="flex items-center gap-3 z-20 w-[20%] xl:w-[25%]">
+                        <div className="w-12 h-12 lg:w-14 lg:h-14 bg-white rounded-none flex items-center justify-center overflow-hidden shadow-lg border-2 border-teal-400/40 shrink-0">
                             <img src="/images/saba_logo.gif" alt="جامعة إقليم سبأ" className="w-full h-full object-contain" />
                         </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-white tracking-wide leading-tight">جامعة إقليم سبأ</h1>
-                            <p className="text-[10px] text-teal-400/80 font-semibold tracking-widest uppercase">نظام المؤتمرات العلمية</p>
+                        <div className="hidden xl:block">
+                            <h1 className="text-lg font-black text-white tracking-wide leading-tight whitespace-nowrap">جامعة إقليم سبأ</h1>
+                            <p className="text-[10px] text-teal-400 font-bold tracking-widest uppercase whitespace-nowrap">نظام المؤتمرات العلمية</p>
                         </div>
                     </div>
 
-                    {/* Desktop Nav */}
-                    <nav className="hidden md:flex gap-6 items-center text-sm">
+                    {/* Desktop Nav - Centered perfectly */}
+                    <nav className="hidden lg:flex gap-4 xl:gap-6 items-center justify-center text-[15px] xl:text-[17px] font-bold whitespace-nowrap flex-1">
                         <Link to="/" className={getLinkClass('/')}>الرئيسية</Link>
                         <Link to="/conferences" className={getLinkClass('/conferences')}>المؤتمرات</Link>
                         <Link to="/about" className={getLinkClass('/about')}>عن النظام</Link>
@@ -88,8 +135,8 @@ export default function MainLayout() {
                                 } 
                                 className={
                                     isDashboardPath()
-                                    ? 'text-teal-400 font-bold border-b-2 border-teal-400 pb-0.5'
-                                    : 'text-white/80 hover:text-teal-400 transition-colors duration-200'
+                                    ? 'text-teal-400 font-bold border-b-2 border-teal-400 pb-1'
+                                    : 'text-white/90 hover:text-teal-400 transition-colors duration-200'
                                 }
                             >
                                 لوحة التحكم
@@ -97,40 +144,69 @@ export default function MainLayout() {
                         )}
                     </nav>
 
-                    {/* Auth Actions */}
-                    <div className="hidden md:flex gap-2 items-center text-sm">
+                    {/* Auth Actions & Language - Left Side */}
+                    <div className="hidden md:flex items-center justify-end gap-4 xl:gap-6 text-[15px] xl:text-[17px] font-bold w-[20%] xl:w-[25%] z-20">
                         {!user ? (
                             <>
-                                <Link to="/login"
-                                    className="px-5 py-2 text-white font-medium border border-white/20 hover:border-teal-400 hover:text-teal-400 rounded-lg transition-all duration-200">
+                                <Link to="/login" className={getLinkClass('/login')}>
                                     تسجيل الدخول
                                 </Link>
-                                <Link to="/register"
-                                    className="px-5 py-2 font-bold rounded-lg transition-all duration-200 shadow-lg"
-                                    style={{ background: 'linear-gradient(135deg, #40E0D0, #0096c7)', color: '#001a2e' }}>
+                                <Link to="/register" className={getLinkClass('/register')}>
                                     إنشاء حساب
                                 </Link>
                             </>
                         ) : (
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4">
                                 <NotificationBell token={token} />
-                                <span className="text-teal-400 font-semibold">{user?.full_name || user?.name || 'مستخدم'}</span>
+                                <span className="text-teal-400 font-bold text-base">{user?.full_name || user?.name || 'مستخدم'}</span>
                                 <button
                                     onClick={handleLogout}
-                                    className="px-4 py-2 text-red-300 font-medium hover:bg-red-500/10 border border-red-400/20 hover:border-red-400/50 rounded-lg transition-all">
+                                    className="px-4 py-2 text-red-300 font-bold hover:bg-red-500/10 border-2 border-red-400/20 hover:border-red-400/50 rounded-none transition-all">
                                     خروج
                                 </button>
                             </div>
                         )}
+
+                        {/* Language Switcher Dropdown (Placed last to be on the far left in RTL) */}
+                        <div className="relative notranslate">
+                            <button 
+                                onClick={() => setLangMenuOpen(!langMenuOpen)}
+                                className="flex items-center gap-1 text-white/90 hover:text-teal-400 transition-colors duration-200"
+                            >
+                                {currentLang === 'en' ? 'عربي' : 'English'}
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            {langMenuOpen && (
+                                <div className="absolute top-full left-0 mt-3 bg-white rounded-none shadow-xl overflow-hidden min-w-[140px] z-50 flex flex-col border border-gray-100">
+                                    <button 
+                                        onClick={() => switchLanguage('en')}
+                                        style={{ color: 'black' }}
+                                        className={`px-4 py-3 text-base font-bold text-center hover:bg-teal-50 transition-colors ${currentLang === 'en' ? 'bg-teal-50/50' : ''}`}
+                                    >
+                                        English
+                                    </button>
+                                    <button 
+                                        onClick={() => switchLanguage('ar')}
+                                        style={{ color: 'black' }}
+                                        className={`px-4 py-3 text-base font-bold text-center hover:bg-teal-50 transition-colors border-t border-gray-100 ${currentLang === 'ar' ? 'bg-teal-50/50' : ''}`}
+                                    >
+                                        عربي
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Mobile Menu Button */}
+                    {/* Mobile Menu Button - Absolute Left on Mobile */}
                     <button 
-                        className="md:hidden p-2 text-teal-400" 
+                        className="md:hidden p-2 text-teal-400 absolute left-4" 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         aria-label="القائمة الرئيسية"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
@@ -140,13 +216,13 @@ export default function MainLayout() {
                 {isMenuOpen && (
                     <div className="md:hidden border-t border-teal-400/20 p-4 flex flex-col gap-2"
                         style={{ background: '#001a2e' }}>
-                        <Link to="/" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الرئيسية</Link>
-                        <Link to="/conferences" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>المؤتمرات</Link>
-                        <Link to="/about" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>عن النظام</Link>
-                        <Link to="/faq" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الأسئلة الشائعة</Link>
-                        <Link to="/support" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-lg transition" onClick={closeMenu}>الدعم</Link>
+                        <Link to="/" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition" onClick={closeMenu}>الرئيسية</Link>
+                        <Link to="/conferences" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition" onClick={closeMenu}>المؤتمرات</Link>
+                        <Link to="/about" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition" onClick={closeMenu}>عن النظام</Link>
+                        <Link to="/faq" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition" onClick={closeMenu}>الأسئلة الشائعة</Link>
+                        <Link to="/support" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition" onClick={closeMenu}>الدعم</Link>
                         {!user && (
-                            <Link to="/login" className="p-3 text-center border border-teal-400/40 text-teal-400 rounded-lg" onClick={closeMenu}>
+                            <Link to="/login" className="p-3 text-center border border-teal-400/40 text-teal-400 rounded-none" onClick={closeMenu}>
                                 تسجيل الدخول
                             </Link>
                         )}
@@ -165,14 +241,14 @@ export default function MainLayout() {
                 <div className="container mx-auto px-4 grid md:grid-cols-3 gap-12 text-center md:text-right">
                     <div>
                         <h3 className="text-white font-bold text-xl mb-4">نظام المؤتمرات العلمية</h3>
-                        <div className="w-12 h-0.5 mb-4 rounded-full" style={{ background: '#40E0D0' }}></div>
+                        <div className="w-12 h-0.5 mb-4 rounded-none" style={{ background: '#40E0D0' }}></div>
                         <p className="text-sm leading-relaxed text-white/60">
                             منصة متكاملة لإدارة المؤتمرات العلمية، من تقديم الأوراق البحثية إلى النشر والتحكيم والاعتمادات.
                         </p>
                     </div>
                     <div>
                         <h3 className="text-white font-bold text-lg mb-4">روابط سريعة</h3>
-                        <div className="w-12 h-0.5 mb-4 rounded-full" style={{ background: '#40E0D0' }}></div>
+                        <div className="w-12 h-0.5 mb-4 rounded-none" style={{ background: '#40E0D0' }}></div>
                         <ul className="space-y-3 text-sm">
                             <li><Link to="/conferences" className="hover:text-teal-400 transition-colors">المؤتمرات المتاحة</Link></li>
                             <li><Link to="/support" className="hover:text-teal-400 transition-colors">الأسئلة الشائعة</Link></li>
@@ -181,7 +257,7 @@ export default function MainLayout() {
                     </div>
                     <div>
                         <h3 className="text-white font-bold text-lg mb-4">تواصل معنا</h3>
-                        <div className="w-12 h-0.5 mb-4 rounded-full" style={{ background: '#40E0D0' }}></div>
+                        <div className="w-12 h-0.5 mb-4 rounded-none" style={{ background: '#40E0D0' }}></div>
                         <ul className="space-y-3 text-sm">
                             <li className="flex items-center gap-2 justify-center md:justify-start">
                                 <span className="text-teal-400" role="img" aria-label="بريد إلكتروني">📧</span>

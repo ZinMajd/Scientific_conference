@@ -171,7 +171,7 @@ export default function Show() {
                     {/* Right Content Area: Articles */}
                     <div className="lg:w-2/3">
                                     <div className="bg-white p-6 md:p-10 flex flex-col gap-16">
-                                    {conference.papers.map((paper) => (
+                                    {conference.papers?.map((paper) => (
                                         <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300">
                                             {/* Left Column: Small Thumbnail */}
                                             <div className="md:w-[150px] shrink-0 flex flex-col">
@@ -302,7 +302,6 @@ export default function Show() {
                                         </div>
                                     ))}
                                 </div>
-                        )}
                     </div>
 
                     {/* Sidebar Area */}

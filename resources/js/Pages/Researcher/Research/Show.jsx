@@ -14,7 +14,7 @@ export default function ResearcherResearchShow() {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        axios.get(`/researcher/papers/${id}`, {
+        axios.get(`/api/papers/${id}`, {
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
@@ -45,12 +45,16 @@ export default function ResearcherResearchShow() {
             case 'resubmitted': return { text: 'تم إعادة الإرسال (بانتظار الفحص)', color: 'bg-purple-50 text-purple-600', icon: '♻️' };
             case 'revision_required': return { text: 'مطلوب تعديلات (بيانات ناقصة)', color: 'bg-rose-50 text-rose-600', icon: '⚠️' };
             case 'with_editor': return { text: 'مع المحرر العلمي (التقييم الأولي)', color: 'bg-blue-50 text-blue-600', icon: '👨‍🏫' };
+            case 'preliminary_accepted': return { text: 'مقبول مبدئياً (بانتظار التحكيم)', color: 'bg-blue-50 text-blue-600', icon: '📋' };
+            case 'anonymizing': return { text: 'جاري إخفاء هوية الباحث', color: 'bg-gray-50 text-gray-600', icon: '🎭' };
+            case 'ready_for_review': return { text: 'جاهز للتحكيم', color: 'bg-indigo-50 text-indigo-600', icon: '📨' };
             case 'under_review': return { text: 'قيد التحكيم (Peer Review)', color: 'bg-cyan-50 text-cyan-600', icon: '⚖️' };
             case 'accepted': return { text: 'مقبول نهائياً', color: 'bg-emerald-50 text-emerald-600', icon: '✅' };
             case 'scheduled': return { text: 'مجدول في جلسات المؤتمر', color: 'bg-indigo-50 text-indigo-600', icon: '📅' };
             case 'published': return { text: 'منشور في السجل العلمي', color: 'bg-blue-50 text-blue-600', icon: '🌐' };
             case 'rejected': return { text: 'مرفوض', color: 'bg-red-50 text-red-600', icon: '❌' };
             case 'submitted': return { text: 'تم الاستلام', color: 'bg-gray-50 text-gray-600', icon: '📨' };
+            case 'withdrawn': return { text: 'تم السحب بواسطة الباحث', color: 'bg-gray-50 text-gray-600', icon: '🛑' };
             default: return { text: status, color: 'bg-gray-50 text-gray-600', icon: '❓' };
         }
     };
@@ -66,16 +70,18 @@ export default function ResearcherResearchShow() {
         { key: 'technical', label: 'الفحص الفني', icon: '🔍' },
         { key: 'scientific', label: 'المحرر العلمي', icon: '👨‍🏫' },
         { key: 'review', label: 'التحكيم', icon: '⚖️' },
-        { key: 'decision', label: 'القرار النهائي', icon: paper.status === 'rejected' ? '❌' : (paper.status === 'accepted' ? '✅' : '🏁') }
+        { key: 'decision', label: 'القرار النهائي', icon: paper.status === 'rejected' ? '❌' : '🏁' },
+        { key: 'published', label: 'النشر', icon: paper.status === 'published' ? '✅' : '🌐' }
     ];
 
     const getCurrentStepIndex = () => {
         const s = paper.status;
         if (s === 'submitted') return 0;
         if (['under_screening', 'revision_required', 'resubmitted'].includes(s)) return 1;
-        if (s === 'with_editor') return 2;
+        if (['with_editor', 'preliminary_accepted', 'anonymizing', 'ready_for_review'].includes(s)) return 2;
         if (s === 'under_review') return 3;
-        if (['accepted', 'rejected', 'scheduled', 'published'].includes(s)) return 4;
+        if (['accepted', 'rejected', 'withdrawn'].includes(s)) return 4;
+        if (['in_production', 'ready_to_publish', 'production_revision_required', 'scheduled', 'published'].includes(s)) return 5;
         return 0;
     };
 

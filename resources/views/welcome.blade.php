@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="google" content="notranslate">
+    <meta name="google" content="translate">
     <meta name="description" content="نظام إدارة المؤتمرات العلمية - جامعة إقليم سبأ">
     <title>نظام المؤتمرات العلمية | جامعة إقليم سبأ</title>
     @viteReactRefresh
@@ -52,6 +52,9 @@
         <p class="loader-text">جامعة إقليم سبأ</p>
     </div>
 
+    <!-- Hidden Google Translate Element -->
+    <div id="google_translate_element" style="display: none;"></div>
+
     <div id="app"></div>
 
     <script>
@@ -65,7 +68,17 @@
                 }, 500);
             }, 600);
         });
+
+        // Google Translate Initialization
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'ar',
+                includedLanguages: 'ar,en',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
     </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 
 </html>

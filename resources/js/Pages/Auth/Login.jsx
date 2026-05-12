@@ -89,31 +89,25 @@ export default function Login() {
     return (
         <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" 
              style={{ 
-                 background: `linear-gradient(rgba(0, 26, 46, 0.65), rgba(0, 68, 114, 0.55)), url('/images/hero_conference.png')`,
-                 backgroundSize: 'cover',
-                 backgroundPosition: 'center',
-                 backgroundRepeat: 'no-repeat',
-                 backgroundAttachment: 'fixed',
                  direction: 'rtl',
                  fontFamily: "'Almarai', sans-serif"
              }}>
             
-            <div className="absolute inset-0 opacity-[0.03]" 
-                 style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 0, transparent 50%)', backgroundSize: '10px 10px' }}></div>
+            <div className="absolute inset-0 z-0">
+                <img src="/images/hero_conference.png" alt="Background" className="w-full h-full object-cover" style={{ filter: 'brightness(0.25)' }} />
+            </div>
 
 
             <div className="w-full max-w-[480px] relative z-10 py-12">
                 {/* Main Card with Outer Glow */}
-                <div className="rounded-[50px] border border-white/20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)]"
+                <div className="rounded-none border border-white/20 shadow-2xl"
                      style={{ 
-                         backdropFilter: 'blur(5px)',
-                         WebkitBackdropFilter: 'blur(5px)',
-                         background: 'rgba(255, 255, 255, 0.01)'
+                         background: 'transparent',
+                         backdropFilter: 'blur(10px)'
                      }}>
                     
                     {/* Header: Matching Site Header/Footer Gradient (Solid) */}
-                    <div className="pt-16 pb-12 px-10 text-center border-b border-white/5 relative rounded-t-[50px] overflow-hidden"
-                         style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)' }}>
+                    <div className="pt-20 pb-16 px-10 text-center border-b border-white/10 relative rounded-none overflow-hidden">
 
 
 
@@ -134,10 +128,9 @@ export default function Login() {
                         <p className="text-white/70 text-xl font-medium opacity-90">سجل دخولك للوصول إلى لوحة التحكم</p>
                     </div>
 
-                    {/* Form Body: Frosted Glass / Translucent Grey */}
-                    <div className="px-12 py-14" style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                    <div className="px-12 pt-14 pb-12">
                         {error && (
-                            <div className="mb-8 p-5 rounded-2xl text-sm font-bold bg-red-500/20 border border-red-500/30 text-red-100 flex items-center gap-4">
+                            <div className="mb-8 p-5 rounded-none text-sm font-bold bg-red-500/20 border border-red-500/30 text-red-100 flex items-center gap-4">
                                 <span className="text-xl">⚠️</span> {error}
                             </div>
                         )}
@@ -145,11 +138,11 @@ export default function Login() {
                         <form onSubmit={handleSubmit} className="space-y-8">
                             {/* Custom Glass Dropdown for Role */}
                             <div className="relative" ref={roleRef}>
-                                <label className="block font-bold mb-3 mr-1 text-sm tracking-wider" style={{ color: '#2dd4bf' }}>نوع الحساب</label>
+                                <label className="block font-['Cairo'] font-black mb-3 mr-1 text-xl tracking-wider" style={{ color: '#2dd4bf' }}>نوع الحساب</label>
                                 <button 
                                     type="button"
                                     onClick={() => setIsRoleOpen(!isRoleOpen)}
-                                    className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white flex items-center justify-between outline-none focus:border-white/40 focus:bg-white/20 transition-all font-bold text-lg"
+                                    className="w-full bg-white/10 border border-white/20 rounded-none px-8 py-8 text-white flex items-center justify-between outline-none focus:border-white/40 focus:bg-white/20 transition-all font-bold text-xl"
                                     style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
                                 >
                                     <span>{formData.role}</span>
@@ -159,7 +152,7 @@ export default function Login() {
                                 </button>
 
                                 {isRoleOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-2 rounded-2xl overflow-hidden border border-white/20 shadow-2xl z-[100]"
+                                    <div className="absolute top-full left-0 w-full mt-2 rounded-none overflow-hidden border border-white/20 shadow-2xl z-[100]"
                                          style={{ 
                                              backdropFilter: 'blur(30px)', 
                                              WebkitBackdropFilter: 'blur(30px)',
@@ -189,7 +182,7 @@ export default function Login() {
 
                             {/* Login Field */}
                             <div>
-                                <label className="block font-bold mb-3 mr-1 text-sm tracking-wider" style={{ color: '#2dd4bf' }}>اسم المستخدم أو البريد</label>
+                                <label className="block font-['Cairo'] font-black mb-3 mr-1 text-xl tracking-wider" style={{ color: '#2dd4bf' }}>اسم المستخدم أو البريد</label>
                                 <input 
                                     type="text" 
                                     name="login" 
@@ -198,13 +191,13 @@ export default function Login() {
                                     placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
                                     required
                                     autoComplete="off"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-[#1abc9c]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-lg"
+                                    className="w-full bg-white/5 border border-white/10 rounded-none px-8 py-8 text-white outline-none focus:border-[#1abc9c]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-xl"
                                 />
                             </div>
 
                             {/* Password Field */}
                             <div>
-                                <label className="block font-bold mb-3 mr-1 text-sm tracking-wider" style={{ color: '#2dd4bf' }}>كلمة المرور</label>
+                                <label className="block font-['Cairo'] font-black mb-3 mr-1 text-xl tracking-wider" style={{ color: '#2dd4bf' }}>كلمة المرور</label>
                                 <div className="relative">
                                     <input 
                                         type={showPass ? 'text' : 'password'} 
@@ -214,7 +207,7 @@ export default function Login() {
                                         placeholder="........"
                                         required
                                         autoComplete="new-password"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-[#1abc9c]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-lg"
+                                        className="w-full bg-white/5 border border-white/10 rounded-none px-8 py-8 text-white outline-none focus:border-[#1abc9c]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-xl"
                                     />
                                     <button 
                                         type="button" 
@@ -228,7 +221,7 @@ export default function Login() {
                                     <Link to="/forgot-password" user-id="forgot-password-link" className="text-white/60 text-sm hover:text-white transition-colors font-medium border-b border-transparent hover:border-white/30">
                                         نسيت كلمة المرور؟
                                     </Link>
-                                    <div className="w-3 h-3 rounded-full bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)] animate-pulse"></div>
+                                    <div className="w-3 h-3 rounded-none bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)] animate-pulse"></div>
                                 </div>
                             </div>
 
@@ -236,7 +229,7 @@ export default function Login() {
                             <button 
                                 type="submit" 
                                 disabled={loading}
-                                className="w-full mt-10 group relative overflow-hidden rounded-[30px] transition-all active:scale-[0.97] disabled:opacity-50"
+                                className="w-full mt-14 group relative overflow-hidden rounded-none transition-all active:scale-[0.97] disabled:opacity-50"
                                 style={{ 
                                     background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)',
                                     boxShadow: '0 20px 40px -10px rgba(0, 49, 83, 0.5)'
@@ -259,18 +252,15 @@ export default function Login() {
                             </button>
                         </form>
 
-                        <div className="mt-16 text-center">
-                            <span className="text-white/60 font-medium">ليس لديك حساب؟ </span>
-                            <Link to="/register" className="text-white font-black hover:text-[#2dd4bf] transition-colors border-b-2 border-white/10 hover:border-[#2dd4bf]">
+                        <div className="mt-10 text-center relative z-10">
+                            <span className="text-white/80 font-medium">ليس لديك حساب؟ </span>
+                            <Link to="/register" className="text-[#2dd4bf] font-black hover:text-white transition-colors border-b-2 border-[#2dd4bf]/30 hover:border-[#2dd4bf]">
                                 إنشاء حساب جديد
                             </Link>
                         </div>
                     </div>
                 </div>
 
-                {/* Subtle outer glow for the card */}
-                <div className="absolute -inset-2 -z-10 rounded-[40px] blur-[60px]"
-                     style={{ background: `linear-gradient(to bottom right, rgba(0, 49, 83, 0.4), rgba(26, 188, 156, 0.3))` }}></div>
             </div>
 
             <style>{`
