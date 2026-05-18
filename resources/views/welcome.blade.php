@@ -12,7 +12,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -52,8 +52,8 @@
         <p class="loader-text">جامعة إقليم سبأ</p>
     </div>
 
-    <!-- Hidden Google Translate Element -->
-    <div id="google_translate_element" style="display: none;"></div>
+    <!-- Hidden Google Translate Element (styled to remain in DOM rendering tree for scripts to work) -->
+    <div id="google_translate_element" style="position: absolute; opacity: 0; pointer-events: none; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; z-index: -1000;"></div>
 
     <div id="app"></div>
 

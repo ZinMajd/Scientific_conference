@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import NotificationBell from '../Components/NotificationBell';
+import NotificationBell from '../components/NotificationBell';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function ProductionLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -120,7 +121,8 @@ export default function ProductionLayout() {
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
                 <header className="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-end px-8 shrink-0 z-40">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
+                        <LanguageSwitcher theme="light" />
                         <NotificationBell token={token} theme="light" />
                     </div>
                 </header>

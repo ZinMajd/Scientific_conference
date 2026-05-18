@@ -139,7 +139,7 @@ class PaperWorkflowService
     public function aggregateReviews(Paper $paper)
     {
         $reviews = $paper->paperAssignments()
-            ->with('review')
+            ->with('review.reviewer')
             ->get()
             ->pluck('review')
             ->filter();

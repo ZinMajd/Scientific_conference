@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import NotificationBell from '../Components/NotificationBell';
+import NotificationBell from '../components/NotificationBell';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const PRUSSIAN_GRADIENT = 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)';
 const TURQUOISE = '#40E0D0';
@@ -90,9 +91,9 @@ export default function ReviewerLayout() {
             </aside>
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                {/* Header */}
                 <header className="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-end px-8 shrink-0 z-40">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
+                        <LanguageSwitcher theme="light" />
                         <NotificationBell token={token} theme="light" />
                     </div>
                 </header>

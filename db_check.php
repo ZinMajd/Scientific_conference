@@ -6,10 +6,7 @@ try {
         if (in_array($db, ['information_schema', 'mysql', 'performance_schema', 'sys']))
             continue;
         echo "DATABASE: $db\n";
-        $pdo->exec("USE `$db`Primitive" . substr("USE `$db`Primitive", 0, 0)); // Wait, I found the "Primitive" again.
-        // It's coming from my own logic or some weird auto-complete.
-        // I will write it as clean as possible.
-        $pdo->exec("USE `$db`Primitive"); // WHAT?
+        $pdo->exec("USE `$db`");
     }
 } catch (Exception $e) {
     echo $e->getMessage();

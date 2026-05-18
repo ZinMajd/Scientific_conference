@@ -81,12 +81,12 @@ export default function Archive() {
                 </div>
             </div>
 
-            <div className="w-full py-8 border-b border-gray-100 bg-white flex justify-center">
-                <div className="w-full max-w-5xl flex flex-wrap flex-row gap-16 text-[17px] font-black items-center text-black px-6">
+            <div className="w-full border-b border-gray-100 bg-white flex justify-center" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
+                <div className="w-[95%] max-w-7xl flex flex-wrap flex-row gap-12 text-[17px] font-black items-center justify-start text-black">
                     <Link to="/announcements" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">الإعلانات</Link>
                     <div className="relative group" onMouseEnter={() => setEditorialOpen(true)} onMouseLeave={() => setEditorialOpen(false)}>
                         <button className="flex items-center gap-1 hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
-                            فريق التحرير <span className="text-[10px]">▼</span>
+                            فريق التحرير <span className="text-xs">▼</span>
                         </button>
                         {editorialOpen && (
                             <div className="absolute top-full right-0 w-48 bg-white shadow-xl border border-gray-100 py-2 mt-0 z-50 text-right">
@@ -135,8 +135,8 @@ export default function Archive() {
                             <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> البريد الإلكتروني: research@sabauni.edu.ye</p>
                         </div>
 
-                        <div className="flex justify-start">
-                            <Link to="/login" className="inline-block bg-[#a00000] text-white px-10 py-3 font-bold text-lg hover:bg-red-800 transition shadow-xl">
+                        <div className="block w-full border-t-2 border-gray-100 pt-8 mt-10 text-right clear-both" style={{ marginTop: '80px' }}>
+                            <Link to="/login" className="inline-block bg-[#a00000] text-white px-10 py-3 font-bold text-lg hover:bg-red-800 transition shadow-xl rounded-none">
                                 إرسال المخطوطة
                             </Link>
                         </div>
@@ -176,7 +176,7 @@ export default function Archive() {
                         ) : (
                         <div className="bg-white p-6 md:p-10 flex flex-col gap-16">
                                     {papers.map((paper) => (
-                                        <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300">
+                                        <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300" style={{ minHeight: '350px' }}>
                                             {/* Left Column: Small Thumbnail */}
                                             <div className="md:w-[150px] shrink-0 flex flex-col">
                                                 <div 
@@ -226,14 +226,14 @@ export default function Archive() {
                                             </div>
 
                                             {/* Right Column: Info */}
-                                            <div className="flex-1 flex flex-col">
+                                            <div className="flex-1 flex flex-col justify-between">
                                                 <div className="flex flex-wrap gap-2 mb-4">
                                                     <span className="text-white px-10 py-5 rounded-none text-[14px] font-black uppercase tracking-widest" style={{ backgroundColor: '#a00000' }}>مقال</span>
                                                     <span className="text-white px-10 py-5 rounded-none text-[14px] font-black uppercase tracking-widest" style={{ backgroundColor: PRUSSIAN }}>رقم تعريف المقال : {paper.id}</span>
                                                 </div>
 
                                                 <Link to={`/article/${paper.id}`} className="group mb-4">
-                                                    <h3 className="text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = '#0077a3'}>
+                                                    <h3 className="notranslate text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = '#0077a3'}>
                                                         {paper.title}
                                                     </h3>
                                                 </Link>
@@ -242,11 +242,11 @@ export default function Archive() {
                                                     <span className="text-gray-400 mt-0.5">👤</span>
                                                     <div className="flex flex-wrap items-center">
                                                         <span className="text-gray-400 mr-2">بواسطة</span>
-                                                        <span className="text-slate-700">{paper.author?.full_name}</span>
+                                                        <span className="notranslate text-slate-700">{paper.author?.full_name}</span>
                                                         {paper.coauthors?.map((co, idx) => (
                                                             <span key={idx} className="flex items-center">
                                                                 <span className="mx-1 text-gray-300">،</span>
-                                                                <span className="text-slate-700">{co.full_name || co}</span>
+                                                                <span className="notranslate text-slate-700">{co.full_name || co}</span>
                                                             </span>
                                                         ))}
                                                     </div>
@@ -268,7 +268,7 @@ export default function Archive() {
                                                     {paper.abstract}
                                                 </div>
 
-                                                <div className="mt-auto flex justify-between items-center pt-6 border-t border-slate-100">
+                                                <div className="flex justify-between items-center pt-6 border-t border-slate-100" style={{ marginTop: '32px' }}>
                                                     <button 
                                                         onClick={async () => {
                                                             try {

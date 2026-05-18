@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const PRUSSIAN = '#003153';
@@ -7,9 +8,21 @@ const TURQUOISE = '#2dd4bf';
 const OCEAN = '#0096c7';
 
 export default function Support() {
-    const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+    const location = useLocation();
+    const [formData, setFormData] = useState({ 
+        name: '', 
+        email: '', 
+        subject: location.state?.subject || '', 
+        message: location.state?.message || '' 
+    });
     const [status, setStatus] = useState(null);
     const [responseMessage, setResponseMessage] = useState('');
+
+    useEffect(() => {
+        if (location.state?.subject) {
+            setFormData(prev => ({ ...prev, subject: location.state.subject }));
+        }
+    }, [location.state]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

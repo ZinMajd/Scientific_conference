@@ -1,19 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
+const PRUSSIAN = '#003153';
+const PRUSSIAN_DARK = '#001a2e';
+const OCEAN = '#0096c7';
 const GOLD = '#2dd4bf'; // Replaced Gold with Teal
-const LIGHT_TEAL = '#1abc9c';
-const DARK_TEAL = '#063939';
-const COPPER = '#8e5a31';
-const BROWN = '#3d2b1f';
 
 export default function Login() {
     const [formData, setFormData] = useState({ login: '', password: '', role: 'باحث' });
     const [isRoleOpen, setIsRoleOpen] = useState(false);
     const roleRef = useRef(null);
     const [error, setError] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
 
@@ -33,7 +31,7 @@ export default function Login() {
 
     useEffect(() => {
         if (location.state?.message) {
-            setSuccessMsg(location.state.message);
+            setError(''); // clear error if there's redirect message
             window.history.replaceState({}, document.title);
         }
     }, [location]);
@@ -43,7 +41,6 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSuccessMsg('');
         setLoading(true);
         
         try {
@@ -53,11 +50,9 @@ export default function Login() {
                 role: formData.role
             });
 
-            const { user, token, message } = response.data;
+            const { user, token } = response.data;
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
-
-            setSuccessMsg(message || 'تم تسجيل الدخول بنجاح!');
 
             const redirectTo = new URLSearchParams(location.search).get('redirect');
             if (redirectTo) { navigate(redirectTo); return; }
@@ -87,180 +82,142 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" 
+        <div className="min-h-screen flex items-center justify-center py-8 px-4" 
              style={{ 
                  direction: 'rtl',
-                 fontFamily: "'Almarai', sans-serif"
+                 fontFamily: "'Almarai', sans-serif",
+                 background: `linear-gradient(135deg, ${PRUSSIAN_DARK}08 0%, #40E0D010 100%)`
              }}>
             
-            <div className="absolute inset-0 z-0">
-                <img src="/images/hero_conference.png" alt="Background" className="w-full h-full object-cover" style={{ filter: 'brightness(0.25)' }} />
-            </div>
+            <div className="w-full max-w-[480px] bg-white rounded-none shadow-2xl overflow-hidden animate-fade-in"
+                 style={{ border: `1px solid #40E0D030` }}>
+                
+                {/* Header: Solid blue/teal gradient matching Register */}
+                <div className="py-12 px-8 text-center text-white"
+                     style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}>
+                    <h1 className="text-3xl font-black mb-2 font-['Cairo']">مرحباً بعودتك!</h1>
+                    <p className="text-white/70 text-sm font-bold">سجل دخولك للوصول إلى لوحة التحكم</p>
+                </div>
 
+                <div className="px-8 pt-10 pb-10">
+                    {error && (
+                        <div className="mb-8 p-5 rounded-none text-sm font-bold bg-rose-50 border-r-4 border-rose-500 text-rose-700 animate-shake">
+                            ⚠️ {error}
+                        </div>
+                    )}
 
-            <div className="w-full max-w-[480px] relative z-10 py-12">
-                {/* Main Card with Outer Glow */}
-                <div className="rounded-none border border-white/20 shadow-2xl"
-                     style={{ 
-                         background: 'transparent',
-                         backdropFilter: 'blur(10px)'
-                     }}>
-                    
-                    {/* Header: Matching Site Header/Footer Gradient (Solid) */}
-                    <div className="pt-20 pb-16 px-10 text-center border-b border-white/10 relative rounded-none overflow-hidden">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Custom Dropdown for Role */}
+                        <div className="relative" ref={roleRef}>
+                            <label className="block text-xl font-['Cairo'] font-black uppercase tracking-widest mr-1 mb-2" style={{ color: PRUSSIAN }}>نوع الحساب</label>
+                            <button 
+                                type="button"
+                                onClick={() => setIsRoleOpen(!isRoleOpen)}
+                                className="w-full px-8 py-5 text-xl bg-gray-50 border rounded-none text-gray-700 flex items-center justify-between outline-none transition-all duration-300 font-bold focus:bg-white"
+                                style={{ border: `1px solid ${PRUSSIAN}15` }}
+                            >
+                                <span>{formData.role}</span>
+                                <svg className={`w-5 h-5 transition-transform duration-300 ${isRoleOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 1L8 8L15 1" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                                </svg>
+                            </button>
 
+                            {isRoleOpen && (
+                                <div className="absolute top-full left-0 w-full mt-2 rounded-none overflow-hidden border border-gray-200 shadow-2xl"
+                                     style={{ 
+                                         zIndex: 100,
+                                         background: '#ffffff',
+                                         maxHeight: '400px',
+                                         overflowY: 'auto'
+                                     }}>
 
+                                    {['باحث', 'محكم', 'إدارة النظام', 'رئيس المؤتمر', 'اللجنة العلمية', 'محرر', 'مكتب التحرير', 'مكتب الإنتاج والنشر'].map((role) => (
+                                        <button
+                                            key={role}
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData({ ...formData, role });
+                                                setIsRoleOpen(false);
+                                            }}
+                                            className="w-full px-6 py-4 text-right transition-colors font-bold border-b border-gray-100 last:border-none hover:bg-gray-50 text-gray-800"
+                                        >
+                                            {role}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
+                        </div>
 
-                        <div className="absolute top-0 inset-x-0 h-1"
-                             style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }}></div>
+                        {/* Login Field */}
+                        <div className="space-y-2">
+                            <label className="block text-xl font-['Cairo'] font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>اسم المستخدم أو البريد</label>
+                            <input 
+                                type="text" 
+                                name="login" 
+                                value={formData.login} 
+                                onChange={handleChange}
+                                placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
+                                required
+                                autoComplete="off"
+                                className="w-full px-8 py-5 text-xl bg-gray-50 border rounded-none outline-none transition-all duration-300 font-bold focus:bg-white placeholder:text-gray-400"
+                                style={{ border: `1px solid ${PRUSSIAN}15` }}
+                            />
+                        </div>
 
-                        
-                        <h1 className="text-5xl font-black mb-4 tracking-tight leading-tight"
-                            style={{ 
-                                background: `linear-gradient(to bottom, #FFFFFF 10%, ${GOLD} 100%)`,
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))'
-                            }}>
-                            مرحباً بعودتك!
-                        </h1>
-                        <p className="text-white/70 text-xl font-medium opacity-90">سجل دخولك للوصول إلى لوحة التحكم</p>
-                    </div>
-
-                    <div className="px-12 pt-14 pb-12">
-                        {error && (
-                            <div className="mb-8 p-5 rounded-none text-sm font-bold bg-red-500/20 border border-red-500/30 text-red-100 flex items-center gap-4">
-                                <span className="text-xl">⚠️</span> {error}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-8">
-                            {/* Custom Glass Dropdown for Role */}
-                            <div className="relative" ref={roleRef}>
-                                <label className="block font-['Cairo'] font-black mb-3 mr-1 text-xl tracking-wider" style={{ color: '#2dd4bf' }}>نوع الحساب</label>
-                                <button 
-                                    type="button"
-                                    onClick={() => setIsRoleOpen(!isRoleOpen)}
-                                    className="w-full bg-white/10 border border-white/20 rounded-none px-8 py-8 text-white flex items-center justify-between outline-none focus:border-white/40 focus:bg-white/20 transition-all font-bold text-xl"
-                                    style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-                                >
-                                    <span>{formData.role}</span>
-                                    <svg className={`w-5 h-5 transition-transform duration-300 ${isRoleOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 1L8 8L15 1" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                                    </svg>
-                                </button>
-
-                                {isRoleOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-2 rounded-none overflow-hidden border border-white/20 shadow-2xl z-[100]"
-                                         style={{ 
-                                             backdropFilter: 'blur(30px)', 
-                                             WebkitBackdropFilter: 'blur(30px)',
-                                             background: 'rgba(0, 26, 46, 0.95)',
-                                             maxHeight: '400px',
-                                             overflowY: 'auto'
-                                         }}>
-
-                                        {['باحث', 'محكم', 'إدارة النظام', 'رئيس المؤتمر', 'اللجنة العلمية', 'محرر', 'مكتب التحرير', 'مكتب الإنتاج والنشر'].map((role) => (
-                                            <button
-                                                key={role}
-                                                type="button"
-                                                onClick={() => {
-                                                    setFormData({ ...formData, role });
-                                                    setIsRoleOpen(false);
-                                                }}
-                                                className="w-full px-6 py-4 text-right transition-colors font-bold border-b border-white/10 last:border-none hover:bg-white/10 text-white"
-                                            >
-                                                {role}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                            </div>
-
-
-                            {/* Login Field */}
-                            <div>
-                                <label className="block font-['Cairo'] font-black mb-3 mr-1 text-xl tracking-wider" style={{ color: '#2dd4bf' }}>اسم المستخدم أو البريد</label>
+                        {/* Password Field */}
+                        <div className="space-y-2">
+                            <label className="block text-xl font-['Cairo'] font-black uppercase tracking-widest mr-1" style={{ color: PRUSSIAN }}>كلمة المرور</label>
+                            <div className="relative">
                                 <input 
-                                    type="text" 
-                                    name="login" 
-                                    value={formData.login} 
+                                    type={showPass ? 'text' : 'password'} 
+                                    name="password" 
+                                    value={formData.password} 
                                     onChange={handleChange}
-                                    placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
+                                    placeholder="••••••••"
                                     required
-                                    autoComplete="off"
-                                    className="w-full bg-white/5 border border-white/10 rounded-none px-8 py-8 text-white outline-none focus:border-[#1abc9c]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-xl"
+                                    autoComplete="new-password"
+                                    className="w-full px-8 py-5 text-xl bg-gray-50 border rounded-none outline-none transition-all duration-300 font-bold focus:bg-white placeholder:text-gray-400"
+                                    style={{ border: `1px solid ${PRUSSIAN}15` }}
                                 />
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowPass(!showPass)}
+                                    className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    {showPass ? '🙈' : '👁️'}
+                                </button>
                             </div>
-
-                            {/* Password Field */}
-                            <div>
-                                <label className="block font-['Cairo'] font-black mb-3 mr-1 text-xl tracking-wider" style={{ color: '#2dd4bf' }}>كلمة المرور</label>
-                                <div className="relative">
-                                    <input 
-                                        type={showPass ? 'text' : 'password'} 
-                                        name="password" 
-                                        value={formData.password} 
-                                        onChange={handleChange}
-                                        placeholder="........"
-                                        required
-                                        autoComplete="new-password"
-                                        className="w-full bg-white/5 border border-white/10 rounded-none px-8 py-8 text-white outline-none focus:border-[#1abc9c]/50 focus:bg-white/10 transition-all placeholder:text-white/20 text-xl"
-                                    />
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setShowPass(!showPass)}
-                                        className="absolute left-6 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
-                                    >
-                                        {showPass ? '🙈' : '👁️'}
-                                    </button>
-                                </div>
-                                <div className="mt-6 flex items-center justify-end gap-3">
-                                    <Link to="/forgot-password" user-id="forgot-password-link" className="text-white/60 text-sm hover:text-white transition-colors font-medium border-b border-transparent hover:border-white/30">
-                                        نسيت كلمة المرور؟
-                                    </Link>
-                                    <div className="w-3 h-3 rounded-none bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)] animate-pulse"></div>
-                                </div>
+                            <div className="mt-4 flex items-center justify-end gap-3">
+                                <Link to="/forgot-password" data-user-id="forgot-password-link" className="text-gray-400 text-sm hover:text-gray-600 transition-colors font-bold border-b border-transparent hover:border-gray-300">
+                                    نسيت كلمة المرور؟
+                                </Link>
+                                <div className="w-2.5 h-2.5 rounded-none bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)] animate-pulse"></div>
                             </div>
+                        </div>
 
-                            {/* Submit Button: Light Teal & Gold Shine */}
+                        {/* Submit Button */}
+                        <div className="pt-6">
                             <button 
                                 type="submit" 
                                 disabled={loading}
-                                className="w-full mt-14 group relative overflow-hidden rounded-none transition-all active:scale-[0.97] disabled:opacity-50"
-                                style={{ 
-                                    background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)',
-                                    boxShadow: '0 20px 40px -10px rgba(0, 49, 83, 0.5)'
-                                }}
+                                className="w-full py-5 rounded-none text-white font-black text-xl shadow-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70"
+                                style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})` }}
                             >
-                                <div className="py-5.5 flex items-center justify-center gap-5 text-white font-black text-2xl relative z-10">
-                                    {loading ? (
-                                        <span className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></span>
-                                    ) : (
-                                        <>
-                                            <span className="tracking-widest">تسجيل الدخول</span>
-                                            <span className="text-4xl transition-transform group-hover:translate-x-[-8px]">→</span>
-                                        </>
-                                    )}
-                                </div>
-
-                                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-colors"></div>
-                                <div className="absolute top-0 left-0 w-full h-full -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-                                     style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent)' }}></div>
+                                {loading ? 'جاري التحميل...' : 'تسجيل الدخول ←'}
                             </button>
-                        </form>
+                        </div>
+                    </form>
 
-                        <div className="mt-10 text-center relative z-10">
-                            <span className="text-white/80 font-medium">ليس لديك حساب؟ </span>
-                            <Link to="/register" className="text-[#2dd4bf] font-black hover:text-white transition-colors border-b-2 border-[#2dd4bf]/30 hover:border-[#2dd4bf]">
+                    <div className="mt-8 text-center">
+                        <p className="text-gray-400 font-bold">
+                            ليس لديك حساب؟{' '}
+                            <Link to="/register" className="font-black hover:underline" style={{ color: OCEAN }}>
                                 إنشاء حساب جديد
                             </Link>
-                        </div>
+                        </p>
                     </div>
                 </div>
-
             </div>
 
             <style>{`
@@ -269,8 +226,8 @@ export default function Login() {
                     text-align: right;
                 }
                 select option {
-                    background: #1a0f0a;
-                    color: white;
+                    background: #ffffff;
+                    color: #333333;
                 }
                 ::-webkit-scrollbar {
                     width: 6px;

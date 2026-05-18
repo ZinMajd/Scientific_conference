@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const PRUSSIAN = '#003153';
@@ -12,6 +12,13 @@ export default function Submissions() {
 
     return (
         <div className="min-h-screen bg-white font-['Cairo'] pb-20" dir="ltr">
+            <style>{`
+                .hover-turquoise:hover { color: #40E0D0 !important; }
+                .text-turquoise { color: #40E0D0 !important; }
+                .text-prussian { color: #003153 !important; }
+                .hover-ocean:hover { color: #0096c7 !important; }
+            `}</style>
+
             {/* Header */}
             <div className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-50 shadow-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -31,25 +38,25 @@ export default function Submissions() {
             {/* Secondary Nav with Dropdowns */}
             <div className="text-white py-3 px-6 shadow-md relative z-40" style={{ background: PRUSSIAN }}>
                 <div className="max-w-7xl mx-auto flex flex-wrap gap-8 text-xs font-black uppercase tracking-wider items-center">
-                    <Link to="/archive" className="transition hover:text-[#40E0D0]" style={{ color: 'white' }}>الأرشيف</Link>
+                    <Link to="/archive" className="transition text-white hover-turquoise">الأرشيف</Link>
                     
-                    <Link to="/submissions" className="transition" style={{ color: TURQUOISE }}>إرشادات التقديم</Link>
-                    <Link to="/topical-collection" className="transition" style={{ color: 'white' }} onMouseEnter={(e) => e.target.style.color = TURQUOISE} onMouseLeave={(e) => e.target.style.color = 'white'}>مجموعة المواضيع</Link>
-
+                    <Link to="/submissions" className="transition text-turquoise">إرشادات التقديم</Link>
+                    <Link to="/topical-collection" className="transition text-white hover-turquoise">مجموعة المواضيع</Link>
+ 
                     {/* Editorial Dropdown */}
                     <div className="relative" onMouseEnter={() => setEditorialOpen(true)} onMouseLeave={() => setEditorialOpen(false)}>
-                        <button className="flex items-center gap-1 transition uppercase" style={{ color: 'white' }} onMouseEnter={(e) => e.currentTarget.style.color = TURQUOISE} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>
+                        <button className="flex items-center gap-1 transition uppercase text-white hover-turquoise">
                             هيئة التحرير <span className="text-[8px]">▼</span>
                         </button>
                         {editorialOpen && (
                             <div className="absolute top-full left-0 w-48 bg-white shadow-xl border border-gray-100 py-2 mt-0 z-50">
-                                <Link to="/editorial-team" className="block px-4 py-2 text-slate-700 hover:bg-gray-50 transition normal-case font-bold" style={{ color: PRUSSIAN }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = PRUSSIAN}>Editorial Board</Link>
-                                <Link to="/editorial-team" className="block px-4 py-2 text-slate-700 hover:bg-gray-50 transition normal-case font-bold" style={{ color: PRUSSIAN }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = PRUSSIAN}>Advisory Board</Link>
+                                <Link to="/editorial-team" className="block px-4 py-2 text-prussian hover-ocean hover:bg-gray-50 transition normal-case font-bold">Editorial Board</Link>
+                                <Link to="/editorial-team" className="block px-4 py-2 text-prussian hover-ocean hover:bg-gray-50 transition normal-case font-bold">Advisory Board</Link>
                             </div>
                         )}
                     </div>
-
-                    <Link to="/announcements" className="transition" style={{ color: 'white' }} onMouseEnter={(e) => e.target.style.color = TURQUOISE} onMouseLeave={(e) => e.target.style.color = 'white'}>الإعلانات</Link>
+ 
+                    <Link to="/announcements" className="transition text-white hover-turquoise">الإعلانات</Link>
                 </div>
             </div>
 
@@ -94,7 +101,7 @@ export default function Submissions() {
                             { title: "اللغة", desc: "أن يكون البحث مكتوباً بلغة سليمة (العربية أو الإنجليزية) وخالياً من الأخطاء اللغوية والنحوية." }
                         ].map((item, idx) => (
                             <li key={idx} className="flex gap-4 items-start group">
-                                <span className="flex-shrink-0 w-6 h-6 bg-teal-100 text-teal-700 flex items-center justify-center rounded-full text-xs font-black">✓</span>
+                                <span className="shrink-0 w-6 h-6 bg-teal-100 text-teal-700 flex items-center justify-center rounded-full text-xs font-black">✓</span>
                                 <div>
                                     <h4 className="text-sm font-black text-slate-800 mb-1">{item.title}</h4>
                                     <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
@@ -123,7 +130,7 @@ export default function Submissions() {
 
                         <h4 className="text-slate-800 font-black text-lg">سياسة الوصول المفتوح:</h4>
                         <p>
-                            تتبع المنصة سياسة الوصول الحر (Open Access)، مما يتيح للأبحاث المقبولة فرصة أكبر للانتشار والاستشهاد العلمي العالمي.
+                            يتبع الموقع سياسة الوصول الحر (Open Access)، مما يتيح للأبحاث المقبولة فرصة أكبر للانتشار والاستشهاد العلمي العالمي.
                         </p>
                     </div>
                 </section>
@@ -133,10 +140,10 @@ export default function Submissions() {
                     <h2 className="text-2xl font-black mb-8 relative z-10">تحميل قوالب الأبحاث</h2>
                     <div className="flex flex-wrap gap-6 relative z-10">
                         <button onClick={(e) => {e.preventDefault(); window.open('#', '_blank');}} className="px-8 py-4 bg-white text-slate-900 font-black text-sm rounded-sm transition flex items-center gap-3 shadow-lg hover:scale-105" style={{ color: PRUSSIAN_DARK }}>
-                            <span className="text-xl">📄</span> تحميل قالب (Word)
+                            <span className="text-xl" role="img" aria-label="Word template">📄</span> تحميل قالب (Word)
                         </button>
                         <button onClick={(e) => {e.preventDefault(); window.open('#', '_blank');}} className="px-8 py-4 bg-white/10 text-white font-black text-sm rounded-sm hover:bg-white/20 transition border border-white/20 flex items-center gap-3 hover:scale-105">
-                            <span className="text-xl">🛠️</span> تحميل قالب (LaTeX)
+                            <span className="text-xl" role="img" aria-label="LaTeX template">🛠️</span> تحميل قالب (LaTeX)
                         </button>
                     </div>
                 </section>

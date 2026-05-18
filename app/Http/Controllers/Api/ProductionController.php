@@ -7,7 +7,7 @@ use App\Models\Paper;
 use App\Models\User;
 use App\Services\PaperWorkflowService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ProductionController extends Controller
@@ -207,7 +207,7 @@ class ProductionController extends Controller
 
         $paper = Paper::findOrFail($id);
 
-        if ($paper->author_id !== \Illuminate\Support\Facades\Auth::id()) {
+        if ($paper->author_id !== Auth::id()) {
             return response()->json(['message' => 'غير مصرح لك.'], 403);
         }
 

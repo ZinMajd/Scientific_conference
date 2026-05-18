@@ -65,6 +65,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
             return $request->user();
         });
 
+        // Profile Update
+        Route::post('/profile/update', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+
         // Notifications
         Route::get('/notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
         Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);

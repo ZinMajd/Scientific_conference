@@ -189,7 +189,7 @@ class CommitteeController extends Controller
                 $reviewer = User::find($request->reviewer_id);
                 $reviewer->notify(new SystemNotification(
                     'دعوة لتحكيم بحث علمي جديد ⚖️',
-                    'تم اختياركم وتكليفكم بمراجعة البحث العلمي بعنوان: "' . $paper->title . '". يرجى الدخول للمنصة لقبول المهمة أو الاعتذار عنها.',
+                    'تم اختياركم وتكليفكم بمراجعة البحث العلمي بعنوان: "' . $paper->title . '". يرجى الدخول للموقع لقبول المهمة أو الاعتذار عنها.',
                     url('/reviewer/assignments'),
                     'info'
                 ));

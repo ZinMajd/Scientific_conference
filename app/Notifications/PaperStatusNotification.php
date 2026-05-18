@@ -46,7 +46,7 @@ class PaperStatusNotification extends Notification implements ShouldQueue
                     ->line('هناك تحديث جديد بخصوص بحثك المودع بعنوان: ' . $this->paper->title)
                     ->line($this->statusMessage)
                     ->action('عرض تفاصيل البحث', $this->actionUrl)
-                    ->line('شكراً لاستخدامك منصة المؤتمر العلمي لجامعة إقليم سبأ.');
+                    ->line('شكراً لاستخدامك موقع المؤتمر العلمي لجامعة إقليم سبأ.');
     }
 
     /**

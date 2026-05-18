@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Paper;
 use App\Models\Coauthor;
 use App\Models\Conference;
+use App\Services\PaperWorkflowService;
+use App\Notifications\SystemNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ class PaperController extends Controller
 {
     protected $workflow;
     
-    public function __construct(\App\Services\PaperWorkflowService $workflow)
+    public function __construct(PaperWorkflowService $workflow)
     {
         $this->workflow = $workflow;
     }
@@ -101,7 +103,7 @@ class PaperController extends Controller
                 $this->workflow->transition($paper, 'PAPER_SUBMITTED', 'تقديم البحث لأول مرة');
                 
                 // إرسال إشعار وايميل للباحث بتأكيد الاستلام
-                Auth::user()->notify(new \App\Notifications\SystemNotification(
+                Auth::user()->notify(new SystemNotification(
                     'تأكيد استلام البحث',
                     'تم استلام بحثك بعنوان "' . $paper->title . '" بنجاح ضمن مؤتمر: ' . $paper->conference->title,
                     '/researcher/research/' . $paper->id,

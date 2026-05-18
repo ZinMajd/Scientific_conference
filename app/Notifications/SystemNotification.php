@@ -53,7 +53,7 @@ class SystemNotification extends Notification implements ShouldQueue
                 $mail->action('عرض التفاصيل', $this->actionUrl);
             }
 
-            $mail->line('شكراً لاستخدامك منصة المؤتمر العلمي.');
+            $mail->line('شكراً لاستخدامك موقع المؤتمر العلمي.');
 
             // Log the email
             EmailLog::create([

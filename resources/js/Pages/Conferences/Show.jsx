@@ -67,6 +67,139 @@ export default function Show() {
     if (loading) return <div className="text-center py-20 animate-pulse font-black text-slate-400 font-['Cairo']">جاري تحميل محتوى المؤتمر...</div>;
     if (!conference) return <div className="text-center py-20 font-black text-red-600 font-['Cairo']">عذراً، لم يتم العثور على المؤتمر</div>;
 
+    const acceptedPapers = conference.papers?.filter(paper => paper.status === 'scheduled') || [];
+    const publishedPapers = conference.papers?.filter(paper => paper.is_published || paper.status === 'published') || [];
+
+    const renderPaperCard = (paper) => (
+        <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300 border border-gray-100 hover:shadow-lg rounded-sm" style={{ minHeight: '350px' }}>
+            {/* Left Column: Small Thumbnail */}
+            <div className="md:w-[150px] shrink-0 flex flex-col">
+                <div 
+                    className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
+                    onClick={() => paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
+                >
+                    {paper.thumbnail_path ? (
+                        <>
+                            <img 
+                                src={`/storage_file/${paper.thumbnail_path}`} 
+                                alt={paper.title} 
+                                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
+                        </>
+                    ) : (
+                        <div className="p-6 text-[7px] text-gray-300 leading-tight select-none">
+                            <div className="h-1.5 bg-gray-200 w-3/4 mb-2"></div>
+                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
+                            <div className="h-1.5 bg-gray-100 w-full mb-3"></div>
+                            <div className="h-32 bg-gray-50 w-full mb-4 border border-gray-100 flex items-center justify-center">
+                                <span className="text-[20px] opacity-10">SCR</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
+                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
+                            <div className="h-1.5 bg-gray-100 w-2/3"></div>
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="bg-white/90 p-2 rounded-full shadow-lg">
+                            <span className="text-lg">🔍</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="space-y-3 px-1">
+                    <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
+                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
+                    </div>
+                    <div className="w-px h-4 bg-gray-200 mx-auto"></div>
+                    <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
+                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Column: Info */}
+            <div className="flex-1 flex flex-col justify-between">
+                <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-white px-4 py-1.5 rounded-none text-xs font-black uppercase tracking-widest" style={{ backgroundColor: '#a00000' }}>مقال</span>
+                    <span className="text-white px-4 py-1.5 rounded-none text-xs font-black uppercase tracking-widest" style={{ backgroundColor: PRUSSIAN }}>رقم تعريف المقال : {paper.id}</span>
+                </div>
+
+                <Link to={`/article/${paper.id}`} className="group mb-4">
+                    <h3 className="notranslate text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = '#0077a3'}>
+                        {paper.title}
+                    </h3>
+                </Link>
+
+                <div className="flex items-start gap-2 text-[13px] text-slate-500 mb-4 font-bold">
+                    <span className="text-gray-400 mt-0.5">👤</span>
+                    <div className="flex flex-wrap items-center">
+                        <span className="text-gray-400 mr-2">بواسطة</span>
+                        <span className="notranslate text-slate-700">{paper.author?.full_name}</span>
+                        {paper.coauthors?.map((co, idx) => (
+                            <span key={idx} className="flex items-center">
+                                <span className="mx-1 text-gray-300">،</span>
+                                <span className="notranslate text-slate-700">{co.full_name || co}</span>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">
+                    <span className="text-slate-800">DOI:</span>
+                    <Link 
+                        to={`/article/${paper.id}`}
+                        className="hover:underline normal-case"
+                        style={{ color: '#0077a3' }}
+                    >
+                        {paper.doi && paper.doi.startsWith('10.') ? `https://doi.org/${paper.doi}` : `https://doi.org/10.54963/jic.v5i1.${paper.id}`}
+                    </Link>
+                </div>
+
+                <div className="text-sm text-slate-600 leading-relaxed mb-8 line-clamp-[7] font-medium border-r-4 border-slate-100 pr-4">
+                    {paper.abstract}
+                </div>
+
+                <div className="flex justify-between items-center pt-6 border-t border-slate-100" style={{ marginTop: '32px' }}>
+                    <button 
+                        onClick={async () => {
+                            try {
+                                await axios.post(`/api/article/${paper.id}/download-stat`);
+                                setConference(prev => ({
+                                    ...prev,
+                                    papers: prev.papers.map(p => 
+                                        p.id === paper.id ? { ...p, download_count: (p.download_count || 0) + 1 } : p
+                                    )
+                                }));
+                            } catch (e) { console.error(e); }
+                            window.open(`/storage_file/${paper.final_file_path || paper.file_path}`, '_blank');
+                        }}
+                        className="flex items-center gap-3 text-xs font-black text-[#b30000] hover:text-red-600 transition-colors uppercase tracking-widest group"
+                    >
+                        <img 
+                            src="/images/pdf_icon.png" 
+                            alt="PDF" 
+                            className="w-8 h-10 object-contain group-hover:scale-110 transition-transform" 
+                        />
+                        <span className="border-b-2 border-transparent hover:border-[#b30000] pb-0.5 transition-all">عرض ملف PDF</span>
+                    </button>
+                    <Link 
+                        to={`/article/${paper.id}`} 
+                        className="flex items-center gap-2 text-xs font-black transition-all group uppercase tracking-widest"
+                        style={{ color: '#0077a3' }}
+                        onMouseEnter={(e) => e.target.style.color = OCEAN}
+                        onMouseLeave={(e) => e.target.style.color = '#0077a3'}
+                    >
+                        اقرأ المزيد 
+                        <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-gray-50 font-['Cairo'] pb-20 flex flex-col items-center w-full" dir="rtl">
             {/* Top Navigation / Logo Bar */}
@@ -87,12 +220,12 @@ export default function Show() {
 
 
 
-            <div className="w-full py-8 border-b border-gray-100 bg-white flex justify-center">
-                <div className="w-full max-w-5xl flex flex-wrap flex-row gap-16 text-[17px] font-black items-center text-black px-6">
+            <div className="w-full border-b border-gray-100 bg-white flex justify-center" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
+                <div className="w-[95%] max-w-7xl flex flex-wrap flex-row gap-12 text-[17px] font-black items-center justify-start text-black">
                     <Link to="/announcements" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">الإعلانات</Link>
                     <div className="relative group" onMouseEnter={() => setEditorialOpen(true)} onMouseLeave={() => setEditorialOpen(false)}>
                         <button className="flex items-center gap-1 hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
-                            فريق التحرير <span className="text-[10px]">▼</span>
+                            فريق التحرير <span className="text-xs">▼</span>
                         </button>
                         {editorialOpen && (
                             <div className="absolute top-full right-0 w-48 bg-white shadow-xl border border-gray-100 py-2 mt-0 z-50 text-right">
@@ -109,11 +242,11 @@ export default function Show() {
             </div>
 
             {/* Main Conference Info Section (Styled like Archive) */}
-            <div className="w-full bg-white py-16 border-b border-gray-100 flex justify-center">
-                <div className="w-[95%] max-w-5xl flex flex-col md:flex-row gap-12 items-start">
-                    {/* Right: Conference Cover (Small) */}
-                    <div className="w-full md:w-[240px] shrink-0">
-                        <div className="bg-[#f2f2f2] p-8 shadow-lg border border-gray-200 flex flex-col items-center text-center">
+            <div className="w-full bg-white pt-16 pb-20 border-b border-gray-100 flex justify-center">
+                <div className="w-[95%] max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-12 items-start">
+                    {/* Right Column: Conference Cover (Small) - Takes 1/3 of space */}
+                    <div className="md:col-span-1 w-full flex justify-center">
+                        <div className="bg-[#f2f2f2] p-8 shadow-lg border border-gray-200 w-full max-w-[280px]">
                             <div className="w-full aspect-[3/4] mb-6 flex flex-col items-center justify-center text-white relative overflow-hidden bg-white">
                                 {conference.image_path ? (
                                     <img src={`/storage_file/${conference.image_path}`} alt={conference.title} className="w-full h-full object-cover" />
@@ -128,8 +261,8 @@ export default function Show() {
                         </div>
                     </div>
 
-                    {/* Right: Info Text */}
-                    <div className="flex-1 text-right">
+                    {/* Left Column: Info Text - Takes 2/3 of space */}
+                    <div className="md:col-span-2 text-right w-full">
                         <div className="flex items-center justify-end gap-2 mb-6 text-sm font-bold text-slate-600">
                             <span>الحالة:</span>
                             <span className="text-orange-500">🔓 تسجيل مفتوح</span>
@@ -148,11 +281,11 @@ export default function Show() {
                             <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> البريد الإلكتروني: {conference.contact_email || 'conference@sabauni.edu.ye'}</p>
                         </div>
 
-                        <div className="flex flex-wrap gap-4">
+                        <div className="w-full border-t border-gray-100 pt-8 mt-16 text-right">
                             <Link 
                                 to={`/researcher/research/create?confId=${id}`} 
                                 onClick={handleRegisterPaper}
-                                className="inline-block bg-[#a00000] text-white px-10 py-3 font-bold text-lg hover:bg-red-800 transition shadow-xl"
+                                className="inline-block bg-[#a00000] text-white px-10 py-3 font-bold text-lg hover:bg-red-800 transition shadow-xl rounded-none"
                             >
                                 إرسال المخطوطة
                             </Link>
@@ -161,152 +294,61 @@ export default function Show() {
                 </div>
             </div>
 
-            <div className="w-[95%] max-w-5xl text-center">
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">الأبحاث المقبولة في المؤتمر</h2>
-                <div className="w-16 h-1 bg-slate-800 mx-auto mb-12"></div>
+            <div className="w-[95%] max-w-5xl text-center mt-20 mb-16">
+                <h2 className="text-3xl font-black text-slate-800 mb-2">الأوراق البحثية الخاصة بالمؤتمر</h2>
+                <div className="w-24 h-1 bg-slate-800 mx-auto mt-4"></div>
             </div>
 
             <div className="w-[95%] max-w-5xl">
-                <div className="flex flex-col lg:flex-row gap-12 justify-center">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                     {/* Right Content Area: Articles */}
-                    <div className="lg:w-2/3">
-                                    <div className="bg-white p-6 md:p-10 flex flex-col gap-16">
-                                    {conference.papers?.map((paper) => (
-                                        <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300">
-                                            {/* Left Column: Small Thumbnail */}
-                                            <div className="md:w-[150px] shrink-0 flex flex-col">
-                                                <div 
-                                                    className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
-                                                    onClick={() => paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
-                                                >
-                                                    {paper.thumbnail_path ? (
-                                                        <>
-                                                            <img 
-                                                                src={`/storage_file/${paper.thumbnail_path}`} 
-                                                                alt={paper.title} 
-                                                                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
-                                                            />
-                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
-                                                        </>
-                                                    ) : (
-                                                        <div className="p-6 text-[7px] text-gray-300 leading-tight select-none">
-                                                            <div className="h-1.5 bg-gray-200 w-3/4 mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-3"></div>
-                                                            <div className="h-32 bg-gray-50 w-full mb-4 border border-gray-100 flex items-center justify-center">
-                                                                <span className="text-[20px] opacity-10">SCR</span>
-                                                            </div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-2/3"></div>
-                                                        </div>
-                                                    )}
-                                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <div className="bg-white/90 p-2 rounded-full shadow-lg">
-                                                            <span className="text-lg">🔍</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="space-y-3 px-1">
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
-                                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
-                                                    </div>
-                                                    <div className="w-px h-4 bg-gray-200 mx-auto"></div>
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
-                                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Right Column: Info */}
-                                            <div className="flex-1 flex flex-col">
-                                                <div className="flex flex-wrap gap-2 mb-4">
-                                                    <span className="text-white px-10 py-5 rounded-none text-[14px] font-black uppercase tracking-widest" style={{ backgroundColor: '#a00000' }}>مقال</span>
-                                                    <span className="text-white px-10 py-5 rounded-none text-[14px] font-black uppercase tracking-widest" style={{ backgroundColor: PRUSSIAN }}>رقم تعريف المقال : {paper.id}</span>
-                                                </div>
-
-                                                <Link to={`/article/${paper.id}`} className="group mb-4">
-                                                    <h3 className="text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = '#0077a3'}>
-                                                        {paper.title}
-                                                    </h3>
-                                                </Link>
-
-                                                <div className="flex items-start gap-2 text-[13px] text-slate-500 mb-4 font-bold">
-                                                    <span className="text-gray-400 mt-0.5">👤</span>
-                                                    <div className="flex flex-wrap items-center">
-                                                        <span className="text-gray-400 ml-2">بواسطة</span>
-                                                        <span className="text-slate-700">{paper.author?.full_name}</span>
-                                                        {paper.coauthors?.map((co, idx) => (
-                                                            <span key={idx} className="flex items-center">
-                                                                <span className="mx-1 text-gray-300">،</span>
-                                                                <span className="text-slate-700">{co.full_name || co}</span>
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-wrap gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">
-                                                    <span className="text-slate-800">DOI:</span>
-                                                    <Link 
-                                                        to={`/article/${paper.id}`}
-                                                        className="hover:underline normal-case"
-                                                        style={{ color: '#0077a3' }}
-                                                    >
-                                                        {paper.doi && paper.doi.startsWith('10.') ? `https://doi.org/${paper.doi}` : `https://doi.org/10.54963/jic.v5i1.${paper.id}`}
-                                                    </Link>
-                                                </div>
-
-                                                <div className="text-sm text-slate-600 leading-relaxed mb-8 line-clamp-[7] font-medium border-r-4 border-slate-100 pr-4">
-                                                    {paper.abstract}
-                                                </div>
-
-                                                <div className="mt-auto flex justify-between items-center pt-6 border-t border-slate-100">
-                                                    <button 
-                                                        onClick={async () => {
-                                                            try {
-                                                                await axios.post(`/api/article/${paper.id}/download-stat`);
-                                                                // Update local state to show increment immediately
-                                                                setConference(prev => ({
-                                                                    ...prev,
-                                                                    papers: prev.papers.map(p => 
-                                                                        p.id === paper.id ? { ...p, download_count: (p.download_count || 0) + 1 } : p
-                                                                    )
-                                                                }));
-                                                            } catch (e) { console.error(e); }
-                                                            window.open(`/storage_file/${paper.final_file_path || paper.file_path}`, '_blank');
-                                                        }}
-                                                        className="flex items-center gap-3 text-xs font-black text-[#b30000] hover:text-red-600 transition-colors uppercase tracking-widest group"
-                                                    >
-                                                        <img 
-                                                            src="/images/pdf_icon.png" 
-                                                            alt="PDF" 
-                                                            className="w-8 h-10 object-contain group-hover:scale-110 transition-transform" 
-                                                        />
-                                                        <span className="border-b-2 border-transparent hover:border-[#b30000] pb-0.5 transition-all">عرض ملف PDF</span>
-                                                    </button>
-                                                    <Link 
-                                                        to={`/article/${paper.id}`} 
-                                                        className="flex items-center gap-2 text-xs font-black transition-all group uppercase tracking-widest"
-                                                        style={{ color: '#0077a3' }}
-                                                        onMouseEnter={(e) => e.target.style.color = OCEAN}
-                                                        onMouseLeave={(e) => e.target.style.color = '#0077a3'}
-                                                    >
-                                                        اقرأ المزيد 
-                                                        <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                    <div className="w-full lg:col-span-2">
+                        <div className="bg-white p-6 md:p-10 flex flex-col gap-12">
+                            
+                            {/* Section 1: Accepted Papers */}
+                            {acceptedPapers.length > 0 && (
+                                <div className="space-y-8">
+                                    <div className="border-b border-gray-200 pb-3 text-right">
+                                        <h3 className="text-xl font-black text-slate-800">الأبحاث المقبولة في المؤتمر</h3>
+                                        <div className="w-16 h-1 mt-2" style={{ backgroundColor: OCEAN }}></div>
+                                    </div>
+                                    <div className="flex flex-col gap-10">
+                                        {acceptedPapers.map(paper => renderPaperCard(paper))}
+                                    </div>
                                 </div>
+                            )}
+
+                            {/* Beautiful Spacer & Divider between sections */}
+                            {acceptedPapers.length > 0 && publishedPapers.length > 0 && (
+                                <div className="py-16 my-12 border-t border-gray-200 relative select-none">
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-8 py-2 text-slate-400 font-black text-xs uppercase tracking-widest border border-gray-200 rounded-full shadow-sm">
+                                        مستندات المؤتمر العلمية
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section 2: Published Papers */}
+                            {publishedPapers.length > 0 && (
+                                <div className="space-y-8">
+                                    <div className="border-b border-gray-200 pb-3 text-right">
+                                        <h3 className="text-xl font-black text-slate-800">الأبحاث المنشورة</h3>
+                                        <div className="w-16 h-1 mt-2" style={{ backgroundColor: '#a00000' }}></div>
+                                    </div>
+                                    <div className="flex flex-col gap-10">
+                                        {publishedPapers.map(paper => renderPaperCard(paper))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {acceptedPapers.length === 0 && publishedPapers.length === 0 && (
+                                <div className="text-center py-20 text-gray-400 italic">لا توجد أبحاث مقبولة أو منشورة حالياً في هذا المؤتمر.</div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Sidebar Area */}
                     {/* Left Sidebar: Info (In RTL, second child is on the left) */}
-                    <div className="lg:w-1/3 space-y-12 text-right">
+                    <div className="lg:col-span-1 w-full space-y-12 text-right">
                          <div className="border-b border-gray-100 pb-8">
                             <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-4 border-b-2 border-slate-800 w-fit pb-1">معلومات الموقع</h4>
                             <p className="text-xs text-gray-500 leading-relaxed italic">

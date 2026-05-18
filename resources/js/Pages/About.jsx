@@ -9,14 +9,14 @@ export default function About() {
                 <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
                     <h1 className="text-4xl md:text-6xl font-black text-white mb-6 animate-in slide-in-from-bottom duration-700">عن نظام جامعة إقليم سبأ للمؤتمرات العلمية</h1>
                     <p className="text-xl text-teal-400 font-bold leading-relaxed">
-                        منصة رقمية متكاملة تهدف إلى تعزيز البحث العلمي وتسهيل إدارة المؤتمرات العلمية وفق المعايير الدولية.
+                        موقع رقمي متكامل يهدف إلى تعزيز البحث العلمي وتسهيل إدارة المؤتمرات العلمية وفق المعايير الدولية.
                     </p>
                 </div>
             </div>
 
             <div className="max-w-4xl mx-auto px-6 -mt-12 relative z-20 space-y-8">
                 {[
-                    { title: 'الرؤية', text: 'أن نكون المنصة الرائدة في إدارة المعرفة العلمية وتسهيل الوصول للأبحاث المبتكرة في المنطقة، من خلال توظيف أحدث التقنيات الرقمية لخدمة المجتمع الأكاديمي.', color: 'border-teal-400' },
+                    { title: 'الرؤية', text: 'أن نكون الموقع الرائد في إدارة المعرفة العلمية وتسهيل الوصول للأبحاث المبتكرة في المنطقة، من خلال توظيف أحدث التقنيات الرقمية لخدمة المجتمع الأكاديمي.', color: 'border-teal-400' },
                     { title: 'الرسالة', text: 'توفير بيئة تقنية احترافية تربط بين الباحثين والمحكمين والمؤسسات الأكاديمية بكل شفافية وجودة، والارتقاء بمستوى النشر العلمي في جامعة إقليم سبأ.', color: 'border-indigo-400' },
                     { title: 'الأهداف', text: 'أتمتة دورة حياة البحث العلمي بالكامل، من التقديم حتى النشر النهائي الموثق، وتسهيل عملية التواصل بين كافة أطراف العملية البحثية وضمان دقة النتائج.', color: 'border-amber-400' }
                 ].map((item, idx) => (
@@ -34,7 +34,7 @@ export default function About() {
                 <section className="bg-gray-50 p-12 rounded-[3rem] border border-gray-100">
                     <h2 className="text-3xl font-black text-indigo-950 mb-6">نظام تحكيم احترافي (Double-Blind)</h2>
                     <p className="text-gray-600 leading-relaxed text-lg mb-6 font-medium">
-                        نلتزم في منصتنا بأعلى معايير النزاهة العلمية، حيث يعتمد النظام آلية "التحكيم المزدوج التعمية" لضمان حيادية التقييم وجودة المحتوى العلمي المنشور.
+                        نلتزم في موقعنا بأعلى معايير النزاهة العلمية، حيث يعتمد النظام آلية "التحكيم المزدوج التعمية" لضمان حيادية التقييم وجودة المحتوى العلمي المنشور.
                     </p>
                     <ul className="space-y-4 font-bold text-indigo-900">
                         <li className="flex items-center gap-3">

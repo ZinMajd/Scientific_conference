@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import NotificationBell from '../Components/NotificationBell';
+import NotificationBell from '../components/NotificationBell';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const PRUSSIAN_GRADIENT = 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)';
 const TURQUOISE = '#40E0D0';
@@ -32,8 +33,7 @@ export default function ResearcherLayout() {
             title: 'إدارة الأبحاث', icon: '📄', path: '/researcher/research', group: 'الأبحاث',
             subItems: [
                 { title: 'تقديم بحث جديد', path: '/researcher/research/create' },
-                { title: 'أبحاثي', path: '/researcher/research' },
-                { title: 'حالة البحث', path: '/researcher/research' }
+                { title: 'أبحاثي (متابعة الحالة)', path: '/researcher/research' }
             ]
         },
         { title: 'الأبحاث المحكمة', icon: '✅', path: '/researcher/reviewed', group: 'الأبحاث ' }, // Added space to group name to force separate header if needed
@@ -104,16 +104,28 @@ export default function ResearcherLayout() {
 
                 {/* User Info */}
                 {isSidebarOpen && user && (
-                    <div className="mx-5 mt-6 p-4 rounded-2xl" style={{ background: `${TURQUOISE}10`, border: `1px solid ${TURQUOISE}25` }}>
-                        <p className="text-white font-black text-base truncate mb-0.5">{user?.full_name || user?.name || 'مستخدم'}</p>
+                    <div className="mx-5 mt-6 p-4 rounded-2xl flex flex-col items-center text-center" style={{ background: `${TURQUOISE}10`, border: `1px solid ${TURQUOISE}25` }}>
+                        <div className="w-16 h-16 rounded-full overflow-hidden mb-3 border-2" style={{ borderColor: TURQUOISE }}>
+                            {user?.profile_image ? (
+                                <img src={`/storage_file/${user.profile_image}`} alt={user.full_name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center font-black text-xl bg-white/5" style={{ color: TURQUOISE }}>
+                                    {user?.full_name?.charAt(0) || '👤'}
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-white font-black text-base truncate mb-0.5 w-full">{user?.full_name || user?.name || 'مستخدم'}</p>
                         <p className="text-[11px] font-bold uppercase tracking-wider opacity-80" style={{ color: TURQUOISE }}>
                             {user?.user_type === 'editor' ? 'المحرر العلمي' : 
                              user?.user_type === 'chair' ? 'رئيس المؤتمر' : 
                              user?.user_type === 'office' ? 'مكتب التحرير' : 
                              user?.user_type === 'admin' ? 'مدير النظام' : 'باحث علمي'}
                         </p>
+                        <Link to="/profile/edit" className="mt-3 block text-[11px] w-full bg-white/10 text-center py-2 rounded-lg hover:bg-white/20 transition text-white font-bold flex items-center justify-center gap-2">
+                            <span>⚙️</span> تعديل الملف الشخصي
+                        </Link>
                         {['editor', 'chair', 'office', 'admin'].includes(user?.user_type) && (
-                            <Link to="/committee" className="mt-3 block text-[10px] bg-white/10 text-center py-2 rounded-lg hover:bg-white/20 transition text-white font-bold">
+                            <Link to="/committee" className="mt-3 block text-[10px] w-full bg-white/10 text-center py-2 rounded-lg hover:bg-white/20 transition text-white font-bold">
                                 العودة للوحة الإدارة ←
                             </Link>
                         )}
@@ -169,7 +181,8 @@ export default function ResearcherLayout() {
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Top Header */}
                 <header className="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-end px-8 shrink-0 z-40">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
+                        <LanguageSwitcher theme="light" />
                         <NotificationBell token={token} theme="light" />
                     </div>
                 </header>
