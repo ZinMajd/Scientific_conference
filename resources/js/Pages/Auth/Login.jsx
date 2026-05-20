@@ -159,7 +159,7 @@ export default function Login() {
                             </div>
 
                             {/* Login Field */}
-                            <div style={{ marginTop: '40px' }}>
+                            <div style={{ marginTop: '70px' }}>
                                 <label className="block text-sm font-medium text-slate-600 mb-4 text-center">اسم المستخدم أو البريد الإلكتروني</label>
                                 <input 
                                     type="text" 
@@ -175,7 +175,7 @@ export default function Login() {
                             </div>
 
                             {/* Password Field */}
-                            <div style={{ marginTop: '40px' }}>
+                            <div style={{ marginTop: '70px' }}>
                                 <label className="block text-sm font-medium text-slate-600 mb-4 text-center">كلمة المرور</label>
                                 <div className="relative">
                                     <input 
@@ -200,7 +200,7 @@ export default function Login() {
                             </div>
 
                             {/* Remember & Forgot Password */}
-                            <div className="flex items-center justify-between px-2" style={{ marginTop: '40px' }}>
+                            <div className="flex items-center justify-between px-2" style={{ marginTop: '55px' }}>
                                 <label className="flex items-center text-sm font-medium text-slate-500 cursor-pointer select-none">
                                     <input 
                                         type="checkbox" 
@@ -214,7 +214,7 @@ export default function Login() {
                             </div>
 
                             {/* Submit Button */}
-                            <div style={{ marginTop: '40px' }}>
+                            <div style={{ marginTop: '55px' }}>
                                 <button 
                                     type="submit" 
                                     disabled={loading}
