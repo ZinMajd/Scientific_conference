@@ -122,7 +122,7 @@ export default function Login() {
                         <form onSubmit={handleSubmit} className="flex flex-col gap-0">
                             {/* Custom Dropdown for Role */}
                             <div className="relative" ref={roleRef}>
-                                <label className="block text-sm font-medium text-slate-600 mb-4 text-center">نوع الحساب</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-6 text-center">نوع الحساب</label>
                                 <button 
                                     type="button"
                                     onClick={() => setIsRoleOpen(!isRoleOpen)}
@@ -140,7 +140,7 @@ export default function Login() {
                                              zIndex: 100,
                                              maxHeight: '250px',
                                              overflowY: 'auto'
-                                         }}>
+                                          }}>
                                         {['باحث', 'محكم', 'إدارة النظام', 'رئيس المؤتمر', 'اللجنة العلمية', 'محرر', 'مكتب التحرير', 'مكتب الإنتاج والنشر'].map((role) => (
                                             <button
                                                 key={role}
@@ -160,7 +160,7 @@ export default function Login() {
 
                             {/* Login Field */}
                             <div style={{ marginTop: '24px' }}>
-                                <label className="block text-sm font-medium text-slate-600 mb-4 text-center">اسم المستخدم أو البريد الإلكتروني</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-6 text-center">اسم المستخدم أو البريد الإلكتروني</label>
                                 <input 
                                     type="text" 
                                     name="login" 
@@ -176,7 +176,7 @@ export default function Login() {
 
                             {/* Password Field */}
                             <div style={{ marginTop: '24px' }}>
-                                <label className="block text-sm font-medium text-slate-600 mb-4 text-center">كلمة المرور</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-6 text-center">كلمة المرور</label>
                                 <div className="relative">
                                     <input 
                                         type={showPass ? 'text' : 'password'} 
