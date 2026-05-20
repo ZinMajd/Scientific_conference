@@ -144,26 +144,35 @@ class AuthController extends Controller
 
         // 5. التحقق من الدور (Role Authorization Check)
         $roleMap = [
-            'إدارة النظام' => 'admin',
-            'رئيس المؤتمر' => 'chair',
-            'باحث' => 'author',
-            'محكم' => 'reviewer',
-            'اللجنة العلمية' => 'committee',
-            'محرر' => 'editor',
-            'مكتب التحرير' => 'office',
-            'مكتب الإنتاج والنشر' => 'production_office'
+            'إدارة النظام' => ['user_types' => ['admin', 'chair'], 'role_slug' => 'system_admin'],
+            'رئيس المؤتمر' => ['user_types' => ['chair'], 'role_slug' => 'conference_chair'],
+            'باحث' => ['user_types' => ['author'], 'role_slug' => 'author'],
+            'محكم' => ['user_types' => ['reviewer'], 'role_slug' => 'reviewer'],
+            'اللجنة العلمية' => ['user_types' => ['committee'], 'role_slug' => 'scientific_committee'],
+            'محرر' => ['user_types' => ['editor'], 'role_slug' => 'editor'],
+            'مكتب التحرير' => ['user_types' => ['office'], 'role_slug' => 'editorial_office'],
+            'مكتب الإنتاج والنشر' => ['user_types' => ['production_office'], 'role_slug' => 'production_office'],
         ];
-        
-        $expectedRole = $roleMap[$request->role] ?? null;
 
-        if ($user->user_type !== $expectedRole) {
-            // الاستثناء: مدراء النظام يمكنهم الدخول كـ (إدارة النظام) بغض النظر عن نوع حسابهم الأساسي
-            if ($expectedRole === 'admin' && $user->hasRole('system_admin')) {
-                // مسموح
-            } else {
-                Auth::logout();
-                return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
-            }
+        $roleData = $roleMap[$request->role] ?? null;
+
+        if (!$roleData) {
+            Auth::logout();
+            return response()->json(['message' => 'نوع الحساب المحدد غير صالح.'], 403);
+        }
+
+        // نحمّل الأدوار أولاً للتحقق منها
+        $user->load('roles');
+        $userRoleSlugs = $user->roles->pluck('slug')->toArray();
+
+        // القبول إذا: (1) user_type مطابق أو (2) لديه دور مطابق أو (3) system_admin
+        $hasAccess = in_array($user->user_type, $roleData['user_types'])
+            || in_array($roleData['role_slug'], $userRoleSlugs)
+            || in_array('system_admin', $userRoleSlugs);
+
+        if (!$hasAccess) {
+            Auth::logout();
+            return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
         }
 
         // 6. إنشاء الجلسة والتوكن (Session & Sanctum Token)
