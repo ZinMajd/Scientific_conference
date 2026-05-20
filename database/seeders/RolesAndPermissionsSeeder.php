@@ -111,6 +111,17 @@ class RolesAndPermissionsSeeder extends Seeder
                     'conference_structure.manage',
                 ]
             ],
+            'production_office' => [
+                'display_name' => 'Production Office',
+                'description' => 'Handles publishing and production of papers.',
+                'permissions' => [
+                    'production.view_papers',
+                    'production.update_details',
+                    'production.schedule_publish',
+                    'production.publish_now',
+                    'production.request_revision',
+                ]
+            ],
             'system_admin' => [
                 'display_name' => 'System Administrator',
                 'description' => 'Full system maintenance.',
