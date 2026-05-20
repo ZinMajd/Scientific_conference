@@ -122,7 +122,7 @@ export default function Login() {
                         <form onSubmit={handleSubmit} className="flex flex-col gap-0">
                             {/* Custom Dropdown for Role */}
                             <div className="relative" ref={roleRef}>
-                                <label className="block text-sm font-medium text-slate-600 mb-6 text-center">نوع الحساب</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-5 text-center">نوع الحساب</label>
                                 <button 
                                     type="button"
                                     onClick={() => setIsRoleOpen(!isRoleOpen)}
@@ -159,8 +159,8 @@ export default function Login() {
                             </div>
 
                             {/* Login Field */}
-                            <div style={{ marginTop: '24px' }}>
-                                <label className="block text-sm font-medium text-slate-600 mb-6 text-center">اسم المستخدم أو البريد الإلكتروني</label>
+                            <div style={{ marginTop: '18px' }}>
+                                <label className="block text-sm font-medium text-slate-600 mb-5 text-center">اسم المستخدم أو البريد الإلكتروني</label>
                                 <input 
                                     type="text" 
                                     name="login" 
@@ -175,8 +175,8 @@ export default function Login() {
                             </div>
 
                             {/* Password Field */}
-                            <div style={{ marginTop: '24px' }}>
-                                <label className="block text-sm font-medium text-slate-600 mb-6 text-center">كلمة المرور</label>
+                            <div style={{ marginTop: '18px' }}>
+                                <label className="block text-sm font-medium text-slate-600 mb-5 text-center">كلمة المرور</label>
                                 <div className="relative">
                                     <input 
                                         type={showPass ? 'text' : 'password'} 
@@ -200,7 +200,7 @@ export default function Login() {
                             </div>
 
                             {/* Remember & Forgot Password */}
-                            <div className="flex items-center justify-between px-2" style={{ marginTop: '20px' }}>
+                            <div className="flex items-center justify-between px-2" style={{ marginTop: '16px' }}>
                                 <label className="flex items-center text-sm font-medium text-slate-500 cursor-pointer select-none">
                                     <input 
                                         type="checkbox" 
@@ -214,7 +214,7 @@ export default function Login() {
                             </div>
 
                             {/* Submit Button */}
-                            <div style={{ marginTop: '20px' }}>
+                            <div style={{ marginTop: '16px' }}>
                                 <button 
                                     type="submit" 
                                     disabled={loading}
