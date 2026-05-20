@@ -81,7 +81,7 @@ export default function Conferences() {
                             <div className="w-full md:w-64 h-52 shrink-0 overflow-hidden relative"
                                 style={{ background: PRUSSIAN_DARK }}>
                                 <img src={getConferenceImage(item.id, item.image_url)} alt={item.title}
-                                    className="w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" />
+                                    className="w-full h-full object-contain opacity-90 group-hover:scale-110 transition-transform duration-700" />
                                 <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold"
                                     style={{
                                         background: item.status === 'open' || item.status === 'reviewing' ? `${TURQUOISE}` : '#ef4444',

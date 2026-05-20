@@ -15,9 +15,6 @@ export default function Archive() {
     const [pagination, setPagination] = useState({});
     const [selectedImage, setSelectedImage] = useState(null);
     
-    // Dropdown states
-    const [editorialOpen, setEditorialOpen] = useState(false);
-
     const fetchArchive = useCallback(async (page = 1) => {
         setLoading(true);
         try {
@@ -83,18 +80,6 @@ export default function Archive() {
 
             <div className="w-full border-b border-gray-100 bg-white flex justify-center" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
                 <div className="w-[95%] max-w-7xl flex flex-wrap flex-row gap-12 text-[17px] font-black items-center justify-start text-black">
-                    <Link to="/announcements" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">الإعلانات</Link>
-                    <div className="relative group" onMouseEnter={() => setEditorialOpen(true)} onMouseLeave={() => setEditorialOpen(false)}>
-                        <button className="flex items-center gap-1 hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
-                            فريق التحرير <span className="text-xs">▼</span>
-                        </button>
-                        {editorialOpen && (
-                            <div className="absolute top-full right-0 w-48 bg-white shadow-xl border border-gray-100 py-2 mt-0 z-50 text-right">
-                                <Link to="/editorial-team" className="block px-4 py-2 text-slate-700 hover:bg-gray-50 transition font-bold">الأعضاء</Link>
-                                <Link to="/editorial-team" className="block px-4 py-2 text-slate-700 hover:bg-gray-50 transition font-bold">المستشارون</Link>
-                            </div>
-                        )}
-                    </div>
                     <Link to="/topical-collection" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">مجموعة المواضيع</Link>
                     <Link to="/submissions" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">إرشادات التقديم</Link>
                     <Link to="/about" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">عن</Link>
@@ -214,13 +199,13 @@ export default function Archive() {
                                                 
                                                 <div className="space-y-3 px-1">
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
-                                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
+                                                        <span className="text-[14px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
+                                                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
                                                     </div>
-                                                    <div className="w-px h-4 bg-gray-200"></div>
+                                                    <div className="w-px h-4 bg-gray-200 mx-auto"></div>
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
-                                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
+                                                        <span className="text-[14px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
+                                                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
                                                     </div>
                                                 </div>
                                             </div>

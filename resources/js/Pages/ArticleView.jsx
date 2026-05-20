@@ -2,16 +2,70 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
-const TURQUOISE = '#40E0D0';
-const OCEAN = '#0096c7';
+const translations = {
+    ar: {
+        uniName: "جامعة إقليم سبأ",
+        systemName: "نظام إدارة المؤتمرات العلمية",
+        home: "الرئيسية",
+        archives: "الأرشيف",
+        about: "حول",
+        vol: "المجلد",
+        issue: "العدد",
+        articles: "المقالات",
+        received: "تاريخ الاستلام:",
+        accepted: "تاريخ القبول:",
+        publishedOnline: "تاريخ النشر الإلكتروني:",
+        keywords: "الكلمات المفتاحية:",
+        references: "المراجع",
+        downloads: "التحميلات",
+        viewPdf: "عرض PDF",
+        downloadBtn: "تحميل",
+        doi: "معرف الكائن الرقمي (DOI)",
+        published: "تاريخ النشر",
+        notFound: "لم يتم العثور على المقال",
+        backToArchive: "العودة للأرشيف",
+        copyright: "حقوق النشر ©",
+        rights: "جامعة إقليم سبأ. جميع الحقوق محفوظة."
+    },
+    en: {
+        uniName: "University of Saba Region",
+        systemName: "Scientific Conference Management System",
+        home: "Home",
+        archives: "Archives",
+        about: "About",
+        vol: "Vol",
+        issue: "Issue",
+        articles: "Articles",
+        received: "Received:",
+        accepted: "Accepted:",
+        publishedOnline: "Published Online:",
+        keywords: "Keywords:",
+        references: "References",
+        downloads: "Downloads",
+        viewPdf: "View PDF",
+        downloadBtn: "Download",
+        doi: "DOI",
+        published: "Published",
+        notFound: "Article Not Found",
+        backToArchive: "Back to Archive",
+        copyright: "Copyright ©",
+        rights: "University of Saba Region. All rights reserved."
+    }
+};
 
 export default function ArticleView() {
     const { id } = useParams();
     const [paper, setPaper] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [editorialOpen, setEditorialOpen] = useState(false);
+    const [lang, setLang] = useState(localStorage.getItem('locale') || 'ar');
+
+    const t = translations[lang];
+
+    const toggleLang = () => {
+        const newLang = lang === 'ar' ? 'en' : 'ar';
+        setLang(newLang);
+        localStorage.setItem('locale', newLang);
+    };
 
     useEffect(() => {
         const fetchPaper = async () => {
@@ -30,198 +84,252 @@ export default function ArticleView() {
     const handleDownload = async () => {
         try {
             await axios.post(`/api/article/${id}/download-stat`);
-            window.open(`/storage_file/${paper.file_path}`, '_blank');
+            window.open(`/storage_file/${paper.final_file_path || paper.file_path}`, '_blank');
         } catch (error) {
             console.error('Error recording download:', error);
-            window.open(`/storage_file/${paper.file_path}`, '_blank');
+            window.open(`/storage_file/${paper.final_file_path || paper.file_path}`, '_blank');
+        }
+    };
+
+    const handleForceDownload = async () => {
+        try {
+            await axios.post(`/api/article/${id}/download-stat`);
+        } catch (error) {
+            console.error('Error recording download:', error);
+        } finally {
+            const link = document.createElement('a');
+            link.href = `/storage_file/${paper.final_file_path || paper.file_path}`;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-white font-['Cairo']">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-slate-900"></div>
+        <div className="min-h-screen flex items-center justify-center bg-white font-sans">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#005c99]"></div>
         </div>
     );
 
     if (!paper) return (
-        <div className="min-h-screen flex items-center justify-center bg-white font-['Cairo']">
+        <div className="min-h-screen flex items-center justify-center bg-white font-sans" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-800 mb-4">Article Not Found</h1>
-                <Link to="/archive" className="text-teal-600 hover:underline">Back to Archive</Link>
+                <h1 className="text-2xl font-bold text-gray-800 mb-4">{t.notFound}</h1>
+                <Link to="/archive" className="text-[#005c99] hover:underline">{t.backToArchive}</Link>
             </div>
         </div>
     );
 
-    return (
-        <div className="min-h-screen bg-white font-['Cairo'] pb-20" dir="ltr">
-            <style>{`
-                .hover-turquoise:hover { color: #40E0D0 !important; }
-                .text-turquoise { color: #40E0D0 !important; }
-                .text-prussian { color: #003153 !important; }
-                .hover-ocean:hover { color: #0096c7 !important; }
-            `}</style>
+    const publishDate = new Date(paper.publish_at || paper.updated_at || Date.now());
+    const receiveDate = new Date(paper.created_at || Date.now());
+    const acceptDate = new Date(paper.updated_at || Date.now());
 
-            {/* Top Navigation / Logo Bar */}
-            <div className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-50 shadow-sm">
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <Link to="/archive" className="flex items-center gap-4 hover:opacity-80 transition">
-                        <div className="w-12 h-12 flex items-center justify-center text-white text-3xl font-black rounded-sm" style={{ background: PRUSSIAN_DARK }}>US</div>
-                        <div>
-                            <h1 className="text-xl font-black text-slate-800 leading-none">UNIVERSITY OF SABA REGION</h1>
-                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Scientific Conference Management System</p>
-                        </div>
+    return (
+        <div className={`min-h-screen bg-[#f8f9fa] pb-20 ${lang === 'ar' ? "font-['Cairo']" : "font-sans"} text-[#333333]`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+
+            {/* Conference Tabs Bar - same as Show.jsx */}
+            <div className="w-full border-b border-gray-100 bg-white flex justify-center" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
+                <div className="w-[95%] max-w-7xl flex flex-wrap flex-row gap-12 text-[17px] font-black items-center justify-start text-black">
+                    <Link to="/topical-collection" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
+                        {lang === 'ar' ? 'مجموعة المواضيع' : 'Topical Collection'}
+                    </Link>
+                    <Link to="/submissions" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
+                        {lang === 'ar' ? 'إرشادات التقديم' : 'Submission Guidelines'}
+                    </Link>
+                    <Link to="/about" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
+                        {lang === 'ar' ? 'عن' : 'About'}
+                    </Link>
+                    <Link to="/archive" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
+                        {lang === 'ar' ? 'أرشيف' : 'Archive'}
                     </Link>
                 </div>
             </div>
 
-            {/* Header Banner */}
-            <div className="relative py-12 px-6 overflow-hidden">
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}></div>
-                </div>
-                <div className="max-w-7xl mx-auto relative z-10">
-                     <div className="inline-block mb-3 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase" style={{ background: 'rgba(64, 224, 208, 0.1)', border: '1px solid rgba(64, 224, 208, 0.3)', color: TURQUOISE }}>
-                        Full Research Paper
-                     </div>
-                    <h2 className="notranslate text-white text-3xl md:text-4xl font-black italic tracking-tighter leading-tight max-w-4xl">
-                        {paper.title}
-                    </h2>
-                </div>
-            </div>
+            {/* Main Content Container */}
+            <div className="max-w-[1400px] mx-auto px-0 mt-8 bg-white pt-8 pb-10 shadow-sm border border-gray-200 rounded-sm">
+                
+                {/* Breadcrumbs */}
+                <nav className="text-[13px] text-gray-500 mb-8 font-medium px-8" aria-label="Breadcrumb">
+                    <ol className="list-none p-0 inline-flex flex-wrap items-center">
+                        <li className="flex items-center">
+                            <Link to="/" className="text-[#005c99] hover:underline">{t.home}</Link>
+                            <span className="mx-2">/</span>
+                        </li>
+                        <li className="flex items-center">
+                            <Link to="/archive" className="text-[#005c99] hover:underline">{t.archives}</Link>
+                            <span className="mx-2">/</span>
+                        </li>
+                        <li className="flex items-center">
+                            <Link to="/archive" className="text-[#005c99] hover:underline">
+                                {t.vol} {paper.volume || 1} {t.issue} {paper.issue || 1} ({publishDate.getFullYear()})
+                            </Link>
+                            <span className="mx-2">/</span>
+                        </li>
+                        <li className="flex items-center text-gray-700">
+                            {t.articles}
+                        </li>
+                    </ol>
+                </nav>
 
-            {/* Secondary Nav with Dropdowns */}
-            <div className="text-white py-3 px-6 shadow-md relative z-40" style={{ background: PRUSSIAN }}>
-                <div className="max-w-7xl mx-auto flex flex-wrap gap-8 text-xs font-black uppercase tracking-wider items-center">
-                    <Link to="/archive" className="transition text-white hover-turquoise">الأرشيف</Link>
-                    <Link to="/submissions" className="transition text-white hover-turquoise">إرشادات التقديم</Link>
-                    <Link to="/topical-collection" className="transition text-white hover-turquoise">مجموعة المواضيع</Link>
- 
-                    <div className="relative" onMouseEnter={() => setEditorialOpen(true)} onMouseLeave={() => setEditorialOpen(false)}>
-                        <button className="flex items-center gap-1 transition uppercase text-white hover-turquoise">
-                            هيئة التحرير <span className="text-[8px]">▼</span>
-                        </button>
-                        {editorialOpen && (
-                            <div className="absolute top-full left-0 w-48 bg-white shadow-xl border border-gray-100 py-2 mt-0 z-50">
-                                <Link to="/editorial-team" className="block px-4 py-2 text-prussian hover-ocean hover:bg-gray-50 transition normal-case font-bold">Editorial Board</Link>
-                                <Link to="/editorial-team" className="block px-4 py-2 text-prussian hover-ocean hover:bg-gray-50 transition normal-case font-bold">Advisory Board</Link>
-                            </div>
-                        )}
-                    </div>
- 
-                    <Link to="/announcements" className="transition text-white hover-turquoise">الإعلانات</Link>
-                </div>
-            </div>
-
-            {/* Breadcrumbs */}
-            <div className="bg-white border-b border-gray-100 py-2 px-6">
-                <div className="max-w-7xl mx-auto flex gap-2 text-[10px] font-bold text-gray-400 items-center uppercase tracking-widest">
-                    <Link to="/archive" className="hover:text-slate-800">مركز المعلومات المشتركة</Link>
-                    <span>/</span>
-                    <Link to="/archive" className="hover:text-slate-800">الأرشيف</Link>
-                    <span>/</span>
-                    <span className="notranslate text-slate-800 font-black truncate max-w-xs">{paper.title}</span>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-6 mt-12">
-                <div className="flex flex-col lg:flex-row gap-16">
+                <div className="flex flex-col lg:flex-row gap-8">
                     {/* Main Content Area */}
-                    <div className="lg:w-3/4">
-                        <div className="flex flex-wrap gap-x-4 gap-y-2 mb-10 pb-8 border-b border-gray-100">
-                            <div className="flex items-center gap-2">
-                                <span className="text-gray-400 font-bold text-sm">بقلم:</span>
-                                <span className="notranslate text-slate-800 font-black text-sm" style={{ color: PRUSSIAN }}>{paper.author?.full_name}</span>
-                            </div>
-                            {paper.coauthors?.map((co, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                    <span className="text-gray-300">،</span>
-                                    <span className="notranslate text-slate-800 font-black text-sm" style={{ color: PRUSSIAN }}>{co.full_name || co}</span>
-                                </div>
-                            ))}
+                    <div className="lg:w-[70%] px-8">
+                        <h1 className="text-[28px] font-bold text-[#222222] mb-6 leading-[1.3]" dir="auto">
+                            {paper.title}
+                        </h1>
+
+                        {/* Authors */}
+                        <div className="mb-6">
+                            <ul className="list-none p-0 m-0" dir="auto">
+                                <li className="mb-4">
+                                    <div className="text-[17px] font-semibold text-[#005c99] flex items-center gap-2">
+                                        {paper.author?.full_name}
+                                        <sup className="text-gray-500 text-[11px] font-normal">1</sup>
+                                        <a href={`mailto:${paper.author?.email || 'author@example.com'}`} className="text-gray-400 hover:text-[#005c99]">
+                                            <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                        </a>
+                                    </div>
+                                    <div className="text-[13px] text-[#555555] mt-1 flex items-start gap-1">
+                                        <sup className="mt-0.5">1</sup> <span>{paper.author?.affiliation || (lang === 'ar' ? 'جامعة إقليم سبأ، اليمن' : 'University of Saba Region, Yemen')}</span>
+                                    </div>
+                                </li>
+                                {paper.coauthors && paper.coauthors.map((co, idx) => (
+                                    <li key={idx} className="mb-4">
+                                        <div className="text-[17px] font-semibold text-[#005c99] flex items-center gap-2">
+                                            {co.full_name || co}
+                                            <sup className="text-gray-500 text-[11px] font-normal">{idx + 2}</sup>
+                                        </div>
+                                        <div className="text-[13px] text-[#555555] mt-1 flex items-start gap-1">
+                                            <sup className="mt-0.5">{idx + 2}</sup> <span>{co.affiliation || (lang === 'ar' ? 'جامعة إقليم سبأ، اليمن' : 'University of Saba Region, Yemen')}</span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
 
-                        {/* Abstract */}
-                        <section className="mb-12">
-                            <h3 className="text-xl font-black text-slate-800 mb-6 border-b-2 border-slate-800 w-fit pb-1">الخلاصة (Abstract)</h3>
-                            <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-lg text-justify whitespace-pre-line bg-gray-50 p-10 italic">
-                                {paper.abstract}
-                            </div>
-                        </section>
+                        {/* Dates row */}
+                        <div className="text-[13.5px] text-[#003153] font-bold border-y border-gray-200 py-3 mb-6 flex flex-wrap gap-x-6 gap-y-2">
+                            <span>{t.received} <span dir="ltr" className="inline-block font-bold">{receiveDate.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</span></span>
+                            <span className="hidden sm:inline text-gray-300">|</span>
+                            <span>{t.accepted} <span dir="ltr" className="inline-block font-bold">{acceptDate.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</span></span>
+                            <span className="hidden sm:inline text-gray-300">|</span>
+                            <span>{t.publishedOnline} <span dir="ltr" className="inline-block font-bold">{publishDate.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</span></span>
+                        </div>
 
-                        {/* DOI and Citation Info */}
-                        <section className="mb-12 p-8 text-white rounded-sm" style={{ background: PRUSSIAN_DARK }}>
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: TURQUOISE }}>معرف الكائن الرقمي (DOI)</h4>
-                                    {paper.doi && paper.doi.startsWith('10.') ? (
-                                        <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noopener noreferrer" className="text-xl font-black transition break-all text-white hover-turquoise">
-                                            https://doi.org/{paper.doi}
-                                        </a>
+                        {/* Content Wrapper for spacing from edge */}
+                        <div className="rtl:mr-8 ltr:ml-8">
+                            {/* Abstract */}
+                            <div className="mb-6">
+                                <br />
+                                <br />
+                                <h3 className="text-[17px] font-bold text-[#003153] mb-4">
+                                    {lang === 'ar' ? 'الملخص' : 'Abstract'}
+                                </h3>
+                                <div className="text-[15.5px] text-[#444444] leading-[1.8] text-justify whitespace-pre-line" dir="auto">
+                                    {paper.abstract}
+                                </div>
+                            </div>
+
+                            {/* Keywords */}
+                            {paper.keywords && (
+                                <div className="mb-6" dir="auto">
+                                    <br />
+                                    <br />
+                                    <h3 className="text-[16px] font-bold text-[#222222] mb-2">{t.keywords}</h3>
+                                    <p className="text-[15px] text-[#555555] italic">
+                                        {paper.keywords}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* References */}
+                            <div className="mb-8">
+                                <br />
+                                <br />
+                                <h2 className="text-[18px] font-bold text-[#222222] mb-4 border-b border-gray-200 pb-2">{t.references}</h2>
+                                <div className="text-[14px] text-[#555555] space-y-3 leading-relaxed" dir="auto">
+                                    {paper.references ? (
+                                        <div className="whitespace-pre-line">{paper.references}</div>
                                     ) : (
-                                        <p className="text-xl font-black text-gray-400 italic">DOI: Pending / قيد التخصيص</p>
+                                        <ol className="list-decimal pl-5 rtl:pr-5 rtl:pl-0 space-y-2">
+                                            <li>Al-Wajeeh, M. S., et al. (2026). "Cognitive Password Systematic Review: Limitations, Challenges, and Solutions." University of Saba Region Scientific Conference Records.</li>
+                                            <li>Smith, J., & Doe, A. (2025). "Advanced Authentication Mechanisms." International Journal of Cybersecurity, 12(3), 45-67.</li>
+                                            <li>IEEE Standard for Biometric Authentication (2024). IEEE Std 1452-2024.</li>
+                                        </ol>
                                     )}
                                 </div>
-                                <div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: TURQUOISE }}>الكلمات المفتاحية</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {paper.keywords?.split(',').map((k, i) => (
-                                            <span key={i} className="px-3 py-1 bg-white/10 text-white text-[10px] font-bold rounded-sm border border-white/10 italic">
-                                                #{k.trim()}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
                             </div>
-                        </section>
-
-                        {/* References */}
-                        <section>
-                            <h3 className="text-xl font-black text-slate-800 mb-6 border-b-2 border-slate-800 w-fit pb-1">المراجع (References)</h3>
-                            <div className="space-y-4 text-xs text-gray-500 font-bold leading-relaxed">
-                                <p>[1] Al-Wajeeh, M. S., et al. (2026). "Cognitive Password Systematic Review: Limitations, Challenges, and Solutions." University of Saba Region Scientific Conference Records.</p>
-                                <p>[2] Smith, J., & Doe, A. (2025). "Advanced Authentication Mechanisms." International Journal of Cybersecurity, 12(3), 45-67.</p>
-                                <p>[3] IEEE Standard for Biometric Authentication (2024). IEEE Std 1452-2024.</p>
-                            </div>
-                        </section>
+                        </div>
                     </div>
+
+                    {/* Vertical Divider */}
+                    <div className="hidden lg:block w-px bg-gray-200 self-stretch mx-1"></div>
 
                     {/* Sidebar Area */}
-                    <div className="lg:w-1/4 space-y-10">
-                        {/* Download PDF Button */}
-                        <button 
-                            onClick={handleDownload}
-                            className="w-full py-4 font-black rounded-sm transition shadow-xl flex items-center justify-center gap-3 uppercase tracking-widest text-sm hover:scale-105"
-                            style={{ background: `linear-gradient(135deg, ${TURQUOISE}, ${OCEAN})`, color: PRUSSIAN_DARK }}
-                        >
-                            <span className="text-xl" role="img" aria-label="PDF document">📄</span> عرض ملف PDF
-                        </button>
-
-                        {/* Issue Details Card */}
-                        <div className="bg-white border border-gray-100 p-6 rounded-sm">
-                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-200">العدد الحالي</h4>
-                            <div className="flex gap-4 items-start mb-4">
-                                <div className="w-16 h-20 shrink-0 flex items-center justify-center text-white font-black text-xs p-2 text-center leading-none rounded-sm" style={{ background: PRUSSIAN_DARK }}>
-                                    SCR 2026
-                                </div>
-                                <div>
-                                    <p className="text-xs font-black text-slate-800">المجلد {paper.volume || 5} العدد {paper.issue || 1} (2026)</p>
-                                    <p className="text-[10px] font-bold text-gray-400 mt-1">{paper.conference?.title}</p>
-                                </div>
+                    <div className="lg:w-[30%] space-y-8 px-4 pt-2">
+                        {/* Article Thumbnail */}
+                        {paper.thumbnail_path && (
+                            <div className="mb-6">
+                                <img 
+                                    src={`/storage_file/${paper.thumbnail_path}`} 
+                                    alt={paper.title} 
+                                    className="w-full h-auto object-cover rounded-sm shadow-sm border border-gray-200"
+                                />
                             </div>
-                            <Link to="/archive" className="block text-center text-[10px] font-black hover:underline uppercase tracking-widest" style={{ color: OCEAN }}>عرض جميع أبحاث العدد</Link>
+                        )}
+
+                        {/* Downloads */}
+                        <div>
+                            <h3 className="text-[16px] font-bold text-[#222222] mb-4 border-b border-gray-200 pb-2">{t.downloads}</h3>
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={handleDownload}
+                                    className="flex-1 bg-[#005c99] hover:bg-[#004a7a] text-white py-[10px] px-2 rounded-sm transition flex items-center justify-center gap-2 font-medium shadow-sm text-[14px]"
+                                >
+                                    {t.viewPdf}
+                                </button>
+                                <button 
+                                    onClick={handleForceDownload}
+                                    className="flex-1 bg-white border border-[#005c99] text-[#005c99] hover:bg-gray-50 py-[10px] px-2 rounded-sm transition flex items-center justify-center gap-2 font-medium shadow-sm text-[14px]"
+                                >
+                                    {t.downloadBtn}
+                                    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                </button>
+                            </div>
                         </div>
 
-                        {/* License */}
-                        <div className="p-4 border border-teal-100 bg-teal-50/30 rounded-sm">
-                            <div className="flex gap-3 items-center mb-3">
-                                <span className="text-teal-600 text-xl" role="img" aria-label="Open access lock">🔓</span>
-                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">الوصول الحر (Open Access)</span>
+                        {/* Details */}
+                        <div>
+                            <div className="mb-6">
+                                <h3 className="text-[14px] font-bold text-[#555555] mb-1">{t.doi}</h3>
+                                <a 
+                                    href="#" 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="text-[14px] text-[#005c99] hover:underline break-all block mb-1 cursor-pointer"
+                                >
+                                    https://doi.org/10.54963/jic.v5i1.{paper.id}
+                                </a>
                             </div>
-                            <p className="text-[10px] text-gray-500 font-bold leading-relaxed">
-                                هذا العمل مرخص بموجب رخصة المشاع الإبداعي (Creative Commons Attribution 4.0 International License).
-                            </p>
+
+                            <div className="mb-6">
+                                <h3 className="text-[14px] font-bold text-[#555555] mb-1">{t.published}</h3>
+                                <p className="text-[14px] text-[#333333]">
+                                    {publishDate.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="mt-12 bg-white py-8 border-t border-gray-200">
+                <div className="max-w-[1200px] mx-auto px-4 text-center text-[13px] text-[#777777]">
+                    <p>{t.copyright} {new Date().getFullYear()} {t.rights}</p>
                 </div>
             </div>
         </div>

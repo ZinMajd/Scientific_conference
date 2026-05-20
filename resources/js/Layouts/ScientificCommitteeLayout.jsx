@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -7,6 +7,16 @@ export default function ScientificCommitteeLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
+    const [currentLang, setCurrentLang] = useState(() => localStorage.getItem('locale') || 'ar');
+
+    useEffect(() => {
+        const handleLangChange = (e) => {
+            setCurrentLang(e.detail || localStorage.getItem('locale') || 'ar');
+        };
+        window.addEventListener('languageChanged', handleLangChange);
+        return () => window.removeEventListener('languageChanged', handleLangChange);
+    }, []);
+
     const user = (() => {
         try {
             const saved = localStorage.getItem('user');
@@ -26,95 +36,94 @@ export default function ScientificCommitteeLayout() {
 
     const menuItems = [
         {
-            title: 'لوحة التحكم',
+            title: currentLang === 'en' ? 'Dashboard' : 'لوحة التحكم',
             icon: '📊',
             path: '/committee',
-            group: 'الرئيسية',
+            group: currentLang === 'en' ? 'Main' : 'الرئيسية',
             allowedRoles: ['committee', 'editor', 'office']
         },
         {
-            title: 'إدارة المؤتمرات',
+            title: currentLang === 'en' ? 'Conferences' : 'إدارة المؤتمرات',
             icon: '🏛️',
             path: '/committee/conferences',
-            group: 'المؤتمرات',
+            group: currentLang === 'en' ? 'Conferences' : 'المؤتمرات',
             allowedRoles: [], // Only chair/admin
             subItems: [
-                { title: 'إنشاء مؤتمر جديد', path: '/committee/conferences/create' },
-                { title: 'تعديل بيانات المؤتمر', path: '/committee/conferences' },
-                { title: 'إغلاق المؤتمر', path: '/committee/conferences' }
+                { title: currentLang === 'en' ? 'Create New' : 'إنشاء مؤتمر جديد', path: '/committee/conferences/create' },
+                { title: currentLang === 'en' ? 'Edit Details' : 'تعديل بيانات المؤتمر', path: '/committee/conferences' },
+                { title: currentLang === 'en' ? 'Close Conference' : 'إغلاق المؤتمر', path: '/committee/conferences' }
             ]
         },
         {
-            title: 'إدارة الأبحاث',
+            title: currentLang === 'en' ? 'Research Management' : 'إدارة الأبحاث',
             icon: '📄',
             path: '/committee/research',
-            group: 'الأبحاث',
+            group: currentLang === 'en' ? 'Research' : 'الأبحاث',
             allowedRoles: ['committee', 'editor', 'office'],
             subItems: [
-                { title: 'عرض الأبحاث', path: '/committee/research', allowedRoles: ['committee', 'editor', 'office'] },
-                { title: 'فرز الأبحاث', path: '/committee/research/sort', allowedRoles: ['committee', 'editor', 'office'] },
-                { title: 'اتخاذ القرار الأولي', path: '/committee/research/decisions', allowedRoles: ['committee'] }
+                { title: currentLang === 'en' ? 'View Papers' : 'عرض الأبحاث', path: '/committee/research', allowedRoles: ['committee', 'editor', 'office'] },
+                { title: currentLang === 'en' ? 'Sort Papers' : 'فرز الأبحاث', path: '/committee/research/sort', allowedRoles: ['committee', 'editor', 'office'] },
+                { title: currentLang === 'en' ? 'Initial Decision' : 'اتخاذ القرار الأولي', path: '/committee/research/decisions', allowedRoles: ['committee'] }
             ]
         },
         {
-            title: 'إدارة المحكمين',
+            title: currentLang === 'en' ? 'Reviewers' : 'إدارة المحكمين',
             icon: '👨‍🏫',
             path: '/committee/reviewers',
-            group: 'المحكمين',
+            group: currentLang === 'en' ? 'Reviewers' : 'المحكمين',
             allowedRoles: ['committee', 'editor', 'office']
         },
         {
-            title: 'نتائج التحكيم',
+            title: currentLang === 'en' ? 'Review Results' : 'نتائج التحكيم',
             icon: '⚖️',
             path: '/committee/results',
-            group: 'النتائج',
+            group: currentLang === 'en' ? 'Results' : 'النتائج',
             allowedRoles: ['committee'],
             subItems: [
-                { title: 'مراجعة التقييمات', path: '/committee/results' },
-                { title: 'التوصية بالقبول/الرفض', path: '/committee/research/recommend' }
+                { title: currentLang === 'en' ? 'Review Assessments' : 'مراجعة التقييمات', path: '/committee/results' },
+                { title: currentLang === 'en' ? 'Recommend Decision' : 'التوصية بالقبول/الرفض', path: '/committee/research/recommend' }
             ]
         },
         {
-            title: 'إدارة الجلسات',
+            title: currentLang === 'en' ? 'Sessions' : 'إدارة الجلسات',
             icon: '🕒',
             path: '/committee/sessions',
-            group: 'التنظيم',
+            group: currentLang === 'en' ? 'Sessions' : 'التنظيم',
             allowedRoles: ['committee'],
             subItems: [
-                { title: 'إنشاء جلسة', path: '/committee/sessions/create' },
-                { title: 'جدولة الجلسات', path: '/committee/sessions' },
-                { title: 'برنامج المؤتمر', path: '/committee/sessions/program' }
+                { title: currentLang === 'en' ? 'Create Session' : 'إنشاء جلسة', path: '/committee/sessions/create' },
+                { title: currentLang === 'en' ? 'Schedule' : 'جدولة الجلسات', path: '/committee/sessions' },
+                { title: currentLang === 'en' ? 'Program' : 'برنامج المؤتمر', path: '/committee/sessions/program' }
             ]
         },
         {
-            title: 'الشهادات',
+            title: currentLang === 'en' ? 'Certificates' : 'الشهادات',
             icon: '📜',
             path: '/committee/certificates',
-            group: 'الوثائق',
+            group: currentLang === 'en' ? 'Documents' : 'الوثائق',
             allowedRoles: ['office'],
             subItems: [
-                { title: 'توليد الشهادات', path: '/committee/certificates/generate' },
-                { title: 'اعتماد الشهادات', path: '/committee/certificates/approve' }
+                { title: currentLang === 'en' ? 'Generate' : 'توليد الشهادات', path: '/committee/certificates/generate' },
+                { title: currentLang === 'en' ? 'Approve' : 'اعتماد الشهادات', path: '/committee/certificates/approve' }
             ]
         },
         {
-            title: 'التقارير',
+            title: currentLang === 'en' ? 'Reports' : 'التقارير',
             icon: '📈',
             path: '/committee/reports',
-            group: 'الإحصائيات',
+            group: currentLang === 'en' ? 'Statistics' : 'الإحصائيات',
             allowedRoles: ['office'],
             subItems: [
-                { title: 'تقارير الأبحاث', path: '/committee/reports/research' },
-                { title: 'تقارير المحكمين', path: '/committee/reports/reviewers' },
-                { title: 'إحصائيات المؤتمر', path: '/committee/reports/stats' }
+                { title: currentLang === 'en' ? 'Research Reports' : 'تقارير الأبحاث', path: '/committee/reports/research' },
+                { title: currentLang === 'en' ? 'Reviewer Reports' : 'تقارير المحكمين', path: '/committee/reports/reviewers' },
+                { title: currentLang === 'en' ? 'Statistics' : 'إحصائيات المؤتمر', path: '/committee/reports/stats' }
             ]
         },
         {
-            title: 'الإشعارات',
-
+            title: currentLang === 'en' ? 'Notifications' : 'الإشعارات',
             icon: '🔔',
             path: '/committee/notifications',
-            group: 'النظام',
+            group: currentLang === 'en' ? 'System' : 'النظام',
             allowedRoles: ['committee', 'editor', 'office']
         }
     ].filter(item => hasAccess(item.allowedRoles));
@@ -140,12 +149,38 @@ export default function ScientificCommitteeLayout() {
     };
 
     const getActiveStyle = (path, subItems) => 
-        isActive(path, subItems) ? 'bg-white/10 text-white shadow-lg border-r-4 border-teal-400' : 'text-gray-300 hover:bg-white/5 hover:text-white';
+        isActive(path, subItems) 
+            ? `bg-white/10 text-white shadow-lg ${currentLang === 'en' ? 'border-l-4 border-teal-400' : 'border-r-4 border-teal-400'}` 
+            : 'text-gray-300 hover:bg-white/5 hover:text-white';
 
-    const isSubActive = (path) => location.pathname === path ? 'text-teal-400 font-bold border-r-2 border-teal-400 pr-4 -mr-4' : 'text-gray-400 hover:text-teal-400 transition';
+    const isSubActive = (path) => location.pathname === path 
+        ? `text-teal-400 font-bold ${currentLang === 'en' ? 'border-l-2 pl-4 -ml-4' : 'border-r-2 pr-4 -mr-4'} border-teal-400` 
+        : 'text-gray-400 hover:text-teal-400 transition';
+
+    const getRoleName = () => {
+        if (currentLang === 'en') {
+            switch(user?.user_type) {
+                case 'chair': return 'Conference Chair';
+                case 'office': return 'Editorial Office';
+                case 'production_office': return 'Production Office';
+                case 'editor': return 'Scientific Editor';
+                case 'admin': return 'System Administrator';
+                default: return 'Scientific Committee';
+            }
+        } else {
+            switch(user?.user_type) {
+                case 'chair': return 'رئيس المؤتمر';
+                case 'office': return 'مكتب التحرير';
+                case 'production_office': return 'مكتب الإنتاج والنشر';
+                case 'editor': return 'المحرر العلمي';
+                case 'admin': return 'إدارة النظام';
+                default: return 'اللجنة العلمية';
+            }
+        }
+    };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-row font-['Cairo', sans-serif]" dir="rtl">
+        <div className={`min-h-screen bg-gray-50 flex flex-row ${currentLang === 'en' ? 'font-sans' : "font-['Cairo',_sans-serif]"}`} dir={currentLang === 'en' ? 'ltr' : 'rtl'}>
             {/* Sidebar */}
             <aside 
                 className={`${isSidebarOpen ? 'w-80' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
@@ -155,15 +190,13 @@ export default function ScientificCommitteeLayout() {
                     {isSidebarOpen && (
                         <div className="flex flex-col">
                             <span className="text-xl font-black text-white truncate">
-                                {user?.user_type === 'chair' ? 'رئيس المؤتمر' : 
-                                 user?.user_type === 'office' ? 'مكتب التحرير' : 
-                                 user?.user_type === 'production_office' ? 'مكتب الإنتاج والنشر' : 
-                                 user?.user_type === 'editor' ? 'المحرر العلمي' : 
-                                 user?.user_type === 'admin' ? 'إدارة النظام' : 'اللجنة العلمية'}
+                                {getRoleName()}
                             </span>
-                            <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest mt-1">جامعة إقليم سبأ</span>
+                            <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest mt-1">
+                                {currentLang === 'en' ? 'University of Saba Region' : 'جامعة إقليم سبأ'}
+                            </span>
                             <Link to="/researcher" className="mt-2 block text-[10px] bg-white/10 text-center py-1 rounded hover:bg-white/20 transition text-white">
-                                دخول لوحة الباحث ←
+                                {currentLang === 'en' ? 'Researcher Panel ←' : 'دخول لوحة الباحث ←'}
                             </Link>
                         </div>
                     )}
@@ -190,7 +223,7 @@ export default function ScientificCommitteeLayout() {
                             </Link>
                             
                             {isSidebarOpen && item.subItems && (
-                                <div className="mr-6 border-r border-teal-400/20 pr-4 mt-1 space-y-1 h-auto overflow-hidden">
+                                <div className={`${currentLang === 'en' ? 'ml-6 border-l pl-4' : 'mr-6 border-r pr-4'} border-teal-400/20 mt-1 space-y-1 h-auto overflow-hidden`}>
                                     {item.subItems.map((sub, sIdx) => (
                                         <Link 
                                             key={sIdx} 
@@ -212,7 +245,7 @@ export default function ScientificCommitteeLayout() {
                         className="w-full flex items-center gap-4 p-3 text-red-400 hover:bg-red-400/10 rounded-xl transition"
                     >
                         <span>🚪</span>
-                        {isSidebarOpen && <span className="font-bold">تسجيل الخروج</span>}
+                        {isSidebarOpen && <span className="font-bold">{currentLang === 'en' ? 'Logout' : 'تسجيل الخروج'}</span>}
                     </button>
                 </div>
             </aside>

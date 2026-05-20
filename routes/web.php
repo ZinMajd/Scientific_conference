@@ -18,14 +18,40 @@ Route::get('/storage_file/{path}', function ($path) {
     foreach ($bases as $base) {
         $filePath = $base . $path;
         if (file_exists($filePath) && !is_dir($filePath)) {
-            return response()->file($filePath);
+            $headers = [];
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            if ($ext === 'pdf') {
+                $headers = [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+                ];
+            } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                $headers = [
+                    'Content-Type' => 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext),
+                    'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+                ];
+            }
+            return response()->file($filePath, $headers);
         }
     }
 
     // Fallback: If path already contains 'public/' or 'private/'
     $directPath = storage_path('app/' . $path);
     if (file_exists($directPath) && !is_dir($directPath)) {
-        return response()->file($directPath);
+        $headers = [];
+        $ext = strtolower(pathinfo($directPath, PATHINFO_EXTENSION));
+        if ($ext === 'pdf') {
+            $headers = [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($directPath) . '"'
+            ];
+        } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+            $headers = [
+                'Content-Type' => 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext),
+                'Content-Disposition' => 'inline; filename="' . basename($directPath) . '"'
+            ];
+        }
+        return response()->file($directPath, $headers);
     }
 
     \Illuminate\Support\Facades\Log::error("File not found in any storage base: " . $path);
@@ -59,6 +85,9 @@ Route::prefix('api')->group(function () {
     Route::post('/invitation/complete', [\App\Http\Controllers\Api\CommitteeController::class, 'registerFromInvitation']);
     Route::post('/support', [\App\Http\Controllers\SupportController::class, 'store']);
 
+    // Password Reset Routes (public)
+    Route::post('/forgot-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'sendResetLink']);
+    Route::post('/reset-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/user', function (Request $request) {

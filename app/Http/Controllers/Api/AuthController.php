@@ -157,8 +157,13 @@ class AuthController extends Controller
         $expectedRole = $roleMap[$request->role] ?? null;
 
         if ($user->user_type !== $expectedRole) {
-            Auth::logout();
-            return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
+            // الاستثناء: مدراء النظام يمكنهم الدخول كـ (إدارة النظام) بغض النظر عن نوع حسابهم الأساسي
+            if ($expectedRole === 'admin' && $user->hasRole('system_admin')) {
+                // مسموح
+            } else {
+                Auth::logout();
+                return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
+            }
         }
 
         // 6. إنشاء الجلسة والتوكن (Session & Sanctum Token)

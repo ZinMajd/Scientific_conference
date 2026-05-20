@@ -2,13 +2,110 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
 
+const t = {
+    ar: {
+        title: 'إدارة الأبحاث العلمية',
+        subtitle: 'مراقبة، مراجعة، وتوزيع الأبحاث العلمية على المحكمين',
+        export: 'تصدير البيانات',
+        refresh: 'تحديث البيانات',
+        totalPapers: 'إجمالي الأبحاث',
+        underReview: 'قيد التحكيم',
+        pendingDecision: 'بانتظار قرار',
+        accepted: 'مقبولة',
+        searchPlaceholder: 'بحث عن عنوان أو باحث...',
+        noPapers: 'لا توجد أبحاث',
+        loading: 'جاري التحميل...',
+        table: {
+            info: 'معلومات البحث',
+            conf: 'المؤتمر',
+            reviewers: 'المحكمون',
+            status: 'الحالة',
+            actions: 'الإجراءات'
+        },
+        tabs: {
+            all: 'الكل',
+            under_screening: 'الفحص الأولي',
+            resubmitted: 'تم التعديل',
+            preliminary_accepted: 'مقبول مبدئياً',
+            with_editor: 'تجهيز التحكيم',
+            ready_for_review: 'جاهز للتحكيم',
+            under_review: 'قيد التحكيم',
+            accepted: 'مقبول'
+        },
+        sort: {
+            newest: 'الأحدث أولاً',
+            oldest: 'الأقدم أولاً',
+            title: 'العنوان (أ-ي)',
+            highestPlagiarism: 'الأعلى اقتباساً',
+            lowestPlagiarism: 'الأقل اقتباساً'
+        }
+    },
+    en: {
+        title: 'Scientific Research Management',
+        subtitle: 'Monitor, review, and assign scientific papers to reviewers',
+        export: 'Export Data',
+        refresh: 'Refresh Data',
+        totalPapers: 'Total Papers',
+        underReview: 'Under Review',
+        pendingDecision: 'Pending Decision',
+        accepted: 'Accepted',
+        searchPlaceholder: 'Search title or author...',
+        noPapers: 'No research papers found',
+        loading: 'Loading...',
+        table: {
+            info: 'Research Info',
+            conf: 'Conference',
+            reviewers: 'Reviewers',
+            status: 'Status',
+            actions: 'Actions'
+        },
+        tabs: {
+            all: 'All',
+            under_screening: 'Initial Screening',
+            resubmitted: 'Resubmitted',
+            preliminary_accepted: 'Prelim. Accepted',
+            with_editor: 'Under Editor',
+            ready_for_review: 'Ready for Review',
+            under_review: 'Under Review',
+            accepted: 'Accepted'
+        },
+        sort: {
+            newest: 'Newest First',
+            oldest: 'Oldest First',
+            title: 'Title (A-Z)',
+            highestPlagiarism: 'Highest Plagiarism',
+            lowestPlagiarism: 'Lowest Plagiarism'
+        }
+    }
+};
+
 export default function CommitteeResearch() {
     const [papers, setPapers] = useState([]);
+    const [currentLang, setCurrentLang] = useState(() => localStorage.getItem('locale') || 'ar');
+
+    useEffect(() => {
+        const handleLangChange = (e) => {
+            setCurrentLang(e.detail || localStorage.getItem('locale') || 'ar');
+        };
+        window.addEventListener('languageChanged', handleLangChange);
+        return () => window.removeEventListener('languageChanged', handleLangChange);
+    }, []);
+
     const [stats, setStats] = useState({
         total_papers: 0,
         under_review: 0,
         pending_decision: 0,
-        accepted: 0
+        accepted: 0,
+        status_counts: {
+            all: 0,
+            under_screening: 0,
+            resubmitted: 0,
+            preliminary_accepted: 0,
+            with_editor: 0,
+            ready_for_review: 0,
+            under_review: 0,
+            accepted: 0
+        }
     });
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
@@ -62,18 +159,23 @@ export default function CommitteeResearch() {
 
     const fetchStats = async () => {
         try {
-            // Re-using committee stats endpoint for now, or could create specific one for papers
-            // optimizing: filter client side or added specific stats endpoint later
-            // For now using the main stats endpoint which gives total_papers.
-            // But we need breakdown. 
-            // Let's mock the breakdown or fetch separate counts if needed.
-            // For this iteration, let's keep stats static or simple until backend supports breakdown.
-            // We'll trust the main stats for total.
             const response = await axios.get('/api/committee/stats');
-            setStats(prev => ({
-                ...prev,
-                total_papers: response.data.total_papers
-            }));
+            setStats({
+                total_papers: response.data.total_papers,
+                under_review: response.data.under_review_count,
+                pending_decision: response.data.pending_decision_count,
+                accepted: response.data.accepted_count,
+                status_counts: response.data.status_counts || {
+                    all: 0,
+                    under_screening: 0,
+                    resubmitted: 0,
+                    preliminary_accepted: 0,
+                    with_editor: 0,
+                    ready_for_review: 0,
+                    under_review: 0,
+                    accepted: 0
+                }
+            });
         } catch (error) {
             console.error('Error fetching stats:', error);
         }
@@ -271,22 +373,27 @@ export default function CommitteeResearch() {
         <div className="space-y-10 animate-in fade-in duration-700 pb-20 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-emerald-950 font-['Cairo']">إدارة الأبحاث العلمية</h1>
-                    <p className="text-gray-500 font-medium">مراقبة، مراجعة، وتوزيع الأبحاث العلمية على المحكمين</p>
+                    <h1 className="text-3xl font-black text-emerald-950 font-['Cairo']">{t[currentLang].title}</h1>
+                    <p className="text-gray-500 font-medium">{t[currentLang].subtitle}</p>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={fetchPapers} className="p-3 bg-white border border-gray-200 text-gray-500 rounded-2xl hover:bg-emerald-50 hover:text-emerald-600 transition shadow-sm" title="تحديث البيانات">🔄</button>
-                    <button onClick={handleExport} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition shadow-sm">📥 تصدير البيانات</button>
+                    <button onClick={fetchPapers} className="p-3 bg-white border border-gray-200 text-gray-500 rounded-2xl hover:bg-emerald-50 hover:text-emerald-600 transition shadow-sm" title={currentLang === 'en' ? 'Refresh' : 'تحديث البيانات'}>🔄</button>
+                    <button onClick={handleExport} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition shadow-sm">📥 {t[currentLang].export}</button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {['إجمالي الأبحاث', 'قيد التحكيم', 'بانتظار قرار', 'مقبولة'].map((title, i) => (
+                {[
+                    { title: t[currentLang].totalPapers, value: stats.total_papers },
+                    { title: t[currentLang].underReview, value: stats.under_review },
+                    { title: t[currentLang].pendingDecision, value: stats.pending_decision },
+                    { title: t[currentLang].accepted, value: stats.accepted }
+                ].map((item, i) => (
                     <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
                         <div>
-                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{title}</p>
-                            <h4 className="text-2xl font-black text-emerald-950 mt-1">
-                                {i === 0 ? stats.total_papers : '-'}
+                            <p className="text-gray-400 text-sm font-black uppercase tracking-widest">{item.title}</p>
+                            <h4 className="text-xl font-bold text-emerald-950 mt-1">
+                                {item.value}
                             </h4>
                         </div>
                         <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">📊</div>
@@ -295,24 +402,27 @@ export default function CommitteeResearch() {
             </div>
 
             <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
-                <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
-                    <div className="flex gap-3">
+                <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-6">
+                    <div className="flex flex-wrap gap-4">
                         {[
-                            { label: 'الكل', value: 'all' },
-                            { label: 'الفحص الأولي', value: 'under_screening' },
-                            { label: 'تم التعديل', value: 'resubmitted' },
-                            { label: 'مقبول مبدئياً', value: 'preliminary_accepted' },
-                            { label: 'تجهيز التحكيم', value: 'with_editor' },
-                            { label: 'جاهز للتحكيم', value: 'ready_for_review' },
-                            { label: 'قيد التحكيم', value: 'under_review' },
-                            { label: 'مقبول', value: 'accepted' }
+                            { label: t[currentLang].tabs.all, value: 'all' },
+                            { label: t[currentLang].tabs.under_screening, value: 'under_screening' },
+                            { label: t[currentLang].tabs.resubmitted, value: 'resubmitted' },
+                            { label: t[currentLang].tabs.preliminary_accepted, value: 'preliminary_accepted' },
+                            { label: t[currentLang].tabs.with_editor, value: 'with_editor' },
+                            { label: t[currentLang].tabs.ready_for_review, value: 'ready_for_review' },
+                            { label: t[currentLang].tabs.under_review, value: 'under_review' },
+                            { label: t[currentLang].tabs.accepted, value: 'accepted' }
                         ].map((tab, i) => (
                             <button 
                                 key={i} 
                                 onClick={() => setFilterStatus(tab.value)}
-                                className={`px-5 py-2 rounded-xl text-xs font-black transition ${filterStatus === tab.value ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-100'}`}
+                                className={`px-5 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 ${filterStatus === tab.value ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'}`}
                             >
-                                {tab.label}
+                                <span>{tab.label}</span>
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filterStatus === tab.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                    {stats.status_counts?.[tab.value] ?? 0}
+                                </span>
                             </button>
                         ))}
                     </div>
@@ -326,11 +436,11 @@ export default function CommitteeResearch() {
                             }}
                             className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-black outline-none focus:border-emerald-500"
                         >
-                            <option value="created_at-desc">الأحدث أولاً</option>
-                            <option value="created_at-asc">الأقدم أولاً</option>
-                            <option value="title-asc">العنوان (أ-ي)</option>
-                            <option value="plagiarism_ratio-desc">الأعلى اقتباساً</option>
-                            <option value="plagiarism_ratio-asc">الأقل اقتباساً</option>
+                            <option value="created_at-desc">{t[currentLang].sort.newest}</option>
+                            <option value="created_at-asc">{t[currentLang].sort.oldest}</option>
+                            <option value="title-asc">{t[currentLang].sort.title}</option>
+                            <option value="plagiarism_ratio-desc">{t[currentLang].sort.highestPlagiarism}</option>
+                            <option value="plagiarism_ratio-asc">{t[currentLang].sort.lowestPlagiarism}</option>
                         </select>
                         <div className="relative">
                             <input 
@@ -338,7 +448,7 @@ export default function CommitteeResearch() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={handleSearch}
                                 className="w-64 bg-white border border-gray-200 rounded-xl px-10 py-2 text-xs font-medium outline-none focus:border-emerald-500" 
-                                placeholder="بحث عن عنوان أو باحث..." 
+                                placeholder={t[currentLang].searchPlaceholder}
                             />
                             <span className="absolute right-4 top-2">🔍</span>
                         </div>
@@ -346,24 +456,24 @@ export default function CommitteeResearch() {
                 </div>
                 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-right border-collapse min-w-[800px]">
+                    <table className="w-full text-start border-collapse min-w-[800px]">
                         <thead className="bg-gray-50/50">
                             <tr>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">معلومات البحث</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">المؤتمر</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">المحكمون</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">الحالة</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">الإجراءات</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-start">{t[currentLang].table.info}</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-start">{t[currentLang].table.conf}</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-start">{t[currentLang].table.reviewers}</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-start">{t[currentLang].table.status}</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">{t[currentLang].table.actions}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-10 text-gray-400">جاري التحميل...</td>
+                                    <td colSpan="5" className="text-center py-10 text-gray-400">{t[currentLang].loading}</td>
                                 </tr>
                             ) : papers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-10 text-gray-400">لا توجد أبحاث</td>
+                                    <td colSpan="5" className="text-center py-10 text-gray-400">{t[currentLang].noPapers}</td>
                                 </tr>
                             ) : papers.map((paper) => {
                                 const status = getStatusLabel(paper.status);

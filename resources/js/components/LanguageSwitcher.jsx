@@ -19,6 +19,8 @@ export default function LanguageSwitcher({ theme = 'light' }) {
         document.cookie = `googtrans=/ar/${langCode}; path=/; domain=${window.location.hostname}; SameSite=Lax`;
         
         setCurrentLang(langCode);
+        localStorage.setItem('locale', langCode);
+        window.dispatchEvent(new CustomEvent('languageChanged', { detail: langCode }));
 
         let select = document.querySelector('.goog-te-combo');
         if (select) {

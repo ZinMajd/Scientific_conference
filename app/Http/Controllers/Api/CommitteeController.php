@@ -50,6 +50,18 @@ class CommitteeController extends Controller
             'technical_check_count' => Paper::whereIn('status', [Paper::STATUS_SUBMITTED, Paper::STATUS_UNDER_SCREENING, Paper::STATUS_RESUBMITTED])->count(),
             'with_editor_count' => Paper::where('status', Paper::STATUS_WITH_EDITOR)->count(),
             'under_review_count' => Paper::where('status', Paper::STATUS_UNDER_REVIEW)->count(),
+            'pending_decision_count' => Paper::whereIn('status', [Paper::STATUS_WITH_EDITOR, Paper::STATUS_PRELIMINARY_ACCEPTED, Paper::STATUS_READY_FOR_REVIEW])->count(),
+            'accepted_count' => Paper::whereIn('status', [Paper::STATUS_ACCEPTED, Paper::STATUS_PUBLISHED, Paper::STATUS_SCHEDULED])->count(),
+            'status_counts' => [
+                'all' => Paper::count(),
+                'under_screening' => Paper::whereIn('status', [Paper::STATUS_SUBMITTED, Paper::STATUS_UNDER_SCREENING])->count(),
+                'resubmitted' => Paper::where('status', Paper::STATUS_RESUBMITTED)->count(),
+                'preliminary_accepted' => Paper::where('status', Paper::STATUS_PRELIMINARY_ACCEPTED)->count(),
+                'with_editor' => Paper::where('status', Paper::STATUS_WITH_EDITOR)->count(),
+                'ready_for_review' => Paper::where('status', Paper::STATUS_READY_FOR_REVIEW)->count(),
+                'under_review' => Paper::where('status', Paper::STATUS_UNDER_REVIEW)->count(),
+                'accepted' => Paper::whereIn('status', [Paper::STATUS_ACCEPTED, Paper::STATUS_PUBLISHED, Paper::STATUS_SCHEDULED])->count(),
+            ]
         ]);
     }
 
@@ -68,7 +80,13 @@ class CommitteeController extends Controller
         }
 
         if ($request->has('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+            if ($request->status === 'under_screening') {
+                $query->whereIn('status', [Paper::STATUS_SUBMITTED, Paper::STATUS_UNDER_SCREENING]);
+            } elseif ($request->status === 'accepted') {
+                $query->whereIn('status', [Paper::STATUS_ACCEPTED, Paper::STATUS_PUBLISHED, Paper::STATUS_SCHEDULED]);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         // Sorting

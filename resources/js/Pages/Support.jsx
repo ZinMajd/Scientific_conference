@@ -171,11 +171,6 @@ export default function Support() {
                                     <p className="text-white/60 font-medium text-sm">كلية الحاسوب ونظم المعلومات</p>
                                     <p className="text-white/60 font-medium text-sm">مركز المؤتمرات والبحث العلمي</p>
                                 </div>
-                                <div className="flex flex-col gap-1">
-                                    <h4 className="font-black text-lg mb-1 text-teal-400">ساعات العمل</h4>
-                                    <p className="text-white/60 font-medium text-sm">الأحد - الخميس</p>
-                                    <p className="text-white/60 font-medium text-sm">8:00 صباحاً - 2:00 ظهراً</p>
-                                </div>
 
                             </div>
                         </div>

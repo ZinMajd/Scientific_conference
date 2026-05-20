@@ -36,8 +36,9 @@ export default function Home() {
             {/* Hero Section */}
             <section className="relative h-[90vh] flex items-center justify-center overflow-hidden" style={{ background: PRUSSIAN_DARK }}>
                 <div className="absolute inset-0 z-0">
-                    <img src="/images/hero_conference.png" alt="Conference Hall"
-                        className="w-full h-full object-cover opacity-40" />
+                    <img src="/images/hero_conference.png" alt="University Conference" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+                    <div className="absolute inset-0 bg-[#001a2e]/70"></div>
+                    <div className="absolute inset-0 bg-[#0096c7] mix-blend-multiply opacity-20"></div>
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10 text-center text-white flex flex-col items-center">
@@ -47,9 +48,12 @@ export default function Home() {
                             <br />
                             <span style={{ color: TURQUOISE }}>العلمية</span>
                         </h1>
-                        <p className="text-xl text-white mx-auto leading-relaxed drop-shadow-md mb-10">
+                        <p className="text-xl text-white mx-auto leading-relaxed drop-shadow-md mb-6">
                             موقع متكامل لإدارة وتقديم الأوراق البحثية والتحكيم العلمي في مؤتمرات جامعة إقليم سبأ
                         </p>
+                        <br />
+                        <br />
+                        <br />
                         <div className="flex flex-wrap gap-4 justify-center">
                             <Link to="/conferences"
                                 className="px-10 py-4 rounded-none font-black text-xl shadow-2xl transition-all duration-300 hover:scale-105"
@@ -120,7 +124,7 @@ export default function Home() {
                             <img 
                                 src={getConferenceImage(item.id, item.image_url)} 
                                 alt={item.title} 
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110" 
                             />
                             {/* Premium permanent overlay showing title and details at all times */}
                             <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col justify-end min-h-[50%]" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%)' }}>

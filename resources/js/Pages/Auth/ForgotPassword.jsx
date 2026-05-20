@@ -15,11 +15,10 @@ export default function ForgotPassword() {
         setSuccess('');
 
         try {
-            // In real app, call your password reset API
-            // await axios.post('/api/forgot-password', { email });
-            setSuccess('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح!');
+            const res = await axios.post('/api/forgot-password', { email });
+            setSuccess(res.data.message || 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح!');
         } catch (err) {
-            setError('فشل إرسال الرابط. تأكد من صحة البريد الإلكتروني.');
+            setError(err.response?.data?.message || 'فشل إرسال الرابط. تأكد من صحة البريد الإلكتروني.');
         } finally {
             setLoading(false);
         }

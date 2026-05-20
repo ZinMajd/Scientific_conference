@@ -16,9 +16,9 @@ class ResearcherController extends Controller
 
         return response()->json([
             'papers_count' => Paper::where('author_id', $user->id)->count(),
-            'accepted_count' => Paper::where('author_id', $user->id)->whereIn('status', ['accepted', 'scheduled'])->count(),
-            'under_review' => Paper::where('author_id', $user->id)->where('status', 'under_review')->count(),
-            'with_editor' => Paper::where('author_id', $user->id)->whereIn('status', ['technical_check', 'with_editor'])->count(),
+            'accepted_count' => Paper::where('author_id', $user->id)->whereIn('status', ['accepted', 'scheduled', 'in_production', 'published'])->count(),
+            'under_review' => Paper::where('author_id', $user->id)->whereIn('status', ['under_screening', 'with_editor', 'ready_for_review', 'under_review', 'revision_required', 'resubmitted'])->count(),
+            'with_editor' => Paper::where('author_id', $user->id)->whereIn('status', ['technical_check', 'with_editor', 'under_screening'])->count(),
             'active_conferences' => Conference::where('status', 'open')->count(),
         ]);
     }

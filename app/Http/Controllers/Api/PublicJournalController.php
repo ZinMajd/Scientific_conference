@@ -20,16 +20,17 @@ class PublicJournalController extends Controller
 
     public function editorialTeam()
     {
-        // Fetch committee members, chairs, and editors
-        $users = User::whereIn('user_type', ['chair', 'committee', 'editor'])
-            ->orderByRaw("FIELD(user_type, 'chair', 'editor', 'committee')")
-            ->get(['id', 'full_name', 'user_type', 'affiliation', 'bio', 'profile_photo_url']);
+        $users = User::whereIn('user_type', ['chair', 'committee', 'editor', 'office', 'production_office', 'reviewer'])
+            ->orderByRaw("FIELD(user_type, 'chair', 'editor', 'office', 'production_office', 'reviewer', 'committee')")
+            ->get(['id', 'full_name', 'user_type', 'affiliation', 'bio', 'profile_image']);
 
-        // Group by role for the frontend
         return [
             'editors_in_chief' => $users->where('user_type', 'chair')->values(),
             'editors' => $users->where('user_type', 'editor')->values(),
-            'committee' => $users->where('user_type', 'committee')->values(),
+            'office' => $users->where('user_type', 'office')->values(),
+            'production' => $users->where('user_type', 'production_office')->values(),
+            'reviewers' => $users->where('user_type', 'reviewer')->values(),
+            'advisory' => $users->where('user_type', 'committee')->values(),
         ];
     }
 

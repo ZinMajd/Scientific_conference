@@ -1,0 +1,141 @@
+========================================================================
+             توثيق نظام تسجيل الدخول (Authentication Documentation)
+========================================================================
+
+هذا الملف يحتوي على توثيق كود نظام تسجيل الدخول (الواجهة الأمامية والخلفية)
+بحيث يمكنك نسخه ولصقه بسهولة في مستندات التوثيق الخاصة بك.
+
+------------------------------------------------------------------------
+أولاً: كود الواجهة الأمامية (Frontend - React)
+الملف: resources/js/Pages/Auth/Login.jsx
+------------------------------------------------------------------------
+
+الوصف:
+يتحكم هذا الكود في واجهة تسجيل الدخول، حيث يتيح للمستخدم إدخال اسم المستخدم
+أو البريد الإلكتروني، وكلمة المرور، واختيار نوع الحساب من قائمة منسدلة مخصصة.
+بعد ذلك يتم إرسال طلب POST إلى الـ API، وحفظ رمز الدخول (Token) في المتصفح.
+
+الكود المهم في React (دالة الإرسال handleSubmit):
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    
+    try {
+        // إرسال البيانات إلى خادم Laravel عبر Axios
+        const response = await axios.post('/api/login', {
+            login: formData.login,
+            password: formData.password,
+            role: formData.role
+        });
+
+        // استخراج بيانات المستخدم والتوكن من الاستجابة
+        const { user, token } = response.data;
+        
+        // تخزين التوكن وبيانات المستخدم في التخزين المحلي للمتصفح
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        // التوجيه التلقائي للمستخدم بناءً على نوع حسابه
+        const routes = {
+            author: '/researcher', 
+            reviewer: '/reviewer',
+            chair: '/committee', 
+            committee: '/committee',
+            editor: '/committee', 
+            office: '/committee', 
+            admin: '/committee',
+            production_office: '/production'
+        };
+        
+        // التوجيه إلى لوحة التحكم المناسبة أو صفحة الملف الشخصي كخيار افتراضي
+        navigate(routes[user.user_type] || '/profile');
+
+    } catch (err) {
+        // إدارة رسائل الخطأ وعرضها للمستخدم في حال فشل تسجيل الدخول
+        if (err.response && err.response.status === 401) {
+            setError('بيانات الدخول غير صحيحة، تأكد من اسم المستخدم وكلمة المرور.');
+        } else {
+            setError(err.response?.data?.message || 'حدث خطأ في الاتصال بالخادم.');
+        }
+    } finally {
+        setLoading(false);
+    }
+};
+
+
+------------------------------------------------------------------------
+ثانياً: كود النظام الخلفي (Backend - Laravel PHP)
+الملف: app/Http/Controllers/Api/AuthController.php
+------------------------------------------------------------------------
+
+الوصف:
+تستقبل الدالة (login) في Laravel طلب الدخول وتقوم بالتحقق من صحة المدخلات،
+ثم مطابقتها مع قاعدة البيانات، والتحقق من حالة الحساب (أن يكون نشطاً)، ومطابقة 
+نوع الحساب المختار مع المخزن في النظام لمنع تداخل الصلاحيات، وأخيراً إنشاء 
+توكن مصادقة آمن باستخدام Laravel Sanctum.
+
+الكود الخلفي للتحقق والمصادقة (الدالة login):
+
+public function login(Request $request)
+{
+    // 1. التحقق من صحة وجود المدخلات الأساسية في الطلب
+    $request->validate([
+        'login' => 'required|string',
+        'password' => 'required|string',
+        'role' => 'required|string', // الدور المحدد من قبل المستخدم باللغة العربية
+    ]);
+
+    // 2. فحص نوع المعرف المستخدم (بريد إلكتروني أو اسم مستخدم)
+    $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+    // 3. محاولة التحقق من الهوية وكلمة المرور
+    if (!Auth::attempt([$login_type => $request->login, 'password' => $request->password])) {
+        return response()->json(['message' => 'بيانات الدخول (البريد أو كلمة المرور) غير صحيحة.'], 401);
+    }
+
+    $user = Auth::user();
+
+    // 4. التحقق من حالة تفعيل الحساب
+    if (!$user->is_active) {
+        Auth::logout();
+        return response()->json(['message' => 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.'], 403);
+    }
+
+    // 5. مصفوفة مطابقة الأدوار من العربية إلى الأسماء البرمجية للنظام
+    $roleMap = [
+        'إدارة النظام' => 'admin',
+        'رئيس المؤتمر' => 'chair',
+        'باحث' => 'author',
+        'محكم' => 'reviewer',
+        'اللجنة العلمية' => 'committee',
+        'محرر' => 'editor',
+        'مكتب التحرير' => 'office',
+        'مكتب الإنتاج والنشر' => 'production_office'
+    ];
+    
+    $expectedRole = $roleMap[$request->role] ?? null;
+
+    // التحقق من صلاحية الحساب للدور المختار
+    if ($user->user_type !== $expectedRole) {
+        Auth::logout();
+        return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
+    }
+
+    // 6. تجديد الجلسة وتحديث وقت آخر تسجيل دخول
+    $request->session()->regenerate();
+    $user->last_login = now();
+    $user->save();
+
+    // تحميل الأدوار والصلاحيات المرفقة بالحساب
+    $user->load('roles');
+    $user->append('all_permissions');
+
+    // 7. إرجاع بيانات المستخدم والتوكن المشفر للواجهة الأمامية
+    return response()->json([
+        'user' => $user,
+        'token' => $user->createToken('auth_token')->plainTextToken,
+        'message' => 'تم تسجيل الدخول بنجاح!'
+    ]);
+}

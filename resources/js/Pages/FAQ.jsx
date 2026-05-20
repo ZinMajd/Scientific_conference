@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const faqData = [
     {
@@ -69,15 +70,15 @@ export default function FAQ() {
 
             {/* Support Call to Action */}
             <div className="max-w-3xl mx-auto px-6 mt-20">
-                <div className="bg-indigo-950 rounded-3xl p-10 text-center text-white shadow-2xl">
+                <div className="rounded-3xl p-10 text-center text-white shadow-2xl" style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 100%)' }}>
                     <h3 className="text-2xl font-black mb-4">لم تجد إجابة لسؤالك؟</h3>
-                    <p className="text-indigo-200 mb-8 font-bold">فريق الدعم الفني متواجد لمساعدتك في أي وقت.</p>
-                    <a 
-                        href="mailto:support@sabauni.edu.ye" 
-                        className="inline-block px-10 py-4 bg-teal-400 text-indigo-950 font-black rounded-xl hover:bg-teal-300 transition"
+                    <p className="mb-8 font-bold" style={{ color: '#40E0D0' }}>فريق الدعم الفني متواجد لمساعدتك في أي وقت.</p>
+                    <Link 
+                        to="/support" 
+                        className="inline-block px-10 py-4 font-black rounded-xl transition" style={{ background: '#40E0D0', color: '#001a2e' }}
                     >
                         تواصل مع الدعم الفني
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

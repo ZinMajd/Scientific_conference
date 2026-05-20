@@ -15,9 +15,6 @@ export default function Show() {
     const [regLoading, setRegLoading] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
 
-    // Dropdown states
-    const [editorialOpen, setEditorialOpen] = useState(false);
-
     useEffect(() => {
         const fetchData = async () => {
              try {
@@ -109,13 +106,13 @@ export default function Show() {
                 
                 <div className="space-y-3 px-1">
                     <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
-                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
+                        <span className="text-[14px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.view_count || 0}</span>
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(المشاهدات)</span>
                     </div>
                     <div className="w-px h-4 bg-gray-200 mx-auto"></div>
                     <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
-                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
+                        <span className="text-[14px] font-black text-slate-800 tracking-tighter uppercase leading-none">{paper.download_count || 0}</span>
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter leading-none">(التحميلات)</span>
                     </div>
                 </div>
             </div>
@@ -222,18 +219,6 @@ export default function Show() {
 
             <div className="w-full border-b border-gray-100 bg-white flex justify-center" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
                 <div className="w-[95%] max-w-7xl flex flex-wrap flex-row gap-12 text-[17px] font-black items-center justify-start text-black">
-                    <Link to="/announcements" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">الإعلانات</Link>
-                    <div className="relative group" onMouseEnter={() => setEditorialOpen(true)} onMouseLeave={() => setEditorialOpen(false)}>
-                        <button className="flex items-center gap-1 hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">
-                            فريق التحرير <span className="text-xs">▼</span>
-                        </button>
-                        {editorialOpen && (
-                            <div className="absolute top-full right-0 w-48 bg-white shadow-xl border border-gray-100 py-2 mt-0 z-50 text-right">
-                                <Link to="/editorial-team" className="block px-4 py-2 text-slate-700 hover:bg-gray-50 transition font-bold">الأعضاء</Link>
-                                <Link to="/editorial-team" className="block px-4 py-2 text-slate-700 hover:bg-gray-50 transition font-bold">المستشارون</Link>
-                            </div>
-                        )}
-                    </div>
                     <Link to="/topical-collection" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">مجموعة المواضيع</Link>
                     <Link to="/submissions" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">إرشادات التقديم</Link>
                     <Link to="/about" className="hover:text-red-700 transition px-4 py-2 border-b-2 border-transparent hover:border-red-700 whitespace-nowrap">عن</Link>
@@ -248,15 +233,22 @@ export default function Show() {
                     <div className="md:col-span-1 w-full flex justify-center">
                         <div className="bg-[#f2f2f2] p-8 shadow-lg border border-gray-200 w-full max-w-[280px]">
                             <div className="w-full aspect-[3/4] mb-6 flex flex-col items-center justify-center text-white relative overflow-hidden bg-white">
-                                {conference.image_path ? (
-                                    <img src={`/storage_file/${conference.image_path}`} alt={conference.title} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center bg-white p-4">
-                                        <img src="/images/university_logo.gif" alt="جامعة إقليم سبأ" className="w-24 h-24 object-contain mb-4" />
-                                        <h3 className="text-[10px] font-bold px-4 text-slate-800 leading-tight">{conference.title}</h3>
-                                        <div className="w-12 h-0.5 bg-teal-400 mt-4"></div>
-                                    </div>
-                                )}
+                                <img 
+                                    src={(() => {
+                                        if (conference.image_url) {
+                                            return conference.image_url.startsWith('http') || conference.image_url.startsWith('/') 
+                                                ? conference.image_url 
+                                                : `/storage_file/${conference.image_url}`;
+                                        }
+                                        if (conference.image_path) {
+                                            return `/storage_file/${conference.image_path}`;
+                                        }
+                                        const images = ['/images/conf_ai.png', '/images/conf_cyber.png', '/images/conf_innovation.png'];
+                                        return images[(conference.id - 1) % images.length];
+                                    })()} 
+                                    alt={conference.title} 
+                                    className="w-full h-full object-cover" 
+                                />
                             </div>
                         </div>
                     </div>
@@ -271,17 +263,17 @@ export default function Show() {
                         <h2 className="text-3xl font-black mb-6" style={{ color: PRUSSIAN }}>{conference.title}</h2>
                         
                         <p className="text-lg leading-relaxed text-slate-700 mb-8 font-medium">
-                            {conference.description || "يهدف المؤتمر لمناقشة تطبيقات الذكاء الاصطناعي في خدمة المجتمع والتنمية المستدامة في إقليم سبأ."}
+                            موقع جامعة إقليم سبأ للمؤتمرات العلمية مخصص لنشر وتوثيق الأبحاث العلمية المتميزة. يهدف الموقع إلى تعزيز البحث العلمي والتبادل الأكاديمي عبر توفير أرشيف رقمي متكامل لجميع المؤتمرات التي تنظمها الجامعة.
                         </p>
 
                         <div className="space-y-4 mb-10 text-slate-700 font-bold text-base">
-                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> المكان: {conference.venue || 'القاعة الكبرى - جامعة إقليم سبأ'}</p>
-                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> التاريخ: {conference.start_date ? new Date(conference.start_date).toLocaleDateString('ar-YE', {year: 'numeric', month: 'long', day: 'numeric'}) : '٢٥ مارس ٢٠٢٦'}</p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> المكان: جامعة إقليم سبأ - اليمن</p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> التكرار: دوري</p>
                             <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> اللغة: العربية/الإنجليزية</p>
-                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> البريد الإلكتروني: {conference.contact_email || 'conference@sabauni.edu.ye'}</p>
+                            <p className="flex items-center gap-3"><span className="text-[8px] text-teal-600">■</span> البريد الإلكتروني: research@sabauni.edu.ye</p>
                         </div>
 
-                        <div className="w-full border-t border-gray-100 pt-8 mt-16 text-right">
+                        <div className="block w-full border-t-2 border-gray-100 pt-8 mt-10 text-right clear-both" style={{ marginTop: '80px' }}>
                             <Link 
                                 to={`/researcher/research/create?confId=${id}`} 
                                 onClick={handleRegisterPaper}
@@ -318,21 +310,16 @@ export default function Show() {
                                 </div>
                             )}
 
-                            {/* Beautiful Spacer & Divider between sections */}
+                            {/* Spacer between sections */}
                             {acceptedPapers.length > 0 && publishedPapers.length > 0 && (
-                                <div className="py-16 my-12 border-t border-gray-200 relative select-none">
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-8 py-2 text-slate-400 font-black text-xs uppercase tracking-widest border border-gray-200 rounded-full shadow-sm">
-                                        مستندات المؤتمر العلمية
-                                    </div>
-                                </div>
+                                <div className="my-6"></div>
                             )}
 
                             {/* Section 2: Published Papers */}
                             {publishedPapers.length > 0 && (
                                 <div className="space-y-8">
-                                    <div className="border-b border-gray-200 pb-3 text-right">
+                                    <div className="pb-3 text-right">
                                         <h3 className="text-xl font-black text-slate-800">الأبحاث المنشورة</h3>
-                                        <div className="w-16 h-1 mt-2" style={{ backgroundColor: '#a00000' }}></div>
                                     </div>
                                     <div className="flex flex-col gap-10">
                                         {publishedPapers.map(paper => renderPaperCard(paper))}

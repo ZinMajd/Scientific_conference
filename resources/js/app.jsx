@@ -15,6 +15,7 @@ import Register from './Pages/Auth/Register';
 import ReviewerRegister from './Pages/Auth/ReviewerRegister';
 import RegisterReviewer from './Pages/Auth/RegisterReviewer';
 import ForgotPassword from './Pages/Auth/ForgotPassword';
+import ResetPassword from './Pages/Auth/ResetPassword';
 import Dashboard from './Pages/Profile/Dashboard';
 import ProfileEdit from './Pages/Profile/Edit';
 import Security from './Pages/Profile/Security';
@@ -87,7 +88,8 @@ function App() {
                     <Route path="archive" element={<Archive />} />
                     <Route path="article/:id" element={<ArticleView />} />
                     <Route path="submissions" element={<Submissions />} />
-                    <Route path="editorial-team" element={<EditorialTeam />} />
+                    <Route path="editorial-team" element={<EditorialTeam type="editorial" />} />
+                    <Route path="advisory-board" element={<EditorialTeam type="advisory" />} />
                     <Route path="topical-collection" element={<TopicalCollection />} />
                     <Route path="announcements" element={<Announcements />} />
                     <Route path="support" element={<Support />} />
@@ -99,6 +101,7 @@ function App() {
                     <Route path="register" element={<Register />} />
                     <Route path="register/reviewer" element={<RegisterReviewer />} />
                     <Route path="forgot-password" element={<ForgotPassword />} />
+                    <Route path="reset-password" element={<ResetPassword />} />
                 </Route>
 
                 {/* Profile Routes - Dedicated Layout */}

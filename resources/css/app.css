@@ -5,9 +5,7 @@
 
 @theme {
     --font-sans:
-        "Cairo", "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-        "Noto Color Emoji";
+        system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
     /* Prussian Blue + Turquoise palette */
     --color-prussian-950: #001a2e;
@@ -112,4 +110,32 @@ aside a.text-white.font-bold {
     color: #ffffff !important;
     /* Optional: Keep only a very subtle indicator on the right, or none. We will use none for perfect square matching */
     border-right: 1px solid transparent !important;
+}
+
+/* Force standard system font family globally */
+body, input, button, select, textarea, div, span, p, a, h1, h2, h3, h4, h5, h6, li, label, strong, b, i, em {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Force gray/slate text to black globally, except inside sidebars (aside) */
+.text-gray-300:not(aside *),
+.text-gray-400:not(aside *),
+.text-gray-500:not(aside *),
+.text-gray-600:not(aside *),
+.text-gray-700:not(aside *),
+.text-gray-800:not(aside *),
+.text-slate-300:not(aside *),
+.text-slate-400:not(aside *),
+.text-slate-500:not(aside *),
+.text-slate-600:not(aside *),
+.text-slate-700:not(aside *),
+.text-slate-800:not(aside *),
+.text-\[\#333333\]:not(aside *),
+.text-\[\#444444\]:not(aside *),
+.text-\[\#555555\]:not(aside *),
+.text-\[\#666666\]:not(aside *),
+.text-\[\#777777\]:not(aside *),
+.text-\[\#888888\]:not(aside *),
+.text-\[\#999999\]:not(aside *) {
+    color: #000000 !important;
 }
