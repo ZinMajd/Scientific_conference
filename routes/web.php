@@ -143,7 +143,7 @@ Route::get('/seed-users-prod', function (Request $request) {
                 'role_slug' => 'scientific_committee'
             ],
             [
-                'username' => 'محمد',
+                'username' => 'mohammed',
                 'email' => 'mohammed@sabauni.edu.ye',
                 'password' => '12345678',
                 'user_type' => 'chair',
