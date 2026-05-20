@@ -119,10 +119,10 @@ export default function Login() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-10">
+                        <form onSubmit={handleSubmit} className="space-y-14">
                             {/* Custom Dropdown for Role */}
                             <div className="relative" ref={roleRef}>
-                                <label className="block text-sm font-medium text-slate-600 mb-2 text-center">نوع الحساب</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-4 text-center">نوع الحساب</label>
                                 <button 
                                     type="button"
                                     onClick={() => setIsRoleOpen(!isRoleOpen)}
@@ -160,7 +160,7 @@ export default function Login() {
 
                             {/* Login Field */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-slate-600 mb-2 text-center">اسم المستخدم أو البريد الإلكتروني</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-4 text-center">اسم المستخدم أو البريد الإلكتروني</label>
                                 <input 
                                     type="text" 
                                     name="login" 
@@ -176,7 +176,7 @@ export default function Login() {
 
                             {/* Password Field */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-slate-600 mb-2 text-center">كلمة المرور</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-4 text-center">كلمة المرور</label>
                                 <div className="relative">
                                     <input 
                                         type={showPass ? 'text' : 'password'} 
