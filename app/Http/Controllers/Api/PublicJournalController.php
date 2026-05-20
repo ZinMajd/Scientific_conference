@@ -21,7 +21,6 @@ class PublicJournalController extends Controller
     public function editorialTeam()
     {
         $users = User::whereIn('user_type', ['chair', 'committee', 'editor', 'office', 'production_office', 'reviewer'])
-            ->orderByRaw("FIELD(user_type, 'chair', 'editor', 'office', 'production_office', 'reviewer', 'committee')")
             ->get(['id', 'full_name', 'user_type', 'affiliation', 'bio', 'profile_image']);
 
         return [

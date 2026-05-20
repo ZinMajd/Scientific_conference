@@ -314,6 +314,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/production/papers/{id}/ready', [\App\Http\Controllers\Api\ProductionController::class, 'markReadyForPublish']);
             Route::post('/production/papers/{id}/publish', [\App\Http\Controllers\Api\ProductionController::class, 'publishNow']);
             Route::post('/production/papers/{id}/return', [\App\Http\Controllers\Api\ProductionController::class, 'returnToAuthor']);
+
+            // Archive - Published papers for production office
+            Route::get('/archive', function () {
+                $papers = \App\Models\Paper::with(['author', 'conference'])
+                    ->where(function($q) {
+                        $q->where('is_published', true)
+                          ->orWhere('status', 'published');
+                    })
+                    ->orderBy('updated_at', 'desc')
+                    ->paginate(20);
+                return $papers;
+            });
         });
 
 
