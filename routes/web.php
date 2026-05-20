@@ -86,6 +86,125 @@ Route::get('/migration-status-prod', function (Request $request) {
     }
 });
 
+Route::get('/seed-users-prod', function (Request $request) {
+    if ($request->query('secret') !== 'saba2026') {
+        abort(403, 'Unauthorized');
+    }
+    try {
+        echo "Starting role seeder and user accounts generation...<br>";
+        
+        // 1. Run RolesAndPermissionsSeeder to ensure roles table is fully populated
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\Seeders\RolesAndPermissionsSeeder',
+            '--force' => true
+        ]);
+        echo "Roles and permissions seeded successfully!<br><br>";
+
+        // 2. Define our target users list
+        $targetUsers = [
+            [
+                'username' => 'admin',
+                'email' => 'admin@sabauni.edu.ye',
+                'password' => 'password',
+                'user_type' => 'chair', // matches the default type for admin in seeder
+                'full_name' => 'مدير النظام',
+                'role_slug' => 'system_admin'
+            ],
+            [
+                'username' => 'sara',
+                'email' => 'sara@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'author',
+                'full_name' => 'الباحث سارة',
+                'role_slug' => 'author'
+            ],
+            [
+                'username' => 'muhmd',
+                'email' => 'muhmd@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'office',
+                'full_name' => 'مكتب التحرير محمد',
+                'role_slug' => 'editorial_office'
+            ],
+            [
+                'username' => 'sumia',
+                'email' => 'sumia@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'reviewer',
+                'full_name' => 'المحكم سمية',
+                'role_slug' => 'reviewer'
+            ],
+            [
+                'username' => 'majd',
+                'email' => 'majd@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'committee',
+                'full_name' => 'اللجنة العلمية مجد',
+                'role_slug' => 'scientific_committee'
+            ],
+            [
+                'username' => 'محمد',
+                'email' => 'mohammed@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'chair',
+                'full_name' => 'رئيس المؤتمر محمد',
+                'role_slug' => 'conference_chair'
+            ],
+            [
+                'username' => 'مجد',
+                'email' => 'majd_editor@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'editor',
+                'full_name' => 'المحرر مجد',
+                'role_slug' => 'editor'
+            ]
+        ];
+
+        foreach ($targetUsers as $uData) {
+            // Find user by username or email
+            $user = \App\Models\User::where('username', $uData['username'])
+                ->orWhere('email', $uData['email'])
+                ->first();
+
+            if ($user) {
+                // Update existing user
+                $user->username = $uData['username'];
+                $user->email = $uData['email'];
+                $user->password = \Illuminate\Support\Facades\Hash::make($uData['password']);
+                $user->user_type = $uData['user_type'];
+                $user->full_name = $uData['full_name'];
+                $user->is_active = true;
+                $user->save();
+                echo "Updated user: <strong>{$uData['username']}</strong> (Role: {$uData['role_slug']})<br>";
+            } else {
+                // Create new user
+                $user = \App\Models\User::create([
+                    'username' => $uData['username'],
+                    'email' => $uData['email'],
+                    'password' => \Illuminate\Support\Facades\Hash::make($uData['password']),
+                    'user_type' => $uData['user_type'],
+                    'full_name' => $uData['full_name'],
+                    'is_active' => true,
+                ]);
+                echo "Created user: <strong>{$uData['username']}</strong> (Role: {$uData['role_slug']})<br>";
+            }
+
+            // Sync user role
+            $role = \App\Models\Role::where('slug', $uData['role_slug'])->first();
+            if ($role) {
+                $user->roles()->sync([$role->id]);
+                echo "&nbsp;&nbsp;-> Role <em>{$uData['role_slug']}</em> assigned successfully.<br>";
+            } else {
+                echo "&nbsp;&nbsp;-> <span style='color:red;'>Role {$uData['role_slug']} not found!</span><br>";
+            }
+        }
+        
+        echo "<br><strong>All users configured and verified successfully!</strong>";
+    } catch (\Exception $e) {
+        echo "<strong>Error seeding users:</strong> " . $e->getMessage();
+    }
+});
+
 Route::view('/{path?}', 'welcome')->where('path', '^(?!api).*$');
 
 // Consolidated API Routes in web.php to support sessions and avoid conflicts
