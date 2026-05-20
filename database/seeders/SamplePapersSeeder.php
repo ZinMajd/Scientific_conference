@@ -72,17 +72,17 @@ class SamplePapersSeeder extends Seeder
 
                 if (!$exists) {
                     Paper::create([
-                        'author_id'    => $author->id,
-                        'conf_id'      => $conference->id,
-                        'title'        => $paperData['title'],
-                        'abstract'     => $paperData['abstract'],
-                        'keywords'     => $paperData['keywords'],
-                        'track'        => $paperData['track'],
-                        'status'       => 'published',
-                        'is_published' => true,
+                        'author_id'      => $author->id,
+                        'conf_id'        => $conference->id,
+                        'title'          => $paperData['title'],
+                        'abstract'       => $paperData['abstract'],
+                        'keywords'       => $paperData['keywords'],
+                        'track'          => $paperData['track'],
+                        'status'         => 'published',
+                        'is_published'   => true,
                         'final_decision' => 'accepted',
-                        'file_path'    => null,
-                        'file_name'    => 'sample_paper.pdf',
+                        'file_path'      => 'papers/sample/sample_paper.pdf',
+                        'file_name'      => 'sample_paper.pdf',
                     ]);
                     $inserted++;
                 }
