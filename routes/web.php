@@ -157,6 +157,14 @@ Route::get('/seed-users-prod', function (Request $request) {
                 'user_type' => 'editor',
                 'full_name' => 'المحرر مجد',
                 'role_slug' => 'editor'
+            ],
+            [
+                'username' => 'production',
+                'email' => 'production@sabauni.edu.ye',
+                'password' => '12345678',
+                'user_type' => 'production_office',
+                'full_name' => 'مكتب الإنتاج والنشر',
+                'role_slug' => 'production_office'
             ]
         ];
 
