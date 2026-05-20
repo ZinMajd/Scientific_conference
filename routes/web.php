@@ -58,6 +58,34 @@ Route::get('/storage_file/{path}', function ($path) {
     abort(404, 'File not found');
 })->where('path', '.*');
 
+// Secure routes to run migrations in production (Vercel)
+Route::get('/run-migrations-prod', function (Request $request) {
+    if ($request->query('secret') !== 'saba2026') {
+        abort(403, 'Unauthorized');
+    }
+    try {
+        echo "Starting migrations on production database...<br>";
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        echo "<h3>Migrations Output:</h3><pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+        echo "<strong>Successfully completed migrations!</strong>";
+    } catch (\Exception $e) {
+        echo "<strong>Error running migrations:</strong> " . $e->getMessage();
+    }
+});
+
+Route::get('/migration-status-prod', function (Request $request) {
+    if ($request->query('secret') !== 'saba2026') {
+        abort(403, 'Unauthorized');
+    }
+    try {
+        echo "Checking migrations status on production database...<br>";
+        \Illuminate\Support\Facades\Artisan::call('migrate:status');
+        echo "<h3>Migration Status:</h3><pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+    } catch (\Exception $e) {
+        echo "<strong>Error checking status:</strong> " . $e->getMessage();
+    }
+});
+
 Route::view('/{path?}', 'welcome')->where('path', '^(?!api).*$');
 
 // Consolidated API Routes in web.php to support sessions and avoid conflicts
