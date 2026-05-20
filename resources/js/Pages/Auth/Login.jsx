@@ -119,7 +119,7 @@ export default function Login() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-14">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-0">
                             {/* Custom Dropdown for Role */}
                             <div className="relative" ref={roleRef}>
                                 <label className="block text-sm font-medium text-slate-600 mb-4 text-center">نوع الحساب</label>
@@ -159,7 +159,7 @@ export default function Login() {
                             </div>
 
                             {/* Login Field */}
-                            <div className="space-y-2">
+                            <div style={{ marginTop: '40px' }}>
                                 <label className="block text-sm font-medium text-slate-600 mb-4 text-center">اسم المستخدم أو البريد الإلكتروني</label>
                                 <input 
                                     type="text" 
@@ -175,7 +175,7 @@ export default function Login() {
                             </div>
 
                             {/* Password Field */}
-                            <div className="space-y-2">
+                            <div style={{ marginTop: '40px' }}>
                                 <label className="block text-sm font-medium text-slate-600 mb-4 text-center">كلمة المرور</label>
                                 <div className="relative">
                                     <input 
@@ -200,7 +200,7 @@ export default function Login() {
                             </div>
 
                             {/* Remember & Forgot Password */}
-                            <div className="flex items-center justify-between px-2 pt-1">
+                            <div className="flex items-center justify-between px-2" style={{ marginTop: '40px' }}>
                                 <label className="flex items-center text-sm font-medium text-slate-500 cursor-pointer select-none">
                                     <input 
                                         type="checkbox" 
@@ -214,7 +214,7 @@ export default function Login() {
                             </div>
 
                             {/* Submit Button */}
-                            <div className="pt-2">
+                            <div style={{ marginTop: '40px' }}>
                                 <button 
                                     type="submit" 
                                     disabled={loading}
