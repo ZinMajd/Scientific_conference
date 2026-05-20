@@ -213,6 +213,25 @@ Route::get('/seed-users-prod', function (Request $request) {
     }
 });
 
+// Seed sample published papers into all conferences (for production Supabase)
+Route::get('/seed-papers-prod', function (Request $request) {
+    if ($request->query('secret') !== 'saba2026') {
+        abort(403, 'Unauthorized');
+    }
+    try {
+        ob_start();
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\SamplePapersSeeder',
+            '--force' => true,
+        ]);
+        $output = ob_get_clean() . \Illuminate\Support\Facades\Artisan::output();
+        echo "<h3>Sample Papers Seeder Output:</h3><pre>" . htmlspecialchars($output) . "</pre>";
+        echo "<strong>Done! Published papers have been added to all conferences.</strong>";
+    } catch (\Exception $e) {
+        echo "<strong>Error:</strong> " . $e->getMessage();
+    }
+});
+
 Route::view('/{path?}', 'welcome')->where('path', '^(?!api).*$');
 
 // Consolidated API Routes in web.php to support sessions and avoid conflicts
