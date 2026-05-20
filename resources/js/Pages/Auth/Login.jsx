@@ -119,7 +119,7 @@ export default function Login() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-10">
                             {/* Custom Dropdown for Role */}
                             <div className="relative" ref={roleRef}>
                                 <label className="block text-sm font-medium text-slate-600 mb-2 text-center">نوع الحساب</label>
