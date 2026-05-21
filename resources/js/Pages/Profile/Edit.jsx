@@ -58,7 +58,7 @@ export default function ProfileEdit() {
             <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
                 <div 
                     className="p-8 text-white flex items-center justify-between"
-                    style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #0096c7 100%)' }}
+                    style={{ background: '#105d82' }}
                 >
                     <div>
                         <div className="flex items-center gap-4 mb-2">
@@ -136,7 +136,7 @@ export default function ProfileEdit() {
                         <button 
                             disabled={loading}
                             className="px-12 py-4 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/20"
-                            style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #0096c7 100%)' }}
+                            style={{ background: '#105d82' }}
                         >
                             {loading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
                             <span>حفظ التغييرات</span>

@@ -30,7 +30,7 @@ export default function ResearcherConferences() {
                 </div>
                 <Link to="/conferences" className="px-8 py-4 text-white font-bold rounded-none shadow-lg transition flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
                       style={{ 
-                          background: 'linear-gradient(135deg, #003153, #0096c7)',
+                          background: '#105d82',
                           boxShadow: '0 10px 20px -5px rgba(0, 49, 83, 0.3)'
                       }}>
                     <span>🔍</span> استعراض المؤتمرات المتاحة
@@ -85,7 +85,7 @@ export default function ResearcherConferences() {
             
             <div className="p-12 text-white overflow-hidden relative shadow-2xl rounded-none"
                  style={{ 
-                     background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)',
+                     background: '#105d82',
                      boxShadow: '0 20px 40px -10px rgba(0, 26, 46, 0.4)'
                  }}>
                 <div className="relative z-10 max-w-2xl">

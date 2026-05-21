@@ -37,7 +37,7 @@ export default function ReviewerDashboard() {
         <div className="space-y-8">
             {/* Header */}
             <div className="p-6 rounded-2xl text-white"
-                style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}>
+                style={{ background: '#105d82' }}>
                 <h1 className="text-2xl font-black mb-1">
                     مرحباً، دكتور {user?.full_name || 'المحكّم'} 👋
                 </h1>
@@ -107,7 +107,7 @@ export default function ReviewerDashboard() {
 
                     {/* Review Guide Banner */}
                     <div className="p-6 rounded-2xl text-white relative overflow-hidden"
-                        style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK}, ${PRUSSIAN})` }}>
+                        style={{ background: '#105d82' }}>
                         <div className="absolute top-0 left-0 w-48 h-48 rounded-full -translate-x-16 -translate-y-16 opacity-10"
                             style={{ background: TURQUOISE }}></div>
                         <div className="relative z-10 flex items-center justify-between gap-6">
@@ -140,7 +140,7 @@ export default function ReviewerDashboard() {
                         </div>
                         <Link to="/reviewer/history"
                             className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition hover:opacity-90"
-                            style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})` }}>
+                            style={{ background: '#105d82' }}>
                             <span>📜</span> سجل الأبحاث المحكمة
                         </Link>
                     </div>

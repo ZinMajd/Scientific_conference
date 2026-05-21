@@ -76,7 +76,7 @@ export default function ReviewerRegister() {
                 style={{ border: `1px solid ${TURQUOISE}30` }}>
                 
                 <div className="p-10 text-center text-white"
-                    style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}>
+                    style={{ background: '#105d82' }}>
                     <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl"
                         style={{ background: `${TURQUOISE}25`, border: `2px solid ${TURQUOISE}50` }}>
                         👨‍🏫
@@ -122,7 +122,7 @@ export default function ReviewerRegister() {
                             <input type="file" accept=".pdf" onChange={(e) => setCvFile(e.target.files[0])} required className="w-full px-5 py-3 bg-gray-50 border-2 border-dashed rounded-xl outline-none" style={{ borderColor: `${TURQUOISE}40` }} />
                         </div>
 
-                        <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl text-white font-black text-lg shadow-xl transition hover:opacity-90 mt-4" style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})` }}>
+                        <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl text-white font-black text-lg shadow-xl transition hover:opacity-90 mt-4" style={{ background: '#105d82' }}>
                             {loading ? 'جاري الإرسال...' : 'تقديم طلب الانضمام'}
                         </button>
                     </form>

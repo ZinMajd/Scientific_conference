@@ -50,7 +50,7 @@ export default function ResearcherDashboard() {
         <div className="space-y-8">
             {/* Header */}
             <div className="p-6 rounded-2xl text-white"
-                style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}>
+                style={{ background: '#105d82' }}>
                 <h1 className="text-2xl font-black mb-1">
                     مرحباً، {user?.full_name || 'الباحث'} 👋
                 </h1>
@@ -91,7 +91,7 @@ export default function ResearcherDashboard() {
                                 <p className="text-gray-400 mb-3">لا توجد أبحاث مقدمة حالياً</p>
                                 <Link to="/researcher/research/create"
                                     className="px-5 py-2 rounded-xl text-sm font-bold text-white"
-                                    style={{ background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})` }}>
+                                    style={{ background: '#105d82' }}>
                                     قدم بحثك الأول الآن
                                 </Link>
                             </div>
@@ -125,7 +125,7 @@ export default function ResearcherDashboard() {
                 {/* Side */}
                 <div className="space-y-5">
                     <div className="p-6 rounded-2xl text-white"
-                        style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK}, ${PRUSSIAN})` }}>
+                        style={{ background: '#105d82' }}>
                         <h3 className="font-bold mb-4 flex items-center gap-2">
                             <span style={{ color: TURQUOISE }}>⚡</span> إجراءات سريعة
                         </h3>
@@ -147,7 +147,7 @@ export default function ResearcherDashboard() {
                         {/* Download Template Button */}
                         <a href="/templates/research_template.doc" download
                             className="w-full flex items-center justify-between p-4 rounded-xl mt-4 transition-all hover:scale-[1.02] shadow-md group"
-                            style={{ background: `linear-gradient(135deg, ${OCEAN}, ${PRUSSIAN})`, border: `1px solid ${TURQUOISE}40` }}>
+                            style={{ background: '#105d82', border: `1px solid ${TURQUOISE}40` }}>
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl group-hover:rotate-12 transition-transform">
                                     📄

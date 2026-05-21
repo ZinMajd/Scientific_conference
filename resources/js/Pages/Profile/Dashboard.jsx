@@ -103,7 +103,7 @@ export default function Dashboard() {
                                     <button 
                                         type="button"
                                         className={`w-full text-right px-5 py-3.5 rounded-2xl transition-all font-bold flex items-center gap-3 ${item.active ? 'text-white' : 'text-gray-500 hover:bg-gray-50'}`}
-                                        style={item.active ? { background: `linear-gradient(135deg, ${PRUSSIAN}, ${OCEAN})`, boxShadow: `0 8px 20px ${PRUSSIAN}20` } : { color: item.color }}>
+                                        style={item.active ? { background: '#105d82', boxShadow: `0 8px 20px ${PRUSSIAN}20` } : { color: item.color }}>
                                         <span className="text-lg">{item.icon}</span>
                                         <span className="text-sm">{item.label}</span>
                                     </button>
@@ -117,7 +117,7 @@ export default function Dashboard() {
                 <div className="lg:col-span-3 space-y-8">
                     {/* Welcome Banner */}
                     <div className="p-8 rounded-3xl text-white overflow-hidden relative"
-                        style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 60%, ${OCEAN} 100%)` }}>
+                        style={{ background: '#105d82' }}>
                         <div className="relative z-10">
                             <h2 className="text-2xl font-black mb-2">مرحباً بك مجدداً!</h2>
                             <p className="text-white/70 text-sm">يمكنك هنا إدارة بياناتك الشخصية ومتابعة تقدم أبحاثك العلمية.</p>

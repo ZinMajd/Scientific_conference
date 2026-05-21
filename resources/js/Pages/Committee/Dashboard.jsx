@@ -37,7 +37,7 @@ export default function CommitteeDashboard() {
         <div className="space-y-8">
             {/* Page Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-6 rounded-2xl"
-                style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 100%)` }}>
+                style={{ background: '#105d82' }}>
                 <div>
                     <h1 className="text-2xl font-black text-white mb-1">
                         مرحباً، {user?.full_name || 'عضو اللجنة'} 👋
@@ -104,7 +104,7 @@ export default function CommitteeDashboard() {
                 {/* Quick Actions */}
                 <div className="space-y-5">
                     <div className="p-6 rounded-2xl text-white shadow-xl"
-                        style={{ background: `linear-gradient(135deg, ${PRUSSIAN_DARK} 0%, ${PRUSSIAN} 100%)` }}>
+                        style={{ background: '#105d82' }}>
                         <h3 className="text-base font-bold mb-4 flex items-center gap-2">
                             <span style={{ color: TURQUOISE }}>⚡</span> إجراءات سريعة
                         </h3>

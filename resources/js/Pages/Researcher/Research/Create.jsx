@@ -311,7 +311,7 @@ export default function ResearchCreate() {
                     {/* Publishing Settings Section */}
 
                     <div className="rounded-[3rem] text-white shadow-2xl shadow-blue-900/40 overflow-hidden"
-                         style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)' }}>
+                         style={{ background: '#105d82' }}>
                         <div className="p-12">
                             <h3 className="text-2xl font-bold mb-10 border-b border-white/10 pb-6 text-teal-400">إعدادات النشر</h3>
                             
