@@ -1,13 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import IdleWarningModal from '../components/IdleWarningModal';
+import useIdleTimer from '../hooks/useIdleTimer';
 
 export default function ScientificCommitteeLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [showIdleWarning, setShowIdleWarning] = useState(false);
+    const [countdown, setCountdown] = useState(60);
     const location = useLocation();
     const navigate = useNavigate();
     const [currentLang, setCurrentLang] = useState(() => localStorage.getItem('locale') || 'ar');
+
+    const handleLogout = useCallback(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login', { state: { message: 'تم تسجيل خروجك تلقائياً بسبب عدم النشاط.' } });
+    }, [navigate]);
+
+    const handleWarn = useCallback(() => {
+        setShowIdleWarning(true);
+        setCountdown(60);
+        const interval = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) { clearInterval(interval); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+    }, []);
+
+    const { resetTimer } = useIdleTimer(handleWarn, handleLogout);
+
+    const handleContinue = useCallback(() => {
+        setShowIdleWarning(false);
+        setCountdown(60);
+        resetTimer();
+    }, [resetTimer]);
 
     useEffect(() => {
         const handleLangChange = (e) => {
@@ -135,11 +164,7 @@ export default function ScientificCommitteeLayout() {
         }
     });
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
+
 
     const isActive = (path, subItems = []) => {
         const currentPath = location.pathname;
@@ -180,6 +205,13 @@ export default function ScientificCommitteeLayout() {
     };
 
     return (
+        <>
+        <IdleWarningModal
+            visible={showIdleWarning}
+            secondsLeft={countdown}
+            onContinue={handleContinue}
+            onLogout={handleLogout}
+        />
         <div className={`min-h-screen bg-gray-50 flex flex-row ${currentLang === 'en' ? 'font-sans' : ''}`} style={currentLang === 'en' ? {} : { fontFamily: '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir={currentLang === 'en' ? 'ltr' : 'rtl'}>
             {/* Sidebar */}
             <aside 
@@ -268,5 +300,6 @@ export default function ScientificCommitteeLayout() {
                 </div>
             </main>
         </div>
+        </>
     );
 }

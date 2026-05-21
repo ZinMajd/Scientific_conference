@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import IdleWarningModal from '../components/IdleWarningModal';
+import useIdleTimer from '../hooks/useIdleTimer';
 
 export default function ProductionLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -38,11 +40,33 @@ export default function ProductionLayout() {
         }
     ];
 
-    const handleLogout = () => {
+    const [showIdleWarning, setShowIdleWarning] = useState(false);
+    const [countdown, setCountdown] = useState(60);
+
+    const handleLogout = useCallback(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/login');
-    };
+        navigate('/login', { state: { message: 'تم تسجيل خروجك تلقائياً بسبب عدم النشاط.' } });
+    }, [navigate]);
+
+    const handleWarn = useCallback(() => {
+        setShowIdleWarning(true);
+        setCountdown(60);
+        const interval = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) { clearInterval(interval); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+    }, []);
+
+    const { resetTimer } = useIdleTimer(handleWarn, handleLogout);
+
+    const handleContinue = useCallback(() => {
+        setShowIdleWarning(false);
+        setCountdown(60);
+        resetTimer();
+    }, [resetTimer]);
 
     const isActive = (path) => location.pathname === path;
 
@@ -50,6 +74,13 @@ export default function ProductionLayout() {
         isActive(path) ? 'bg-white/10 text-white shadow-lg border-r-4 border-teal-400' : 'text-gray-300 hover:bg-white/5 hover:text-white';
 
     return (
+        <>
+        <IdleWarningModal
+            visible={showIdleWarning}
+            secondsLeft={countdown}
+            onContinue={handleContinue}
+            onLogout={handleLogout}
+        />
         <div className="min-h-screen bg-gray-50 flex flex-row" style={{ fontFamily: '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir="rtl">
             {/* Sidebar */}
             <aside 
@@ -135,5 +166,6 @@ export default function ProductionLayout() {
                 </div>
             </main>
         </div>
+        </>
     );
 }

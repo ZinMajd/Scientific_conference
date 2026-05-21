@@ -1,24 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import IdleWarningModal from '../components/IdleWarningModal';
+import useIdleTimer from '../hooks/useIdleTimer';
 
 const PRUSSIAN_GRADIENT = '#105d82';
 const TURQUOISE = '#40E0D0';
 
 export default function ResearcherLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [showIdleWarning, setShowIdleWarning] = useState(false);
+    const [countdown, setCountdown] = useState(60);
     const location = useLocation();
     const navigate = useNavigate();
-    const user = (() => {
-        try {
-            const saved = localStorage.getItem('user');
-            return saved ? JSON.parse(saved) : null;
-        } catch (e) {
-            return null;
-        }
-    })();
-    const token = localStorage.getItem('token');
+
+    const handleLogout = useCallback(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login', { state: { message: 'تم تسجيل خروجك تلقائياً بسبب عدم النشاط.' } });
+    }, [navigate]);
+
+    const handleWarn = useCallback(() => {
+        setShowIdleWarning(true);
+        setCountdown(60);
+        const interval = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) { clearInterval(interval); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+    }, []);
+
+    const { resetTimer } = useIdleTimer(handleWarn, handleLogout);
+
+    const handleContinue = useCallback(() => {
+        setShowIdleWarning(false);
+        setCountdown(60);
+        resetTimer();
+    }, [resetTimer]);
 
     const menuItems = [
         { title: 'لوحة التحكم', icon: '🏠', path: '/researcher', group: 'عام' },
@@ -48,11 +68,15 @@ export default function ResearcherLayout() {
         { title: 'الإشعارات', icon: '🔔', path: '/researcher/notifications', group: 'النظام' }
     ];
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
+    const user = (() => {
+        try {
+            const saved = localStorage.getItem('user');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            return null;
+        }
+    })();
+    const token = localStorage.getItem('token');
 
     const isActive = (path, subItems = []) => {
         const currentPath = location.pathname;
@@ -80,6 +104,13 @@ export default function ResearcherLayout() {
         : {};
 
     return (
+        <>
+        <IdleWarningModal
+            visible={showIdleWarning}
+            secondsLeft={countdown}
+            onContinue={handleContinue}
+            onLogout={handleLogout}
+        />
         <div className="min-h-screen flex flex-row bg-gray-50" style={{ fontFamily: '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir="rtl">
             {/* Sidebar */}
             <aside
@@ -194,5 +225,6 @@ export default function ResearcherLayout() {
                 </div>
             </main>
         </div>
+        </>
     );
 }

@@ -1,15 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import IdleWarningModal from '../components/IdleWarningModal';
+import useIdleTimer from '../hooks/useIdleTimer';
 
 const PRUSSIAN_GRADIENT = '#105d82';
 const TURQUOISE = '#40E0D0';
 
 export default function ReviewerLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [showIdleWarning, setShowIdleWarning] = useState(false);
+    const [countdown, setCountdown] = useState(60);
     const location = useLocation();
     const navigate = useNavigate();
+
+    const handleLogout = useCallback(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login', { state: { message: 'تم تسجيل خروجك تلقائياً بسبب عدم النشاط.' } });
+    }, [navigate]);
+
+    const handleWarn = useCallback(() => {
+        setShowIdleWarning(true);
+        setCountdown(60);
+        const interval = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) { clearInterval(interval); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+    }, []);
+
+    const { resetTimer } = useIdleTimer(handleWarn, handleLogout);
+
+    const handleContinue = useCallback(() => {
+        setShowIdleWarning(false);
+        setCountdown(60);
+        resetTimer();
+    }, [resetTimer]);
+
     const user = (() => {
         try {
             const saved = localStorage.getItem('user');
@@ -27,11 +57,7 @@ export default function ReviewerLayout() {
         { title: 'الإشعارات', icon: '🔔', path: '/reviewer/notifications', group: 'النظام' }
     ];
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
+
 
     const isActive = (path) => {
         if (path === '/reviewer') return location.pathname === '/reviewer';
@@ -39,6 +65,13 @@ export default function ReviewerLayout() {
     };
 
     return (
+        <>
+        <IdleWarningModal
+            visible={showIdleWarning}
+            secondsLeft={countdown}
+            onContinue={handleContinue}
+            onLogout={handleLogout}
+        />
         <div className="min-h-screen flex flex-row bg-gray-50" style={{ fontFamily: '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir="rtl">
             <aside className={`${isSidebarOpen ? 'w-72' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
                 style={{ background: PRUSSIAN_GRADIENT, borderLeft: `1px solid ${TURQUOISE}20` }}>
@@ -103,5 +136,6 @@ export default function ReviewerLayout() {
                 </div>
             </main>
         </div>
+        </>
     );
 }
