@@ -70,7 +70,7 @@ export default function FAQ() {
 
             {/* Support Call to Action */}
             <div className="max-w-3xl mx-auto px-6 mt-20">
-                <div className="rounded-3xl p-10 text-center text-white shadow-2xl" style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 100%)' }}>
+                <div className="rounded-3xl p-10 text-center text-white shadow-2xl" style={{ background: '#105d82' }}>
                     <h3 className="text-2xl font-black mb-4">لم تجد إجابة لسؤالك؟</h3>
                     <p className="mb-8 font-bold" style={{ color: '#40E0D0' }}>فريق الدعم الفني متواجد لمساعدتك في أي وقت.</p>
                     <Link 
