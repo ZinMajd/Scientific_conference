@@ -4,7 +4,7 @@ export default function About() {
     return (
         <div className="min-h-screen bg-white font-['Cairo'] pb-20" dir="rtl">
             {/* Hero Section */}
-            <div className="relative py-16 overflow-hidden" style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 100%)' }}>
+            <div className="relative py-16 overflow-hidden" style={{ background: '#105d82' }}>
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #40E0D0 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
                 <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
                     <h1 className="text-2xl md:text-3xl font-black text-white mb-4">عن نظام جامعة إقليم سبأ للمؤتمرات العلمية</h1>
@@ -49,7 +49,7 @@ export default function About() {
                     </ul>
                 </section>
 
-                <section className="p-8 rounded-sm shadow-md" style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 100%)' }}>
+                <section className="p-8 rounded-sm shadow-md" style={{ background: '#105d82' }}>
                     <h2 className="text-xl font-black text-white mb-3">إدارة النشر العلمي والإنتاج</h2>
                     <div className="w-12 h-0.5 mb-4 rounded-none" style={{ background: '#40E0D0' }}></div>
                     <p className="text-teal-100 leading-relaxed text-sm mb-6">
