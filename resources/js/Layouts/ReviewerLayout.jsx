@@ -89,9 +89,12 @@ export default function ReviewerLayout() {
                 </div>
 
                 {isSidebarOpen && user && (
-                    <div className="mx-4 mt-4 p-3 rounded-xl" style={{ background: `${TURQUOISE}10`, border: `1px solid ${TURQUOISE}25` }}>
-                        <p className="text-white font-bold text-sm truncate">{user?.full_name || user?.name || 'مستخدم'}</p>
-                        <p className="text-xs" style={{ color: TURQUOISE }}>محكّم علمي</p>
+                    <div className="px-4 pb-4 mt-3 flex flex-col items-center text-center" style={{ borderBottom: `1px solid ${TURQUOISE}20` }}>
+                        <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border-2 flex items-center justify-center font-black text-xl bg-white/10" style={{ borderColor: `${TURQUOISE}60`, color: TURQUOISE }}>
+                            {user?.full_name?.charAt(0) || '👤'}
+                        </div>
+                        <p className="text-white font-black text-sm truncate w-full">{user?.full_name || user?.name || 'مستخدم'}</p>
+                        <p className="text-[10px] font-bold" style={{ color: TURQUOISE }}>محكّم علمي</p>
                     </div>
                 )}
 
