@@ -63,7 +63,7 @@ export default function ResearcherDashboard() {
                     <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all group"
                         style={{ border: `1px solid ${TURQUOISE}25` }}>
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl text-white mb-4 group-hover:scale-110 transition"
-                            style={{ background: `linear-gradient(135deg, ${stat.color}, ${stat.color}aa)` }}>
+                            style={{ background: stat.color }}>
                             {stat.icon}
                         </div>
                         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">{stat.title}</p>

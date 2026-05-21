@@ -53,7 +53,7 @@ export default function ReviewerDashboard() {
                         className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all group flex items-center gap-4"
                         style={{ border: `1px solid ${TURQUOISE}25` }}>
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl text-white shrink-0 group-hover:scale-110 transition"
-                            style={{ background: `linear-gradient(135deg, ${stat.color}, ${stat.color}aa)` }}>
+                            style={{ background: stat.color }}>
                             {stat.icon}
                         </div>
                         <div>
@@ -117,7 +117,7 @@ export default function ReviewerDashboard() {
                                     يرجى مراجعة المعايير العلمية المحدثة لعام 2026 لضمان جودة الأبحاث المنشورة.
                                 </p>
                                 <button className="mt-4 px-5 py-2 rounded-xl font-bold text-sm transition hover:scale-105"
-                                    style={{ background: `linear-gradient(135deg, ${TURQUOISE}, ${OCEAN})`, color: PRUSSIAN_DARK }}>
+                                    style={{ background: '#105d82', color: '#ffffff', border: `1px solid ${TURQUOISE}60` }}>
                                     تحميل الدليل (PDF)
                                 </button>
                             </div>

@@ -46,7 +46,7 @@ export default function CommitteeDashboard() {
                 </div>
                 <Link to="/committee/conferences"
                     className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105 shadow-lg"
-                    style={{ background: `linear-gradient(135deg, ${TURQUOISE}, ${OCEAN})`, color: PRUSSIAN_DARK }}>
+                    style={{ background: '#105d82', color: '#ffffff', border: `1px solid ${TURQUOISE}40` }}>
                     ➕ إدارة المؤتمرات
                 </Link>
             </div>
@@ -58,7 +58,7 @@ export default function CommitteeDashboard() {
                         style={{ border: `1px solid ${TURQUOISE}25` }}>
                         <div className="flex justify-between items-start mb-4">
                             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-white shadow-md group-hover:scale-110 transition"
-                                style={{ background: `linear-gradient(135deg, ${stat.color}, ${stat.color}aa)` }}>
+                                style={{ background: stat.color }}>
                                 {stat.icon}
                             </div>
                         </div>
