@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
-const PRUSSIAN_GRADIENT = 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)';
+const PRUSSIAN_GRADIENT = '#105d82';
 const TURQUOISE = '#40E0D0';
 
 export default function ReviewerLayout() {
@@ -39,7 +39,7 @@ export default function ReviewerLayout() {
     };
 
     return (
-        <div className="min-h-screen flex flex-row bg-gray-50" style={{ fontFamily: "'Cairo', sans-serif" }} dir="rtl">
+        <div className="min-h-screen flex flex-row bg-gray-50" style={{ fontFamily: '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir="rtl">
             <aside className={`${isSidebarOpen ? 'w-72' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
                 style={{ background: PRUSSIAN_GRADIENT, borderLeft: `1px solid ${TURQUOISE}20` }}>
                 <div className="p-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${TURQUOISE}20` }}>

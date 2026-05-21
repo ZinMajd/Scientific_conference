@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
+const PRUSSIAN = '#105d82';
+const PRUSSIAN_DARK = '#0a4a68';
 const TURQUOISE = '#40E0D0';
 const OCEAN = '#0096c7';
 
@@ -36,9 +36,9 @@ export default function Home() {
             {/* Hero Section */}
             <section className="relative h-[90vh] flex items-center justify-center overflow-hidden" style={{ background: PRUSSIAN_DARK }}>
                 <div className="absolute inset-0 z-0">
-                    <img src="/images/hero_conference.png" alt="University Conference" className="absolute inset-0 w-full h-full object-cover opacity-80" />
-                    <div className="absolute inset-0 bg-[#001a2e]/70"></div>
-                    <div className="absolute inset-0 bg-[#0096c7] mix-blend-multiply opacity-20"></div>
+                    <img src="/images/hero_conference.png" alt="University Conference" className="absolute inset-0 w-full h-full object-cover opacity-100" />
+                    <div className="absolute inset-0 bg-[#001a2e]/40"></div>
+                    <div className="absolute inset-0 bg-[#0096c7] mix-blend-multiply opacity-10"></div>
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10 text-center text-white flex flex-col items-center">

@@ -417,7 +417,7 @@ export default function CommitteeResearch() {
                             <button 
                                 key={i} 
                                 onClick={() => setFilterStatus(tab.value)}
-                                className={`px-5 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 ${filterStatus === tab.value ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'}`}
+                                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${filterStatus === tab.value ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'}`}
                             >
                                 <span>{tab.label}</span>
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filterStatus === tab.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>

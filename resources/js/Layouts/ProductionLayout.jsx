@@ -50,11 +50,11 @@ export default function ProductionLayout() {
         isActive(path) ? 'bg-white/10 text-white shadow-lg border-r-4 border-teal-400' : 'text-gray-300 hover:bg-white/5 hover:text-white';
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-row font-['Cairo', sans-serif]" dir="rtl">
+        <div className="min-h-screen bg-gray-50 flex flex-row" style={{ fontFamily: '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir="rtl">
             {/* Sidebar */}
             <aside 
                 className={`${isSidebarOpen ? 'w-80' : 'w-20'} transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-2xl z-50`}
-                style={{ background: 'linear-gradient(180deg, #001a2e 0%, #003153 60%, #004472 100%)' }}
+                style={{ background: '#105d82' }}
             >
                 <div className="p-6 flex items-center justify-between border-b border-white/10">
                     {isSidebarOpen && (

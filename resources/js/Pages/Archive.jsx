@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
+const PRUSSIAN = '#105d82';
+const PRUSSIAN_DARK = '#0a4a68';
 const TURQUOISE = '#40E0D0';
 const OCEAN = '#0096c7';
 

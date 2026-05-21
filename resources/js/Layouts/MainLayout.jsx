@@ -72,9 +72,9 @@ export default function MainLayout() {
     }, [location.pathname]);
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ fontFamily: currentLang === 'en' ? "'Outfit', 'Inter', sans-serif" : "'Cairo', sans-serif" }} dir="rtl">
+        <div className="min-h-screen flex flex-col" style={{ fontFamily: currentLang === 'en' ? "'Outfit', 'Inter', sans-serif" : '"Cairo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }} dir="rtl">
             {/* Header */}
-            <header style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 60%, #004472 100%)' }}
+            <header style={{ background: '#105d82' }}
                 className="shadow-2xl sticky top-0 z-50 border-b border-teal-400/20">
                 <div className="w-full px-4 lg:px-8 py-3 flex items-center justify-between min-h-[80px]">
                     {/* Logo Section - Right Side */}
@@ -162,7 +162,7 @@ export default function MainLayout() {
                 {/* Mobile Menu */}
                 {isMenuOpen && (
                     <div className="md:hidden border-t border-teal-400/20 p-4 flex flex-col gap-2"
-                        style={{ background: '#001a2e' }}>
+                        style={{ background: '#105d82' }}>
                         <Link to="/" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition notranslate" translate="no" onClick={closeMenu}>{currentLang === 'en' ? 'Home' : 'الرئيسية'}</Link>
                         <Link to="/conferences" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition notranslate" translate="no" onClick={closeMenu}>{currentLang === 'en' ? 'Conferences' : 'المؤتمرات'}</Link>
                         <Link to="/about" className="p-3 text-white hover:text-teal-400 hover:bg-white/5 rounded-none transition notranslate" translate="no" onClick={closeMenu}>{currentLang === 'en' ? 'About' : 'عن النظام'}</Link>
@@ -183,8 +183,8 @@ export default function MainLayout() {
             </main>
 
             {/* Footer */}
-            <footer style={{ background: 'linear-gradient(135deg, #001a2e 0%, #003153 100%)' }}
-                className="text-white/70 py-12 mt-auto border-t border-teal-400/20">
+            <footer style={{ background: 'linear-gradient(135deg, #0a4a68 0%, #105d82 50%, #0e5070 100%)' }}
+                className="text-white/70 py-12 mt-auto border-t border-white/20">
                 <div className="container mx-auto px-4 grid md:grid-cols-3 gap-12 text-center md:text-right">
                     <div>
                         <h3 className="text-white font-bold text-xl mb-4 notranslate" translate="no">

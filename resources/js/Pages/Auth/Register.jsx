@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
+const PRUSSIAN = '#105d82';
+const PRUSSIAN_DARK = '#0a4a68';
 const GOLD = '#D4AF37';
 const OCEAN = '#0096c7';
 

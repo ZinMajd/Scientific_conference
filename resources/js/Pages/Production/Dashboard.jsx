@@ -151,13 +151,13 @@ export default function ProductionDashboard() {
                 <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-100">
                     <button 
                         onClick={() => setActiveTab('production')}
-                        className={`px-6 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'production' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-indigo-600'}`}
+                        className={`px-6 py-2.5 rounded-xl text-sm font-bold transition ${activeTab === 'production' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-indigo-600'}`}
                     >
                         الأبحاث قيد الإنتاج
                     </button>
                     <button 
                         onClick={() => setActiveTab('archive')}
-                        className={`px-6 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'archive' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-indigo-600'}`}
+                        className={`px-6 py-2.5 rounded-xl text-sm font-bold transition ${activeTab === 'archive' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-indigo-600'}`}
                     >
                         الأرشيف العلمي
                     </button>

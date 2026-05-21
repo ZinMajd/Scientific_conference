@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-const PRUSSIAN = '#003153';
-const PRUSSIAN_DARK = '#001a2e';
+const PRUSSIAN = '#105d82';
+const PRUSSIAN_DARK = '#0a4a68';
 const OCEAN = '#0096c7';
 const GOLD = '#2dd4bf'; // Replaced Gold with Teal
 
