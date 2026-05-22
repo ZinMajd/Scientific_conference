@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 const PRUSSIAN = '#105d82';
 const PRUSSIAN_DARK = '#0a4a68';
@@ -18,15 +23,28 @@ export default function Archive() {
     const fetchArchive = useCallback(async (page = 1) => {
         setLoading(true);
         try {
-            const [papersRes, announcementsRes] = await Promise.all([
+            const [papersRes, announcementsRes] = await Promise.allSettled([
                 axios.get(`/api/archive?page=${page}&search=${search}`),
                 axios.get('/api/journal/announcements')
             ]);
-            setPapers(papersRes.data.data);
-            setPagination(papersRes.data);
-            setAnnouncements(announcementsRes.data);
+            
+            if (papersRes.status === 'fulfilled') {
+                setPapers(papersRes.value.data.data || []);
+                setPagination(papersRes.value.data || {});
+            } else {
+                console.error("Failed to fetch papers:", papersRes.reason);
+                setPapers([]);
+            }
+
+            if (announcementsRes.status === 'fulfilled') {
+                setAnnouncements(announcementsRes.value.data || []);
+            } else {
+                console.error("Failed to fetch announcements:", announcementsRes.reason);
+                setAnnouncements([]);
+            }
         } catch (error) {
             console.error('حدث خطأ أثناء جلب البيانات:', error);
+
         } finally {
             setLoading(false);
         }
@@ -34,6 +52,28 @@ export default function Archive() {
 
     useEffect(() => {
         fetchArchive();
+
+        if (!supabase) return;
+
+        const channel = supabase
+            .channel('schema-db-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'papers'
+                },
+                (payload) => {
+                    console.log("Real-time update received!", payload);
+                    fetchArchive(1);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [fetchArchive]);
 
     const handleSearch = (e) => {

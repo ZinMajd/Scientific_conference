@@ -12,7 +12,7 @@ class PublicJournalController extends Controller
 {
     public function announcements()
     {
-        return Announcement::where('is_active', true)
+        return Announcement::where('is_active', 'true')
             ->orderBy('publish_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
