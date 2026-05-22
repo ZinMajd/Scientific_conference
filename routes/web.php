@@ -338,7 +338,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/archive', function () {
                 $papers = \App\Models\Paper::with(['author', 'conference'])
                     ->where(function($q) {
-                        $q->where('is_published', true)
+                        $q->where('is_published', 'true')
                           ->orWhere('status', 'published');
                     })
                     ->orderBy('updated_at', 'desc')

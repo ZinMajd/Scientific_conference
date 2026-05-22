@@ -23,7 +23,7 @@ class ConferenceController extends Controller
     {
         return Conference::with(['papers' => function($query) {
             $query->where(function($q) {
-                    $q->where('is_published', true)
+                    $q->where('is_published', 'true')
                       ->orWhere('status', 'scheduled')
                       ->orWhere('status', 'published');
                 })

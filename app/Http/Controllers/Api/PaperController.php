@@ -189,7 +189,7 @@ class PaperController extends Controller
     public function archive(Request $request)
     {
         $query = Paper::where(function ($q) {
-                $q->where('is_published', true)
+                $q->where('is_published', 'true')
                   ->orWhere('status', 'scheduled');
             })
             ->with(['conference', 'author'])
@@ -217,7 +217,7 @@ class PaperController extends Controller
     public function publicShow($id)
     {
         $paper = Paper::where(function($q) {
-                $q->where('is_published', true)
+                $q->where('is_published', 'true')
                   ->orWhere('status', 'scheduled');
             })
             ->with(['conference', 'author', 'coauthors', 'topics'])
