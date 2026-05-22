@@ -29,7 +29,8 @@ class ProductionController extends Controller
                 Paper::STATUS_IN_PRODUCTION, 
                 Paper::STATUS_READY_TO_PUBLISH,
                 Paper::STATUS_ACCEPTED,
-                Paper::STATUS_SCHEDULED
+                Paper::STATUS_SCHEDULED,
+                Paper::STATUS_PUBLISHED,
             ]);
 
 
