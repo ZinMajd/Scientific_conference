@@ -20,8 +20,8 @@ class InitialScreening extends Model
     ];
 
     protected $casts = [
-        'format_check_passed' => 'boolean',
-        'completeness_check_passed' => 'boolean',
+        'format_check_passed' => \App\Casts\PgsqlBoolean::class,
+        'completeness_check_passed' => \App\Casts\PgsqlBoolean::class,
     ];
 
     public function paper()

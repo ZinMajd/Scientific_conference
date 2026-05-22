@@ -27,7 +27,7 @@ class Attendee extends Model
     protected $casts = [
         'payment_date' => 'datetime',
         'certificate_sent_date' => 'datetime',
-        'has_certificate' => 'boolean',
+        'has_certificate' => \App\Casts\PgsqlBoolean::class,
     ];
 
     public function user()

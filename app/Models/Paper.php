@@ -76,7 +76,7 @@ class Paper extends Model
 
     protected $casts = [
         'decision_date' => 'datetime',
-        'is_published' => 'boolean',
+        'is_published' => \App\Casts\PgsqlBoolean::class,
     ];
 
     public function author()

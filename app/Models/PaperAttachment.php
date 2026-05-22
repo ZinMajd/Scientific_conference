@@ -19,7 +19,7 @@ class PaperAttachment extends Model
     ];
 
     protected $casts = [
-        'is_main_manuscript' => 'boolean',
+        'is_main_manuscript' => \App\Casts\PgsqlBoolean::class,
     ];
 
     public function paper()

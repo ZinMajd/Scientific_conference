@@ -26,7 +26,7 @@ class Review extends Model
     ];
 
     protected $casts = [
-        'is_submitted' => 'boolean',
+        'is_submitted' => \App\Casts\PgsqlBoolean::class,
         'submission_date' => 'datetime',
     ];
 

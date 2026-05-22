@@ -22,7 +22,7 @@ class NotificationLog extends Model
     ];
 
     protected $casts = [
-        'is_read' => 'boolean',
+        'is_read' => \App\Casts\PgsqlBoolean::class,
         'read_at' => 'datetime',
     ];
 
