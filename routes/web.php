@@ -335,7 +335,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/production/papers/{id}/return', [\App\Http\Controllers\Api\ProductionController::class, 'returnToAuthor']);
 
             // Archive - Published papers for production office
-            Route::get('/archive', function () {
+            Route::get('/production/archive', function () {
                 $papers = \App\Models\Paper::with(['author', 'conference'])
                     ->where(function($q) {
                         $q->where('is_published', 'true')

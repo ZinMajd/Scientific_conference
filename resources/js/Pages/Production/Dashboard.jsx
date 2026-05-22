@@ -33,7 +33,7 @@ export default function ProductionDashboard() {
     const fetchArchive = async () => {
         setArchiveLoading(true);
         try {
-            const res = await axios.get('/api/archive');
+            const res = await axios.get('/api/production/archive');
             setArchivePapers(res.data.data);
         } catch (err) {
             console.error('Failed to fetch archive', err);
