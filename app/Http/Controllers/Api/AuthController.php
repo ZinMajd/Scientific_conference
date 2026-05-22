@@ -80,12 +80,6 @@ class AuthController extends Controller
                 $user->roles()->attach($role->id);
             }
 
-            // إرسال بريد التحقق
-            try {
-                $user->sendEmailVerificationNotification();
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send verification email', ['error' => $e->getMessage()]);
-            }
 
             \Illuminate\Support\Facades\Log::info('User created successfully', ['id' => $user->id]);
 
