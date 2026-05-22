@@ -214,21 +214,19 @@ export default function Archive() {
                                                                 src={`/storage_file/${paper.thumbnail_path}`} 
                                                                 alt={paper.title} 
                                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                                                                onError={(e) => { e.target.onerror = null; e.target.src = '/images/template-preview.jpg'; }}
                                                             />
                                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
                                                         </>
                                                     ) : (
-                                                        <div className="p-6 text-[7px] text-gray-300 leading-tight select-none">
-                                                            <div className="h-1.5 bg-gray-200 w-3/4 mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-3"></div>
-                                                            <div className="h-32 bg-gray-50 w-full mb-4 border border-gray-100 flex items-center justify-center">
-                                                                <span className="text-[20px] opacity-10">SCR</span>
-                                                            </div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-full mb-2"></div>
-                                                            <div className="h-1.5 bg-gray-100 w-2/3"></div>
-                                                        </div>
+                                                        <>
+                                                            <img 
+                                                                src={`/images/template-preview.jpg`} 
+                                                                alt={paper.title} 
+                                                                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
+                                                        </>
                                                     )}
                                                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <div className="bg-white/90 p-2 rounded-full shadow-lg">
