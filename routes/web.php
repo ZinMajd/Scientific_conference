@@ -59,7 +59,7 @@ Route::get('/storage_file/{path}', function ($path) {
     // Fallback for missing files in development/demo environments
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     if (in_array($ext, ['pdf', 'doc', 'docx'])) {
-        $dummyPath = base_path('manuscript_test.pdf');
+        $dummyPath = public_path('dummy.pdf');
         if (file_exists($dummyPath)) {
             return response()->file($dummyPath, [
                 'Content-Type' => 'application/pdf',
