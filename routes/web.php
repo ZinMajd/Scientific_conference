@@ -8,6 +8,11 @@ use Inertia\Inertia;
 
 // Temporary fix for serving files on Windows due to symlink issues
 Route::get('/storage_file/{path}', function ($path) {
+    // Check if the path is actually a full URL (e.g. Supabase Storage)
+    if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+        return redirect($path);
+    }
+
     // List of possible base directories to check
     $bases = [
         storage_path('app/public/'),
@@ -16,56 +21,58 @@ Route::get('/storage_file/{path}', function ($path) {
     ];
 
     foreach ($bases as $base) {
-        $filePath = $base . $path;
+        $filePath = $base . ltrim($path, '/');
         if (file_exists($filePath) && !is_dir($filePath)) {
-            $headers = [];
             $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
             if ($ext === 'pdf') {
-                $headers = [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
-                ];
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
+                header('Content-Length: ' . filesize($filePath));
+                header('Accept-Ranges: bytes');
+                readfile($filePath);
+                exit;
             } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                $headers = [
-                    'Content-Type' => 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext),
-                    'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
-                ];
+                header('Content-Type: image/' . ($ext === 'jpg' ? 'jpeg' : $ext));
+                header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
+                readfile($filePath);
+                exit;
             }
-            return response()->file($filePath, $headers);
+            return response()->download($filePath);
         }
     }
 
     // Fallback: If path already contains 'public/' or 'private/'
-    $directPath = storage_path('app/' . $path);
+    $directPath = storage_path('app/' . ltrim($path, '/'));
     if (file_exists($directPath) && !is_dir($directPath)) {
-        $headers = [];
         $ext = strtolower(pathinfo($directPath, PATHINFO_EXTENSION));
         if ($ext === 'pdf') {
-            $headers = [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . basename($directPath) . '"'
-            ];
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="' . basename($directPath) . '"');
+            header('Content-Length: ' . filesize($directPath));
+            header('Accept-Ranges: bytes');
+            readfile($directPath);
+            exit;
         } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-            $headers = [
-                'Content-Type' => 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext),
-                'Content-Disposition' => 'inline; filename="' . basename($directPath) . '"'
-            ];
+            header('Content-Type: image/' . ($ext === 'jpg' ? 'jpeg' : $ext));
+            header('Content-Disposition: inline; filename="' . basename($directPath) . '"');
+            readfile($directPath);
+            exit;
         }
-        return response()->file($directPath, $headers);
+        return response()->download($directPath);
     }
 
-    \Illuminate\Support\Facades\Log::error("File not found in any storage base: " . $path);
+    \Illuminate\Support\Facades\Log::warning("File not found in any storage base: " . $path);
     
     // Fallback for missing files in development/demo environments
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     if (in_array($ext, ['pdf', 'doc', 'docx'])) {
         $dummyPath = public_path('dummy.pdf');
         if (file_exists($dummyPath)) {
-            return response()->file($dummyPath, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="fallback_document.pdf"'
-            ]);
+            // Use redirect to bypass Laravel output buffer/artisan serve bugs with BinaryFileResponse
+            return redirect('/dummy.pdf');
         }
+    } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+        return redirect('/images/template-preview.jpg');
     }
 
     abort(404, 'File not found');
