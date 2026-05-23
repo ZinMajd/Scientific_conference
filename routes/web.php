@@ -6,74 +6,61 @@ use Inertia\Inertia;
 
 
 
-// Temporary fix for serving files on Windows due to symlink issues
 Route::get('/storage_file/{path}', function ($path) {
     // Check if the path is actually a full URL (e.g. Supabase Storage)
     if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
         return redirect($path);
     }
+    // Also handle cases where browser normalizes double slashes
+    if (str_starts_with($path, 'http:/') || str_starts_with($path, 'https:/')) {
+        $path = preg_replace('#^(https?:)/+#', '$1//', $path);
+        return redirect($path);
+    }
 
-    // List of possible base directories to check
     $bases = [
         storage_path('app/public/'),
         storage_path('app/private/'),
         storage_path('app/'),
     ];
 
+    $targetFile = null;
+
     foreach ($bases as $base) {
         $filePath = $base . ltrim($path, '/');
         if (file_exists($filePath) && !is_dir($filePath)) {
-            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-            if ($ext === 'pdf') {
-                header('Content-Type: application/pdf');
-                header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
-                header('Content-Length: ' . filesize($filePath));
-                header('Accept-Ranges: bytes');
-                readfile($filePath);
-                exit;
-            } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                header('Content-Type: image/' . ($ext === 'jpg' ? 'jpeg' : $ext));
-                header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
-                readfile($filePath);
-                exit;
-            }
-            return response()->download($filePath);
+            $targetFile = $filePath;
+            break;
         }
     }
 
-    // Fallback: If path already contains 'public/' or 'private/'
-    $directPath = storage_path('app/' . ltrim($path, '/'));
-    if (file_exists($directPath) && !is_dir($directPath)) {
-        $ext = strtolower(pathinfo($directPath, PATHINFO_EXTENSION));
-        if ($ext === 'pdf') {
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="' . basename($directPath) . '"');
-            header('Content-Length: ' . filesize($directPath));
-            header('Accept-Ranges: bytes');
-            readfile($directPath);
-            exit;
-        } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-            header('Content-Type: image/' . ($ext === 'jpg' ? 'jpeg' : $ext));
-            header('Content-Disposition: inline; filename="' . basename($directPath) . '"');
-            readfile($directPath);
-            exit;
+    if (!$targetFile) {
+        $directPath = storage_path('app/' . ltrim($path, '/'));
+        if (file_exists($directPath) && !is_dir($directPath)) {
+            $targetFile = $directPath;
         }
-        return response()->download($directPath);
+    }
+
+    if ($targetFile) {
+        $ext = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+        $contentType = $ext === 'pdf' ? 'application/pdf' : (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp']) ? 'image/' . ($ext === 'jpg' ? 'jpeg' : $ext) : 'application/octet-stream');
+        
+        return response(file_get_contents($targetFile), 200, [
+            'Content-Type' => $contentType,
+            'Content-Disposition' => 'inline; filename="' . basename($targetFile) . '"'
+        ]);
     }
 
     \Illuminate\Support\Facades\Log::warning("File not found in any storage base: " . $path);
     
-    // Fallback for missing files in development/demo environments
+    // Fallback for missing files
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     if (in_array($ext, ['pdf', 'doc', 'docx'])) {
         $dummyPath = public_path('dummy.pdf');
         if (file_exists($dummyPath)) {
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="fallback_document.pdf"');
-            header('Content-Length: ' . filesize($dummyPath));
-            header('Accept-Ranges: bytes');
-            readfile($dummyPath);
-            exit;
+            return response(file_get_contents($dummyPath), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="fallback_document.pdf"'
+            ]);
         }
     } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
         return redirect('/images/template-preview.jpg');
