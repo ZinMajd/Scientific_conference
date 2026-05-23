@@ -68,8 +68,12 @@ Route::get('/storage_file/{path}', function ($path) {
     if (in_array($ext, ['pdf', 'doc', 'docx'])) {
         $dummyPath = public_path('dummy.pdf');
         if (file_exists($dummyPath)) {
-            // Use redirect to bypass Laravel output buffer/artisan serve bugs with BinaryFileResponse
-            return redirect('/dummy.pdf');
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="fallback_document.pdf"');
+            header('Content-Length: ' . filesize($dummyPath));
+            header('Accept-Ranges: bytes');
+            readfile($dummyPath);
+            exit;
         }
     } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
         return redirect('/images/template-preview.jpg');
