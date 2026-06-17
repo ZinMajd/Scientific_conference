@@ -117,7 +117,7 @@ Route::get('/seed-users-prod', function (Request $request) {
                 'username' => 'admin',
                 'email' => 'admin@sabauni.edu.ye',
                 'password' => 'password',
-                'user_type' => 'chair', // matches the default type for admin in seeder
+                'user_type' => 'admin', // maps to System Administrator
                 'full_name' => 'مدير النظام',
                 'role_slug' => 'system_admin'
             ],

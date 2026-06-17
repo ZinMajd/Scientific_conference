@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
                 'username' => 'admin',
                 'email' => 'admin@sabauni.edu.ye',
                 'password' => Hash::make('password123'),
-                'user_type' => 'chair',
+                'user_type' => 'admin',
                 'full_name' => 'مدير النظام',
                 'affiliation' => 'جامعة إقليم سبأ',
                 'is_active' => true,
