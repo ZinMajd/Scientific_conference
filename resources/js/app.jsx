@@ -97,17 +97,16 @@ function App() {
                         <Route path="announcements" element={<Announcements />} />
                         <Route path="support" element={<Support />} />
                         <Route path="conferences/:id" element={<ConferenceDetails />} />
-                        
-                        <Route path="register" element={<Register />} />
-                        <Route path="forgot-password" element={<ForgotPassword />} />
-                        <Route path="reset-password" element={<ResetPassword />} />
                     </Route>
                 )}
 
-                {/* Login is shared, but we can put it in MainLayout or a standalone for admin */}
-                <Route element={<MainLayout />}>
-                    <Route path="login" element={<Login />} />
-                </Route>
+                {/* Standalone Auth Routes for all users (Not wrapped in MainLayout) */}
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password" element={<ResetPassword />} />
+
+
 
                 {/* Profile Routes - Shared */}
                 <Route path="profile" element={<ProfileLayout />}>
