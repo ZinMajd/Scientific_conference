@@ -8,9 +8,8 @@ const OCEAN = '#0096c7';
 const GOLD = '#2dd4bf'; // Replaced Gold with Teal
 
 export default function Login() {
-    const [formData, setFormData] = useState({ login: '', password: '', role: 'باحث' });
-    const [isRoleOpen, setIsRoleOpen] = useState(false);
-    const roleRef = useRef(null);
+    const [formData, setFormData] = useState({ login: '', password: '' });
+
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
@@ -18,16 +17,7 @@ export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (roleRef.current && !roleRef.current.contains(event.target)) {
-                setIsRoleOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+
 
     useEffect(() => {
         if (location.state?.message) {
@@ -46,8 +36,7 @@ export default function Login() {
         try {
             const response = await axios.post('/api/login', {
                 login: formData.login,
-                password: formData.password,
-                role: formData.role
+                password: formData.password
             });
 
             const { user, token } = response.data;
@@ -120,46 +109,8 @@ export default function Login() {
                         )}
 
                         <form onSubmit={handleSubmit} className="flex flex-col gap-0">
-                            {/* Custom Dropdown for Role */}
-                            <div className="relative" ref={roleRef}>
-                                <label className="block text-sm font-medium text-slate-600 mb-5 text-center">نوع الحساب</label>
-                                <button 
-                                    type="button"
-                                    onClick={() => setIsRoleOpen(!isRoleOpen)}
-                                    className="w-full px-6 py-4 bg-white border border-slate-200 rounded-none text-slate-800 flex items-center justify-center outline-none transition-all duration-300 font-normal focus:border-sky-500 hover:border-slate-300 text-center cursor-pointer relative"
-                                >
-                                    <span>{formData.role}</span>
-                                    <svg className={`w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 transition-transform duration-300 ${isRoleOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 1L8 8L15 1" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                                    </svg>
-                                </button>
-
-                                {isRoleOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-1 rounded-none border border-slate-200 bg-white p-2 shadow-2xl"
-                                         style={{ 
-                                             zIndex: 100,
-                                             maxHeight: '250px',
-                                             overflowY: 'auto'
-                                          }}>
-                                        {['باحث', 'محكم', 'إدارة النظام', 'رئيس المؤتمر', 'اللجنة العلمية', 'محرر', 'مكتب التحرير', 'مكتب الإنتاج والنشر'].map((role) => (
-                                            <button
-                                                key={role}
-                                                type="button"
-                                                onClick={() => {
-                                                    setFormData({ ...formData, role });
-                                                    setIsRoleOpen(false);
-                                                }}
-                                                className="w-full mb-1.5 py-3 text-center font-bold border border-slate-300 rounded-none bg-white hover:bg-sky-50 hover:text-sky-700 hover:border-sky-500 text-slate-800 cursor-pointer transition-all duration-200 block"
-                                            >
-                                                {role}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
                             {/* Login Field */}
-                            <div style={{ marginTop: '18px' }}>
+                            <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-5 text-center">اسم المستخدم أو البريد الإلكتروني</label>
                                 <input 
                                     type="text" 

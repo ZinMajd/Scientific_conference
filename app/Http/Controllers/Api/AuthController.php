@@ -20,7 +20,6 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:6',
                 'full_name' => 'required|string',
-                'user_type' => 'required|in:admin,chair,author,reviewer,committee,editor,office,production_office',
                 'affiliation' => 'nullable|string|max:200',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string',
@@ -42,7 +41,7 @@ class AuthController extends Controller
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'full_name' => $data['full_name'],
-                'user_type' => $data['user_type'],
+                'user_type' => 'author',
                 'affiliation' => $data['affiliation'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'address' => $data['address'] ?? null,
@@ -106,11 +105,9 @@ class AuthController extends Controller
     {
         \Illuminate\Support\Facades\Log::info('Login attempt', ['login' => $request->login]);
 
-        // 1. التحقق من المدخلات
         $request->validate([
             'login' => 'required|string',
             'password' => 'required|string',
-            'role' => 'required|string', // الدور القادم من واجهة تسجيل الدخول
         ]);
 
         $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
@@ -136,38 +133,7 @@ class AuthController extends Controller
         // }
 
 
-        // 5. التحقق من الدور (Role Authorization Check)
-        $roleMap = [
-            'إدارة النظام' => ['user_types' => ['admin', 'chair'], 'role_slug' => 'system_admin'],
-            'رئيس المؤتمر' => ['user_types' => ['chair'], 'role_slug' => 'conference_chair'],
-            'باحث' => ['user_types' => ['author'], 'role_slug' => 'author'],
-            'محكم' => ['user_types' => ['reviewer'], 'role_slug' => 'reviewer'],
-            'اللجنة العلمية' => ['user_types' => ['committee'], 'role_slug' => 'scientific_committee'],
-            'محرر' => ['user_types' => ['editor'], 'role_slug' => 'editor'],
-            'مكتب التحرير' => ['user_types' => ['office'], 'role_slug' => 'editorial_office'],
-            'مكتب الإنتاج والنشر' => ['user_types' => ['production_office'], 'role_slug' => 'production_office'],
-        ];
 
-        $roleData = $roleMap[$request->role] ?? null;
-
-        if (!$roleData) {
-            Auth::logout();
-            return response()->json(['message' => 'نوع الحساب المحدد غير صالح.'], 403);
-        }
-
-        // نحمّل الأدوار أولاً للتحقق منها
-        $user->load('roles');
-        $userRoleSlugs = $user->roles->pluck('slug')->toArray();
-
-        // القبول إذا: (1) user_type مطابق أو (2) لديه دور مطابق أو (3) system_admin
-        $hasAccess = in_array($user->user_type, $roleData['user_types'])
-            || in_array($roleData['role_slug'], $userRoleSlugs)
-            || in_array('system_admin', $userRoleSlugs);
-
-        if (!$hasAccess) {
-            Auth::logout();
-            return response()->json(['message' => "هذا الحساب لا يملك صلاحيات الدخول كـ ({$request->role})."], 403);
-        }
 
         // 6. إنشاء الجلسة والتوكن (Session & Sanctum Token)
         $request->session()->regenerate();

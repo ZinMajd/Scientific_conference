@@ -76,43 +76,48 @@ import '../css/app.css';
 
 
 function App() {
+    const appType = import.meta.env.VITE_APP_TYPE || 'all';
+
     return (
         <BrowserRouter>
             <Routes>
                 {/* Public Website Routes */}
-                <Route element={<MainLayout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="about" element={<About />} />
-                    <Route path="faq" element={<FAQ />} />
-                    <Route path="conferences" element={<Conferences />} />
-                    <Route path="archive" element={<Archive />} />
-                    <Route path="article/:id" element={<ArticleView />} />
-                    <Route path="submissions" element={<Submissions />} />
-                    <Route path="editorial-team" element={<EditorialTeam type="editorial" />} />
-                    <Route path="advisory-board" element={<EditorialTeam type="advisory" />} />
-                    <Route path="topical-collection" element={<TopicalCollection />} />
-                    <Route path="announcements" element={<Announcements />} />
-                    <Route path="support" element={<Support />} />
-                    <Route path="conferences/:id" element={<ConferenceDetails />} />
+                {(appType === 'all' || appType === 'public') && (
+                    <Route element={<MainLayout />}>
+                        <Route path="/" element={<Home />} />
+                        <Route path="about" element={<About />} />
+                        <Route path="faq" element={<FAQ />} />
+                        <Route path="conferences" element={<Conferences />} />
+                        <Route path="archive" element={<Archive />} />
+                        <Route path="article/:id" element={<ArticleView />} />
+                        <Route path="submissions" element={<Submissions />} />
+                        <Route path="editorial-team" element={<EditorialTeam type="editorial" />} />
+                        <Route path="advisory-board" element={<EditorialTeam type="advisory" />} />
+                        <Route path="topical-collection" element={<TopicalCollection />} />
+                        <Route path="announcements" element={<Announcements />} />
+                        <Route path="support" element={<Support />} />
+                        <Route path="conferences/:id" element={<ConferenceDetails />} />
+                        
+                        <Route path="register" element={<Register />} />
+                        <Route path="forgot-password" element={<ForgotPassword />} />
+                        <Route path="reset-password" element={<ResetPassword />} />
+                    </Route>
+                )}
 
-                    
-                    {/* Auth Routes */}
+                {/* Login is shared, but we can put it in MainLayout or a standalone for admin */}
+                <Route element={<MainLayout />}>
                     <Route path="login" element={<Login />} />
-                    <Route path="register" element={<Register />} />
-                    <Route path="register/reviewer" element={<RegisterReviewer />} />
-                    <Route path="forgot-password" element={<ForgotPassword />} />
-                    <Route path="reset-password" element={<ResetPassword />} />
                 </Route>
 
-                {/* Profile Routes - Dedicated Layout */}
+                {/* Profile Routes - Shared */}
                 <Route path="profile" element={<ProfileLayout />}>
                     <Route index element={<Dashboard />} />
                     <Route path="edit" element={<ProfileEdit />} />
                     <Route path="security" element={<Security />} />
                     <Route path="activity" element={<ActivityLog />} />
                 </Route>
-                
-                {/* Researcher Dashboard Routes - Separate Layout */}
+
+                {/* Researcher Dashboard Routes - Shared */}
                 <Route path="researcher" element={<ResearcherLayout />}>
                     <Route index element={<ResearcherDashboard />} />
                     <Route path="conferences" element={<ResearcherConferences />} />
@@ -128,51 +133,55 @@ function App() {
                     <Route path="notifications" element={<Notifications />} />
                 </Route>
 
-                {/* Reviewer Dashboard Routes - Separate Layout */}
-                <Route path="reviewer" element={<ReviewerLayout />}>
-                    <Route index element={<ReviewerDashboard />} />
-                    <Route path="assignments" element={<ReviewerAssignments />} />
-                    <Route path="form/:id" element={<ReviewerForm />} />
-                    <Route path="history" element={<ReviewerHistory />} />
-                    <Route path="guidelines" element={<ReviewerGuidelines />} />
-                    <Route path="certificates" element={<Certificates />} />
-                    <Route path="completed" element={<ReviewerCompleted />} />
-                    <Route path="notifications" element={<ReviewerNotifications />} />
-                </Route>
+                {/* Admin/Committee/Reviewer Routes */}
+                {(appType === 'all' || appType === 'admin') && (
+                    <>
+                        <Route path="reviewer" element={<ReviewerLayout />}>
+                            <Route index element={<ReviewerDashboard />} />
+                            <Route path="assignments" element={<ReviewerAssignments />} />
+                            <Route path="form/:id" element={<ReviewerForm />} />
+                            <Route path="history" element={<ReviewerHistory />} />
+                            <Route path="guidelines" element={<ReviewerGuidelines />} />
+                            <Route path="certificates" element={<Certificates />} />
+                            <Route path="completed" element={<ReviewerCompleted />} />
+                            <Route path="notifications" element={<ReviewerNotifications />} />
+                        </Route>
 
-                {/* Scientific Committee Dashboard Routes - Separate Layout */}
-                <Route path="committee" element={<ScientificCommitteeLayout />}>
-                    <Route index element={<ScientificCommitteeDashboard />} />
-                    <Route path="conferences" element={<CommitteeConferences />} />
-                    <Route path="conferences/create" element={<CommitteeConferences />} />
-                    <Route path="research" element={<CommitteeResearch />} />
-                    <Route path="research/sort" element={<CommitteeResearch />} />
-                    <Route path="research/decisions" element={<CommitteeResearch />} />
-                    <Route path="research/recommend" element={<CommitteeResearch />} />
-                    <Route path="reviewers" element={<CommitteeReviewers />} />
-                    <Route path="reviewers/add" element={<CommitteeReviewers />} />
-                    <Route path="reviewers/assign" element={<CommitteeReviewers />} />
-                    <Route path="results" element={<CommitteeResults />} />
-                    <Route path="results/recommend" element={<CommitteeResults />} />
-                    <Route path="sessions" element={<CommitteeSessions />} />
-                    <Route path="sessions/create" element={<CommitteeSessions />} />
-                    <Route path="sessions/program" element={<CommitteeSessions />} />
-                    <Route path="certificates" element={<Certificates />} />
-                    <Route path="certificates/generate" element={<CommitteeCertificatesGenerate />} />
-                    <Route path="certificates/approve" element={<CommitteeCertificatesApprove />} />
-                    <Route path="reports" element={<CommitteeReports />} />
-                    <Route path="reports/research" element={<CommitteeReports />} />
-                    <Route path="reports/reviewers" element={<CommitteeReports />} />
-                    <Route path="reports/stats" element={<CommitteeReports />} />
-                    <Route path="notifications" element={<Notifications />} />
-                </Route>
+                        <Route path="committee" element={<ScientificCommitteeLayout />}>
+                            <Route index element={<ScientificCommitteeDashboard />} />
+                            <Route path="conferences" element={<CommitteeConferences />} />
+                            <Route path="conferences/create" element={<CommitteeConferences />} />
+                            <Route path="research" element={<CommitteeResearch />} />
+                            <Route path="research/sort" element={<CommitteeResearch />} />
+                            <Route path="research/decisions" element={<CommitteeResearch />} />
+                            <Route path="research/recommend" element={<CommitteeResearch />} />
+                            <Route path="reviewers" element={<CommitteeReviewers />} />
+                            <Route path="reviewers/add" element={<CommitteeReviewers />} />
+                            <Route path="reviewers/assign" element={<CommitteeReviewers />} />
+                            <Route path="results" element={<CommitteeResults />} />
+                            <Route path="results/recommend" element={<CommitteeResults />} />
+                            <Route path="sessions" element={<CommitteeSessions />} />
+                            <Route path="sessions/create" element={<CommitteeSessions />} />
+                            <Route path="sessions/program" element={<CommitteeSessions />} />
+                            <Route path="certificates" element={<Certificates />} />
+                            <Route path="certificates/generate" element={<CommitteeCertificatesGenerate />} />
+                            <Route path="certificates/approve" element={<CommitteeCertificatesApprove />} />
+                            <Route path="reports" element={<CommitteeReports />} />
+                            <Route path="reports/research" element={<CommitteeReports />} />
+                            <Route path="reports/reviewers" element={<CommitteeReports />} />
+                            <Route path="reports/stats" element={<CommitteeReports />} />
+                            <Route path="notifications" element={<Notifications />} />
+                        </Route>
 
-                {/* Production Office Routes */}
-                <Route path="production" element={<ProductionLayout />}>
-                    <Route index element={<ProductionDashboard />} />
-                    <Route path="stats" element={<ProductionDashboard />} />
-                    <Route path="notifications" element={<Notifications />} />
-                </Route>
+                        <Route path="production" element={<ProductionLayout />}>
+                            <Route index element={<ProductionDashboard />} />
+                            <Route path="stats" element={<ProductionDashboard />} />
+                            <Route path="notifications" element={<Notifications />} />
+                        </Route>
+                        
+                        <Route path="register/reviewer" element={<RegisterReviewer />} />
+                    </>
+                )}
 
 
 

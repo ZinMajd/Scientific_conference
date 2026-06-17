@@ -7,18 +7,12 @@ const PRUSSIAN_DARK = '#0a4a68';
 const GOLD = '#D4AF37';
 const OCEAN = '#0096c7';
 
-const ROLE_MAP = {
-    'إدارة النظام': 'admin', 'رئيس المؤتمر': 'chair',
-    'باحث': 'author', 'محكم': 'reviewer',
-    'اللجنة العلمية': 'committee', 'محرر': 'editor', 'مكتب التحرير': 'office',
-    'مكتب الإنتاج والنشر': 'production_office'
-};
 
 export default function Register() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         full_name: '', email: '', username: '', password: '',
-        role: 'باحث', affiliation: '', phone: '', address: '', bio: ''
+        affiliation: '', phone: '', address: '', bio: ''
     });
 
     const [error, setError] = useState('');
@@ -32,10 +26,7 @@ export default function Register() {
         setError('');
 
         try {
-            await axios.post('/api/register', {
-                ...formData,
-                user_type: ROLE_MAP[formData.role]
-            });
+            await axios.post('/api/register', formData);
 
             navigate('/login', { 
                 state: { 
@@ -167,26 +158,6 @@ export default function Register() {
                                 />
                             </div>
 
-                            {/* Role */}
-                            <div className="space-y-1">
-                                <label htmlFor="role" className="block text-xs font-bold text-slate-500 mr-2">نوع الحساب</label>
-                                <select 
-                                    id="role" 
-                                    name="role" 
-                                    value={formData.role} 
-                                    onChange={handleChange}
-                                    className="w-full px-5 py-4 text-base bg-white border border-slate-200 rounded-none outline-none transition-all duration-300 font-bold text-slate-700 focus:border-sky-500 text-center cursor-pointer"
-                                >
-                                    <option value="باحث">باحث</option>
-                                    <option value="محكم">محكم</option>
-                                    <option value="مكتب التحرير">مكتب التحرير</option>
-                                    <option value="محرر">محرر</option>
-                                    <option value="رئيس المؤتمر">رئيس المؤتمر</option>
-                                    <option value="اللجنة العلمية">اللجنة العلمية</option>
-                                    <option value="مكتب الإنتاج والنشر">مكتب الإنتاج والنشر</option>
-                                    <option value="إدارة النظام">إدارة النظام</option>
-                                </select>
-                            </div>
 
                             {/* Affiliation */}
                             <div className="space-y-1">
