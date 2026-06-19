@@ -172,14 +172,14 @@ function App() {
                             <Route path="reports/reviewers" element={<CommitteeReports />} />
                             <Route path="reports/stats" element={<CommitteeReports />} />
                             <Route path="notifications" element={<Notifications />} />
+                            {/* Admin-only: User Management */}
+                            <Route path="users" element={<AdminUsers />} />
                         </Route>
 
                         <Route path="production" element={<ProductionLayout />}>
                             <Route index element={<ProductionDashboard />} />
                             <Route path="stats" element={<ProductionDashboard />} />
                             <Route path="notifications" element={<Notifications />} />
-                            {/* Admin-only: User Management */}
-                            <Route path="users" element={<AdminUsers />} />
                         </Route>
                         
 
