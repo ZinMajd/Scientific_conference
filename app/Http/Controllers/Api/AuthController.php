@@ -50,16 +50,7 @@ class AuthController extends Controller
                 'email_verified_at' => now(), // Auto-verify: no email confirmation needed
             ]);
 
-            // Save expertise if user is a reviewer
-            if ($user->user_type === 'reviewer' && isset($data['expertise'])) {
-                foreach ($data['expertise'] as $exp) {
-                    ReviewerExpertise::create([
-                        'reviewer_id' => $user->id,
-                        'topic_id' => $exp['topic_id'],
-                        'proficiency_level' => $exp['proficiency']
-                    ]);
-                }
-            }
+
 
             // Automatically attach role based on user_type
             $roleMap = [

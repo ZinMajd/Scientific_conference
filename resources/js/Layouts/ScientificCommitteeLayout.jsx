@@ -149,13 +149,23 @@ export default function ScientificCommitteeLayout() {
             ]
         },
         {
+            title: currentLang === 'en' ? 'User Management' : 'إدارة المستخدمين',
+            icon: '👥',
+            path: '/committee/users',
+            group: currentLang === 'en' ? 'Administration' : 'الإدارة',
+            adminOnly: true,
+        },
+        {
             title: currentLang === 'en' ? 'Notifications' : 'الإشعارات',
             icon: '🔔',
             path: '/committee/notifications',
             group: currentLang === 'en' ? 'System' : 'النظام',
             allowedRoles: ['committee', 'editor', 'office']
         }
-    ].filter(item => hasAccess(item.allowedRoles));
+    ].filter(item => {
+        if (item.adminOnly) return ['admin', 'chair'].includes(userType);
+        return hasAccess(item.allowedRoles);
+    });
 
     // Filter subItems as well
     menuItems.forEach(item => {

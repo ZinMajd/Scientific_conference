@@ -12,8 +12,7 @@ import Support from './Pages/Support';
 
 import Login from './Pages/Auth/Login';
 import Register from './Pages/Auth/Register';
-import ReviewerRegister from './Pages/Auth/ReviewerRegister';
-import RegisterReviewer from './Pages/Auth/RegisterReviewer';
+
 import ForgotPassword from './Pages/Auth/ForgotPassword';
 import ResetPassword from './Pages/Auth/ResetPassword';
 import Dashboard from './Pages/Profile/Dashboard';
@@ -50,6 +49,9 @@ import ReviewerGuidelines from './Pages/Reviewer/Guidelines';
 import ReviewerForm from './Pages/Reviewer/Form';
 import ReviewerCompleted from './Pages/Reviewer/Completed';
 import ReviewerNotifications from './Pages/Reviewer/Notifications';
+
+// Admin Pages
+import AdminUsers from './Pages/Admin/Users';
 
 // Scientific Committee Pages
 import ScientificCommitteeLayout from './Layouts/ScientificCommitteeLayout';
@@ -176,9 +178,11 @@ function App() {
                             <Route index element={<ProductionDashboard />} />
                             <Route path="stats" element={<ProductionDashboard />} />
                             <Route path="notifications" element={<Notifications />} />
+                            {/* Admin-only: User Management */}
+                            <Route path="users" element={<AdminUsers />} />
                         </Route>
                         
-                        <Route path="register/reviewer" element={<RegisterReviewer />} />
+
                     </>
                 )}
 

@@ -181,7 +181,7 @@ Route::get('/seed-users-prod', function (Request $request) {
 
         foreach ($targetUsers as $uData) {
             // Find user by username or email
-            $user = \App\Models\User::where('username', $uData['username'])
+            $user = \App\Models\User::query()->where('username', $uData['username'])
                 ->orWhere('email', $uData['email'])
                 ->first();
 
@@ -209,7 +209,7 @@ Route::get('/seed-users-prod', function (Request $request) {
             }
 
             // Sync user role
-            $role = \App\Models\Role::where('slug', $uData['role_slug'])->first();
+            $role = \App\Models\Role::query()->where('slug', $uData['role_slug'])->first();
             if ($role) {
                 $user->roles()->sync([$role->id]);
                 echo "&nbsp;&nbsp;-> Role <em>{$uData['role_slug']}</em> assigned successfully.<br>";
@@ -347,7 +347,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
             // Archive - Published papers for production office
             Route::get('/production/archive', function () {
-                $papers = \App\Models\Paper::with(['author', 'conference'])
+                $papers = \App\Models\Paper::query()->with(['author', 'conference'])
                     ->where(function($q) {
                         $q->where('is_published', 'true')
                           ->orWhere('status', 'published');
@@ -364,6 +364,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/committee/conferences', [\App\Http\Controllers\Api\ConferenceController::class, 'store']);
             Route::put('/committee/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'update']);
             Route::delete('/committee/conferences/{id}', [\App\Http\Controllers\Api\ConferenceController::class, 'destroy']);
+        });
+
+        // Admin User Management (System Admin & Conference Chair only)
+        Route::middleware(['role:system_admin,conference_chair'])->group(function () {
+            Route::get('/admin/users', [\App\Http\Controllers\Api\AdminUserController::class, 'index']);
+            Route::post('/admin/users', [\App\Http\Controllers\Api\AdminUserController::class, 'store']);
+            Route::put('/admin/users/{id}', [\App\Http\Controllers\Api\AdminUserController::class, 'update']);
+            Route::post('/admin/users/{id}/toggle-active', [\App\Http\Controllers\Api\AdminUserController::class, 'toggleActive']);
         });
 
         // Paper Submission & Management (General authenticated users)

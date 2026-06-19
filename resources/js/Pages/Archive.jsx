@@ -9,7 +9,6 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 
 const PRUSSIAN = '#105d82';
 const PRUSSIAN_DARK = '#0a4a68';
-const TURQUOISE = '#40E0D0';
 const OCEAN = '#0096c7';
 
 export default function Archive() {
@@ -207,6 +206,9 @@ export default function Archive() {
                                                 <div 
                                                     className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
                                                     onClick={() => paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => e.key === 'Enter' && paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
                                                 >
                                                     {paper.thumbnail_path ? (
                                                         <>
@@ -214,7 +216,7 @@ export default function Archive() {
                                                                 src={`/storage_file/${paper.thumbnail_path}`} 
                                                                 alt={paper.title} 
                                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
-                                                                onError={(e) => { e.target.onerror = null; e.target.src = '/images/template-preview.jpg'; }}
+                                                                onError={(e) => { e.currentTarget.src = '/images/template-preview.jpg'; }}
                                                             />
                                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
                                                         </>
@@ -267,7 +269,7 @@ export default function Archive() {
                                                         <span className="text-gray-400 mr-2">بواسطة</span>
                                                         <span className="notranslate text-slate-700">{paper.author?.full_name}</span>
                                                         {paper.coauthors?.map((co, idx) => (
-                                                            <span key={idx} className="flex items-center">
+                                                            <span key={`coauthor-${idx}`} className="flex items-center">
                                                                 <span className="mx-1 text-gray-300">،</span>
                                                                 <span className="notranslate text-slate-700">{co.full_name || co}</span>
                                                             </span>
@@ -334,7 +336,7 @@ export default function Archive() {
                             <div className="mt-20 border-t border-gray-100 pt-8 flex justify-center gap-2">
                                 {[...Array(pagination.last_page)].map((_, i) => (
                                     <button 
-                                        key={i}
+                                        key={`page-${i}`}
                                         onClick={() => fetchArchive(i + 1)}
                                         className={`w-10 h-10 flex items-center justify-center text-xs font-black rounded-sm border ${pagination.current_page === i + 1 ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-gray-100 transition'}`}
                                         style={pagination.current_page !== i + 1 ? { color: OCEAN } : {}}
@@ -369,7 +371,7 @@ export default function Archive() {
                             <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-6 border-b-2 border-slate-800 w-fit pb-1">الإعلانات</h4>
                             <div className="space-y-6">
                                 {announcements.slice(0, 3).map((item, idx) => (
-                                    <div key={idx} className="group cursor-pointer">
+                                    <div key={`announcement-${item.id || idx}`} className="group cursor-pointer">
                                         <Link to="/announcements" className="text-sm font-bold text-slate-700 group-hover:text-red-700 transition leading-snug">{item.title}</Link>
                                         <p className="text-[10px] font-bold text-gray-400 mt-2">{new Date(item.publish_date || item.created_at).toLocaleDateString()}</p>
                                     </div>
@@ -414,7 +416,7 @@ export default function Archive() {
                         >
                             &times;
                         </button>
-                        <div className="cursor-zoom-out" onClick={() => setSelectedImage(null)}>
+                        <div className="cursor-zoom-out" onClick={() => setSelectedImage(null)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && setSelectedImage(null)}>
                             <img 
                                 src={selectedImage} 
                                 alt="Research Detail" 
