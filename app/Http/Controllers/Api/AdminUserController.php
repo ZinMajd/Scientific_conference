@@ -66,7 +66,7 @@ class AdminUserController extends Controller
             'user_type'         => $data['user_type'],
             'affiliation'       => $data['affiliation'] ?? null,
             'phone'             => $data['phone'] ?? null,
-            'is_active'         => true,
+            'is_active'         => \Illuminate\Support\Facades\DB::raw('true'),
             'email_verified_at' => now(),
         ]);
 
@@ -132,12 +132,18 @@ class AdminUserController extends Controller
     public function toggleActive(int $id): JsonResponse
     {
         $user = User::query()->findOrFail($id);
-        $user->is_active = !$user->is_active;
-        $user->save();
+        
+        $newState = !$user->is_active;
+        $user->is_active = $newState;
+        
+        // Use raw query for Postgres boolean update to prevent type mismatch
+        User::query()->where('id', $id)->update([
+            'is_active' => \Illuminate\Support\Facades\DB::raw($newState ? 'true' : 'false')
+        ]);
 
         return response()->json([
-            'message'   => $user->is_active ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.',
-            'is_active' => $user->is_active,
+            'message'   => $newState ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.',
+            'is_active' => $newState,
         ]);
     }
 }
