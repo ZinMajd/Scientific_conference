@@ -8,6 +8,7 @@ use App\Models\PaperVersion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Services\MailService;
 
 class PaperWorkflowService
 {
@@ -42,6 +43,14 @@ class PaperWorkflowService
             if ($toStatus === Paper::STATUS_PRELIMINARY_ACCEPTED) {
                 $this->autoAnonymize($paper);
             }
+
+            // 📧 إرسال إشعار بريدي للمؤلف عند كل انتقال
+            MailService::sendPaperStatusUpdate(
+                $paper->load('author'),
+                $eventType,
+                $toStatus ?? $fromStatus,
+                $notes
+            );
 
             return $event;
         });

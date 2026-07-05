@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\SystemNotification;
+use App\Services\MailService;
 
 class CommitteeController extends Controller
 {
@@ -202,15 +203,21 @@ class CommitteeController extends Controller
                 ]);
             }
 
-            // إرسال إشعار للمحكم عبر الإيميل والنظام
+            // 📧 إرسال إشعار بريدي حقيقي للمحكم
             try {
                 $reviewer = User::find($request->reviewer_id);
-                $reviewer->notify(new SystemNotification(
-                    'دعوة لتحكيم بحث علمي جديد ⚖️',
-                    'تم اختياركم وتكليفكم بمراجعة البحث العلمي بعنوان: "' . $paper->title . '". يرجى الدخول للموقع لقبول المهمة أو الاعتذار عنها.',
-                    url('/reviewer/assignments'),
-                    'info'
-                ));
+                if ($reviewer) {
+                    // إرسال إيميل للمحكم
+                    MailService::sendReviewerAssigned($reviewer, $paper, $assignment);
+
+                    // إشعار داخلي في النظام أيضاً
+                    $reviewer->notify(new SystemNotification(
+                        'دعوة لتحكيم بحث علمي جديد ⚖️',
+                        'تم اختياركم وتكليفكم بمراجعة البحث العلمي بعنوان: "' . $paper->title . '". يرجى الدخول للموقع لقبول المهمة أو الاعتذار عنها.',
+                        url('/reviewer/assignments'),
+                        'info'
+                    ));
+                }
             } catch (\Exception $e) {
                 \Log::error('Reviewer Notification Error: ' . $e->getMessage());
             }
@@ -550,8 +557,16 @@ class CommitteeController extends Controller
 
         $invitationLink = url("/register/reviewer?token={$token}");
 
+        // 📧 إرسال الدعوة بريدياً للمحكم الخارجي
+        MailService::sendReviewerInvitation(
+            $validated['email'],
+            $validated['name'],
+            $invitationLink,
+            $validated['affiliation'] ?? null
+        );
+
         return response()->json([
-            'message'         => $existing ? 'تم تجديد رابط الدعوة بنجاح.' : 'تم إنشاء دعوة التسجيل بنجاح.',
+            'message'         => $existing ? 'تم تجديد رابط الدعوة وإرساله بريدياً.' : 'تم إنشاء الدعوة وإرسالها بريدياً.',
             'invitation_link' => $invitationLink,
         ]);
     }
