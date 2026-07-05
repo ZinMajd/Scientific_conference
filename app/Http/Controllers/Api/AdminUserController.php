@@ -53,7 +53,7 @@ class AdminUserController extends Controller
             'username'   => 'required|string|max:100|unique:users,username',
             'email'      => 'required|email|unique:users,email',
             'password'   => ['required', 'string', Password::min(8)],
-            'user_type'  => 'required|in:admin,chair,committee,editor,office,reviewer,production_office',
+            'user_type'  => 'required|in:chair,committee,editor,office,reviewer,production_office', // 'admin' removed
             'affiliation'=> 'nullable|string|max:255',
             'phone'      => 'nullable|string|max:30',
         ]);
@@ -91,12 +91,18 @@ class AdminUserController extends Controller
     {
         $user = User::query()->findOrFail($id);
 
+        if ($user->username === 'asih' && $request->filled('user_type') && $request->user_type !== 'admin') {
+            return response()->json([
+                'message' => 'لا يمكن تغيير دور مدير النظام الرئيسي (asih).'
+            ], 422);
+        }
+
         $data = $request->validate([
             'full_name'  => 'sometimes|string|max:255',
             'email'      => "sometimes|email|unique:users,email,{$id}",
             'username'   => "sometimes|string|max:100|unique:users,username,{$id}",
             'password'   => ['nullable', 'string', Password::min(8)],
-            'user_type'  => 'sometimes|in:admin,chair,committee,editor,office,reviewer,production_office,author',
+            'user_type'  => 'sometimes|in:chair,committee,editor,office,reviewer,production_office,author', // 'admin' removed
             'is_active'  => 'sometimes|boolean',
             'affiliation'=> 'nullable|string|max:255',
             'phone'      => 'nullable|string|max:30',
@@ -132,6 +138,12 @@ class AdminUserController extends Controller
     public function toggleActive(int $id): JsonResponse
     {
         $user = User::query()->findOrFail($id);
+
+        if ($user->username === 'asih') {
+            return response()->json([
+                'message' => 'لا يمكن إيقاف حساب مدير النظام الرئيسي (asih).'
+            ], 422);
+        }
         
         $newState = !$user->is_active;
         $user->is_active = $newState;

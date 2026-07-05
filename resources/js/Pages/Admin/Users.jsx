@@ -358,16 +358,17 @@ export default function AdminUsers() {
                     <div>
                         <label className="block text-xs font-black text-slate-600 mb-2">الدور / الصلاحية *</label>
                         <div className="grid grid-cols-2 gap-2">
-                            {ROLES.map(r => (
+                            {ROLES.filter(r => r.value !== 'admin' || (editUser && editUser.user_type === 'admin')).map(r => (
                                 <button
                                     key={r.value}
                                     type="button"
+                                    disabled={editUser && editUser.user_type === 'admin'}
                                     onClick={() => setForm(f => ({ ...f, user_type: r.value }))}
                                     className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-black border-2 transition text-right ${
                                         form.user_type === r.value
                                             ? 'border-sky-500 bg-sky-50 text-sky-700 shadow-sm'
                                             : 'border-gray-100 bg-gray-50 text-slate-500 hover:border-gray-300'
-                                    }`}
+                                    } ${(editUser && editUser.user_type === 'admin') ? 'opacity-60 cursor-not-allowed' : ''}`}
                                 >
                                     <span className="text-base">{r.icon}</span>
                                     <span>{r.label}</span>
