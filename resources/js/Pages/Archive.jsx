@@ -11,6 +11,13 @@ const PRUSSIAN = '#105d82';
 const PRUSSIAN_DARK = '#0a4a68';
 const OCEAN = '#0096c7';
 
+// دالة مساعدة: تُعيد رابط الصورة سواء كان رابطاً كاملاً (Supabase) أو مساراً محلياً
+const getImageUrl = (path) => {
+    if (!path) return '/images/template-preview.jpg';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `/storage_file/${path}`;
+};
+
 export default function Archive() {
     const [papers, setPapers] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
@@ -205,15 +212,15 @@ export default function Archive() {
                                             <div className="md:w-[150px] shrink-0 flex flex-col">
                                                 <div 
                                                     className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
-                                                    onClick={() => paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
+                                                    onClick={() => paper.thumbnail_path && setSelectedImage(getImageUrl(paper.thumbnail_path))}
                                                     role="button"
                                                     tabIndex={0}
-                                                    onKeyDown={(e) => e.key === 'Enter' && paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && paper.thumbnail_path && setSelectedImage(getImageUrl(paper.thumbnail_path))}
                                                 >
                                                     {paper.thumbnail_path ? (
                                                         <>
                                                             <img 
-                                                                src={`/storage_file/${paper.thumbnail_path}`} 
+                                                                src={getImageUrl(paper.thumbnail_path)} 
                                                                 alt={paper.title || 'صورة البحث'} 
                                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
                                                                 onError={(e) => { e.currentTarget.src = '/images/template-preview.jpg'; }}

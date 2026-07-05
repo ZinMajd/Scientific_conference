@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// دالة مساعدة: تُعيد رابط الصورة سواء كان رابطاً كاملاً (Supabase) أو مساراً محلياً
+const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `/storage_file/${path}`;
+};
+
 export default function ProductionDashboard() {
     const [activeTab, setActiveTab] = useState('production'); // production, archive
     const [papers, setPapers] = useState([]);
@@ -17,6 +24,8 @@ export default function ProductionDashboard() {
         thumbnail: null,
         notes: ''
     });
+    const [thumbnailPreview, setThumbnailPreview] = useState(null); // معاينة الصورة المختارة
+    const [uploadSuccess, setUploadSuccess] = useState(false);
 
     const fetchPapers = async () => {
         setLoading(true);
@@ -73,6 +82,8 @@ export default function ProductionDashboard() {
             thumbnail: null,
             notes: paper.production_notes || ''
         });
+        setThumbnailPreview(null); // إعادة تعيين المعاينة عند فتح نافذة جديدة
+        setUploadSuccess(false);
         setShowProcessModal(true);
     };
 
@@ -89,10 +100,17 @@ export default function ProductionDashboard() {
         }
 
         try {
-            await axios.post(`/api/production/papers/${selectedPaper.id}/update`, formData, {
+            const res = await axios.post(`/api/production/papers/${selectedPaper.id}/update`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            alert('تم تحديث بيانات البحث بنجاح');
+            // تحديث بيانات البحث في الحالة محلياً
+            if (res.data.paper) {
+                setSelectedPaper(res.data.paper);
+                // عرض الصورة الجديدة من الخادم بعد الحفظ (تتضمن مسار Supabase الكامل)
+                setThumbnailPreview(null);
+            }
+            setUploadSuccess(true);
+            setTimeout(() => setUploadSuccess(false), 3000);
             fetchPapers();
         } catch (err) {
             console.error(err);
@@ -300,27 +318,78 @@ export default function ProductionDashboard() {
                                     </label>
                                 </div>
 
-                                <div className="p-8 border-2 border-dashed border-emerald-100 rounded-3xl bg-emerald-50/30 flex flex-col items-center gap-4 group hover:border-emerald-300 transition">
-                                    <div className="p-4 bg-white rounded-2xl shadow-sm text-3xl group-hover:scale-110 transition">🖼️</div>
-                                    <div className="text-center">
-                                        <p className="text-sm font-black text-emerald-900">صورة البحث (Thumbnail)</p>
-                                        <p className="text-[10px] text-gray-400 mt-1">تظهر في الأرشيف والبحث</p>
+                                {/* Thumbnail Upload with Preview */}
+                                <div className="border-2 border-dashed border-emerald-100 rounded-3xl bg-emerald-50/30 overflow-hidden hover:border-emerald-300 transition">
+                                    {/* Preview Area */}
+                                    {(thumbnailPreview || getImageUrl(selectedPaper?.thumbnail_path)) && (
+                                        <div className="relative w-full" style={{ height: '180px' }}>
+                                            <img
+                                                src={thumbnailPreview || getImageUrl(selectedPaper?.thumbnail_path)}
+                                                alt="معاينة الصورة"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            />
+                                            {thumbnailPreview && (
+                                                <div className="absolute top-2 right-2 bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-full">
+                                                    معاينة - لم يُحفظ بعد
+                                                </div>
+                                            )}
+                                            {!thumbnailPreview && getImageUrl(selectedPaper?.thumbnail_path) && (
+                                                <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full">
+                                                    الصورة الحالية
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    <div className="p-6 flex flex-col items-center gap-3">
+                                        <div className="text-3xl">🖼️</div>
+                                        <div className="text-center">
+                                            <p className="text-sm font-black text-emerald-900">صورة البحث (Thumbnail)</p>
+                                            <p className="text-[10px] text-gray-400 mt-1">تظهر في الأرشيف والبحث</p>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            id="thumbnail-upload"
+                                            onChange={e => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    setProcessForm({...processForm, thumbnail: file});
+                                                    // معاينة مباشرة قبل الرفع
+                                                    const reader = new FileReader();
+                                                    reader.onload = (ev) => setThumbnailPreview(ev.target.result);
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
+                                        <label htmlFor="thumbnail-upload" className="px-6 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl text-xs font-black cursor-pointer hover:bg-emerald-600 hover:text-white transition">
+                                            {processForm.thumbnail ? `✅ ${processForm.thumbnail.name}` : 'اختر صورة جديدة'}
+                                        </label>
+                                        {processForm.thumbnail && (
+                                            <button
+                                                type="button"
+                                                className="text-[10px] text-rose-400 hover:text-rose-600 font-bold"
+                                                onClick={() => { setProcessForm({...processForm, thumbnail: null}); setThumbnailPreview(null); }}
+                                            >
+                                                إلغاء الاختيار
+                                            </button>
+                                        )}
                                     </div>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*"
-                                        className="hidden" 
-                                        id="thumbnail-upload"
-                                        onChange={e => setProcessForm({...processForm, thumbnail: e.target.files[0]})}
-                                    />
-                                    <label htmlFor="thumbnail-upload" className="px-6 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl text-xs font-black cursor-pointer hover:bg-emerald-600 hover:text-white transition">
-                                        {processForm.thumbnail ? processForm.thumbnail.name : 'اختر صورة'}
-                                    </label>
                                 </div>
                             </div>
 
                             <div className="flex gap-4">
-                                <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition">تحديث وحفظ البيانات</button>
+                                <button
+                                    type="submit"
+                                    className={`flex-1 py-4 rounded-2xl font-black shadow-lg transition flex items-center justify-center gap-2 ${
+                                        uploadSuccess
+                                            ? 'bg-emerald-500 text-white shadow-emerald-100'
+                                            : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'
+                                    }`}
+                                >
+                                    {uploadSuccess ? '✅ تم الحفظ بنجاح!' : 'تحديث وحفظ البيانات'}
+                                </button>
                             </div>
 
                             <div className="pt-6 border-t border-gray-100 space-y-4">

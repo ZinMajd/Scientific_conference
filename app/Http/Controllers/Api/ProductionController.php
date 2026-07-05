@@ -9,6 +9,8 @@ use App\Services\PaperWorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class ProductionController extends Controller
 {
@@ -74,15 +76,53 @@ class ProductionController extends Controller
     /**
      * Update production details and upload final file
      */
+    /**
+     * Upload a file to Supabase Storage and return the public URL.
+     * Falls back to local storage if Supabase is not configured.
+     */
+    private function uploadToSupabase($file, string $folder, string $extension): string
+    {
+        $supabaseUrl  = rtrim(env('SUPABASE_URL', env('VITE_SUPABASE_URL', '')), '/');
+        $supabaseKey  = env('SUPABASE_SERVICE_KEY', env('VITE_SUPABASE_ANON_KEY', ''));
+        $bucket       = env('SUPABASE_BUCKET', 'papers');
+
+        if ($supabaseUrl && $supabaseKey) {
+            $fileName    = $folder . '/' . Str::uuid() . '.' . $extension;
+            $fileContent = file_get_contents($file->getRealPath());
+            $mimeType    = $file->getMimeType();
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $supabaseKey,
+                'apikey'        => $supabaseKey,
+                'Content-Type'  => $mimeType,
+                'x-upsert'      => 'true',
+            ])->withBody($fileContent, $mimeType)
+              ->post("{$supabaseUrl}/storage/v1/object/{$bucket}/{$fileName}");
+
+            if ($response->successful()) {
+                // Return the public URL directly so it works from any machine
+                return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$fileName}";
+            }
+
+            \Illuminate\Support\Facades\Log::error('Supabase upload failed', [
+                'status' => $response->status(),
+                'body'   => $response->body()
+            ]);
+        }
+
+        // Fallback: store locally
+        return $file->store($folder, 'public');
+    }
+
     public function updateProduction(Request $request, $id)
     {
         $request->validate([
-            'final_file' => 'nullable|file|mimes:pdf|max:20480',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'doi' => 'nullable|string',
-            'page_numbers' => 'nullable|string',
-            'publish_delay_days' => 'nullable|integer|min:0',
-            'notes' => 'nullable|string'
+            'final_file'          => 'nullable|file|mimes:pdf|max:20480',
+            'thumbnail'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'doi'                 => 'nullable|string',
+            'page_numbers'        => 'nullable|string',
+            'publish_delay_days'  => 'nullable|integer|min:0',
+            'notes'               => 'nullable|string'
         ]);
 
         $paper = Paper::findOrFail($id);
@@ -93,18 +133,20 @@ class ProductionController extends Controller
         }
 
         if ($request->hasFile('thumbnail')) {
-            $thumbPath = $request->file('thumbnail')->store('papers/thumbnails', 'public');
+            $thumbFile  = $request->file('thumbnail');
+            $ext        = strtolower($thumbFile->getClientOriginalExtension());
+            $thumbPath  = $this->uploadToSupabase($thumbFile, 'papers/thumbnails', $ext);
             $paper->thumbnail_path = $thumbPath;
         }
 
-        if ($request->has('doi')) $paper->doi = $request->doi;
+        if ($request->has('doi'))          $paper->doi          = $request->doi;
         if ($request->has('page_numbers')) $paper->page_numbers = $request->page_numbers;
 
         $paper->save();
 
         return response()->json([
             'message' => 'تم تحديث بيانات الإنتاج بنجاح',
-            'paper' => $paper
+            'paper'   => $paper
         ]);
     }
 
