@@ -29,6 +29,7 @@ import Announcements from './Pages/Announcements';
 
 // Profile Layout
 import ProfileLayout from './Layouts/ProfileLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Researcher Pages
 import ResearcherLayout from './Layouts/ResearcherLayout';
@@ -231,6 +232,10 @@ if (container) {
         return config;
     });
 
-    root.render(<App />);
+    root.render(
+        <ErrorBoundary>
+            <App />
+        </ErrorBoundary>
+    );
     console.log('%c Scientific Conference System - Ready', 'color: #2563eb; font-weight: bold; font-size: 1.2rem;');
 }
