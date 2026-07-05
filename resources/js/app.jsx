@@ -15,6 +15,7 @@ import Register from './Pages/Auth/Register';
 
 import ForgotPassword from './Pages/Auth/ForgotPassword';
 import ResetPassword from './Pages/Auth/ResetPassword';
+import RegisterReviewer from './Pages/Auth/RegisterReviewer';
 import Dashboard from './Pages/Profile/Dashboard';
 import ProfileEdit from './Pages/Profile/Edit';
 import Security from './Pages/Profile/Security';
@@ -105,6 +106,7 @@ function App() {
                 {/* Standalone Auth Routes for all users (Not wrapped in MainLayout) */}
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
+                <Route path="register/reviewer" element={<RegisterReviewer />} />
                 <Route path="forgot-password" element={<ForgotPassword />} />
                 <Route path="reset-password" element={<ResetPassword />} />
 

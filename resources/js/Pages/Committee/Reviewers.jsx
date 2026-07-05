@@ -10,6 +10,14 @@ export default function CommitteeReviewers() {
     const [editingReviewerId, setEditingReviewerId] = useState(null);
     const [viewReviewer, setViewReviewer] = useState(null);
     const [showViewModal, setShowViewModal] = useState(false);
+    
+    // Invitation states
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteForm, setInviteForm] = useState({ name: '', email: '', affiliation: '' });
+    const [inviteLink, setInviteLink] = useState('');
+    const [copied, setCopied] = useState(false);
+    const [inviteErrors, setInviteErrors] = useState({});
+    const [sendingInvite, setSendingInvite] = useState(false);
 
     const fetchReviewers = async () => {
         setLoading(true);
@@ -72,6 +80,25 @@ export default function CommitteeReviewers() {
         }
     };
 
+    const handleSendInvite = async (e) => {
+        e.preventDefault();
+        setInviteErrors({});
+        setSendingInvite(true);
+        try {
+            const res = await axios.post('/api/committee/reviewers/invite', inviteForm);
+            setInviteLink(res.data.invitation_link);
+            setCopied(false);
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                setInviteErrors(error.response.data.errors);
+            } else {
+                alert('فشل إرسال الدعوة: ' + (error.response?.data?.message || error.message));
+            }
+        } finally {
+            setSendingInvite(false);
+        }
+    };
+
 
     return (
         <div className="space-y-10 animate-in fade-in duration-700 pb-20 relative">
@@ -80,16 +107,29 @@ export default function CommitteeReviewers() {
                     <h1 className="text-3xl font-black text-emerald-950 font-['Cairo']">إدارة المحكمين</h1>
                     <p className="text-gray-500 font-medium">إدارة خبراء التحكيم العلمي وتوزيع المهام بدقة</p>
                 </div>
-                <button 
-                    onClick={() => {
-                        setEditingReviewerId(null);
-                        setNewReviewer({ full_name: '', email: '', affiliation: '' });
-                        setShowAddModal(true);
-                    }}
-                    className="px-8 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition flex items-center gap-3"
-                >
-                    <span>➕</span> إضافة محكم جديد
-                </button>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => {
+                            setInviteForm({ name: '', email: '', affiliation: '' });
+                            setInviteLink('');
+                            setInviteErrors({});
+                            setShowInviteModal(true);
+                        }}
+                        className="px-6 py-4 bg-sky-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-600/20 hover:bg-sky-700 transition flex items-center gap-3"
+                    >
+                        <span>✉️</span> إرسال دعوة لمقيم
+                    </button>
+                    <button 
+                        onClick={() => {
+                            setEditingReviewerId(null);
+                            setNewReviewer({ full_name: '', email: '', affiliation: '' });
+                            setShowAddModal(true);
+                        }}
+                        className="px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition flex items-center gap-3"
+                    >
+                        <span>➕</span> إضافة محكم جديد
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -156,6 +196,110 @@ export default function CommitteeReviewers() {
                 </table>
             </div>
 
+            {/* Invite Reviewer Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl animate-in fade-in duration-300">
+                        <div className="flex justify-between items-start mb-6">
+                            <h3 className="text-xl font-black text-emerald-950">✉️ إرسال دعوة انضمام لمقيم</h3>
+                            <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-red-500 transition">✕</button>
+                        </div>
+
+                        {!inviteLink ? (
+                            <form onSubmit={handleSendInvite} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">اسم المقيم/المحكم</label>
+                                    <input 
+                                        type="text" 
+                                        className={`w-full p-3 rounded-xl border ${inviteErrors.name ? 'border-red-500' : 'border-gray-200'} focus:border-sky-500 outline-none`}
+                                        value={inviteForm.name}
+                                        onChange={e => setInviteForm({...inviteForm, name: e.target.value})}
+                                        required
+                                        placeholder="د. محمد احمد"
+                                    />
+                                    {inviteErrors.name && <p className="text-red-500 text-xs mt-1">{inviteErrors.name[0]}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label>
+                                    <input 
+                                        type="email" 
+                                        className={`w-full p-3 rounded-xl border ${inviteErrors.email ? 'border-red-500' : 'border-gray-200'} focus:border-sky-500 outline-none text-left`}
+                                        dir="ltr"
+                                        value={inviteForm.email}
+                                        onChange={e => setInviteForm({...inviteForm, email: e.target.value})}
+                                        required
+                                        placeholder="reviewer@example.com"
+                                    />
+                                    {inviteErrors.email && <p className="text-red-500 text-xs mt-1">{inviteErrors.email[0]}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">الجهة / التخصص</label>
+                                    <input 
+                                        type="text" 
+                                        className={`w-full p-3 rounded-xl border ${inviteErrors.affiliation ? 'border-red-500' : 'border-gray-200'} focus:border-sky-500 outline-none`}
+                                        value={inviteForm.affiliation}
+                                        onChange={e => setInviteForm({...inviteForm, affiliation: e.target.value})}
+                                        placeholder="جامعة إقليم سبأ"
+                                    />
+                                    {inviteErrors.affiliation && <p className="text-red-500 text-xs mt-1">{inviteErrors.affiliation[0]}</p>}
+                                </div>
+                                <div className="flex gap-3 mt-6">
+                                    <button 
+                                        type="submit" 
+                                        disabled={sendingInvite}
+                                        className="flex-1 bg-sky-600 text-white py-3 rounded-xl font-bold hover:bg-sky-700 transition disabled:opacity-50"
+                                    >
+                                        {sendingInvite ? 'جاري إنشاء الدعوة...' : 'إنشاء رابط الدعوة'}
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowInviteModal(false)} 
+                                        className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
+                                    >
+                                        إلغاء
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="p-4 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-100 text-sm font-medium">
+                                    🎉 تم إنشاء رابط دعوة التسجيل للمحكم بنجاح! يمكنك الآن نسخ الرابط وإرساله إليه ليكمل التسجيل.
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-gray-700">رابط دعوة التسجيل:</label>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            readOnly 
+                                            value={inviteLink}
+                                            className="flex-1 p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none font-mono text-xs select-all text-left"
+                                            dir="ltr"
+                                        />
+                                        <button 
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(inviteLink);
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 2000);
+                                            }}
+                                            className="px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition text-xs shrink-0"
+                                        >
+                                            {copied ? '✅ تم النسخ' : '📋 نسخ الرابط'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => setShowInviteModal(false)} 
+                                    className="w-full py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition text-sm"
+                                >
+                                    إغلاق
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Add Reviewer Modal */}
             {showAddModal && (
