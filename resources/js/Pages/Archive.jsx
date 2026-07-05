@@ -73,7 +73,7 @@ export default function Archive() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [fetchArchive]);
+    }, [fetchArchive, supabase]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -214,7 +214,7 @@ export default function Archive() {
                                                         <>
                                                             <img 
                                                                 src={`/storage_file/${paper.thumbnail_path}`} 
-                                                                alt={paper.title} 
+                                                                alt={paper.title || 'صورة البحث'} 
                                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
                                                                 onError={(e) => { e.currentTarget.src = '/images/template-preview.jpg'; }}
                                                             />
@@ -224,7 +224,7 @@ export default function Archive() {
                                                         <>
                                                             <img 
                                                                 src={`/images/template-preview.jpg`} 
-                                                                alt={paper.title} 
+                                                                alt={paper.title || 'معاينة البحث'} 
                                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
                                                             />
                                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
@@ -258,7 +258,7 @@ export default function Archive() {
                                                 </div>
 
                                                 <Link to={`/article/${paper.id}`} className="group mb-4">
-                                                    <h3 className="notranslate text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.target.style.color = OCEAN} onMouseLeave={(e) => e.target.style.color = '#0077a3'}>
+                                                    <h3 className="notranslate text-xl font-black leading-[1.2] transition-colors" style={{ color: '#0077a3' }} onMouseEnter={(e) => e.currentTarget.style.color = OCEAN} onMouseLeave={(e) => e.currentTarget.style.color = '#0077a3'}>
                                                         {paper.title}
                                                     </h3>
                                                 </Link>
@@ -318,8 +318,8 @@ export default function Archive() {
                                                         to={`/article/${paper.id}`} 
                                                         className="flex items-center gap-2 text-xs font-black transition-all group uppercase tracking-widest"
                                                         style={{ color: '#0077a3' }}
-                                                        onMouseEnter={(e) => e.target.style.color = OCEAN}
-                                                        onMouseLeave={(e) => e.target.style.color = '#0077a3'}
+                                                        onMouseEnter={(e) => e.currentTarget.style.color = OCEAN}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = '#0077a3'}
                                                     >
                                                         اقرأ المزيد 
                                                         <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
@@ -340,7 +340,8 @@ export default function Archive() {
                                         onClick={() => fetchArchive(i + 1)}
                                         className={`w-10 h-10 flex items-center justify-center text-xs font-black rounded-sm border ${pagination.current_page === i + 1 ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-gray-100 transition'}`}
                                         style={pagination.current_page !== i + 1 ? { color: OCEAN } : {}}
-                                        onMouseEnter={(e) => {if(pagination.current_page !== i + 1) e.target.style.color = OCEAN;}}
+                                        onMouseEnter={(e) => {if(pagination.current_page !== i + 1) e.currentTarget.style.color = PRUSSIAN;}}
+                                        onMouseLeave={(e) => {if(pagination.current_page !== i + 1) e.currentTarget.style.color = OCEAN;}}
                                     >
                                         {i + 1}
                                     </button>

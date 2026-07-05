@@ -8,6 +8,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 
 class AdminUserController extends Controller
@@ -66,7 +67,7 @@ class AdminUserController extends Controller
             'user_type'         => $data['user_type'],
             'affiliation'       => $data['affiliation'] ?? null,
             'phone'             => $data['phone'] ?? null,
-            'is_active'         => \Illuminate\Support\Facades\DB::raw('true'),
+            'is_active'         => true,
             'email_verified_at' => now(),
         ]);
 
@@ -89,7 +90,7 @@ class AdminUserController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $user = User::query()->findOrFail($id);
+        $user = User::findOrFail($id);
 
         if ($user->username === 'asih' && $request->filled('user_type') && $request->user_type !== 'admin') {
             return response()->json([
@@ -108,7 +109,7 @@ class AdminUserController extends Controller
             'phone'      => 'nullable|string|max:30',
         ]);
 
-        if (!empty($data['password'])) {
+        if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
@@ -118,7 +119,7 @@ class AdminUserController extends Controller
 
         // Re-sync role if user_type changed
         if ($request->filled('user_type')) {
-            $roleSlug = $this->roleMap[$data['user_type']] ?? null;
+            $roleSlug = $this->roleMap[$data['user_type'] ?? ''] ?? null;
             if ($roleSlug) {
                 $role = Role::query()->where('slug', $roleSlug)->first();
                 if ($role) {
@@ -137,7 +138,7 @@ class AdminUserController extends Controller
 
     public function toggleActive(int $id): JsonResponse
     {
-        $user = User::query()->findOrFail($id);
+        $user = User::findOrFail($id);
 
         if ($user->username === 'asih') {
             return response()->json([
@@ -145,17 +146,12 @@ class AdminUserController extends Controller
             ], 422);
         }
         
-        $newState = !$user->is_active;
-        $user->is_active = $newState;
-        
-        // Use raw query for Postgres boolean update to prevent type mismatch
-        User::query()->where('id', $id)->update([
-            'is_active' => \Illuminate\Support\Facades\DB::raw($newState ? 'true' : 'false')
-        ]);
+        $user->is_active = !$user->is_active;
+        $user->save();
 
         return response()->json([
-            'message'   => $newState ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.',
-            'is_active' => $newState,
+            'message'   => $user->is_active ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.',
+            'is_active' => $user->is_active,
         ]);
     }
 }
