@@ -73,7 +73,10 @@ export default function CommitteeReviewers() {
             fetchReviewers();
         } catch (error) {
             if (error.response && error.response.status === 422) {
-                setErrors(error.response.data.errors);
+                setErrors(error.response.data.errors || {});
+                if (!error.response.data.errors) {
+                    alert(error.response.data.message || 'فشلت عملية التحقق');
+                }
             } else {
                 alert('فشل حفظ البيانات: ' + (error.response?.data?.message || error.message));
             }
@@ -90,7 +93,10 @@ export default function CommitteeReviewers() {
             setCopied(false);
         } catch (error) {
             if (error.response && error.response.status === 422) {
-                setInviteErrors(error.response.data.errors);
+                setInviteErrors(error.response.data.errors || {});
+                if (!error.response.data.errors) {
+                    alert(error.response.data.message || 'فشلت عملية التحقق');
+                }
             } else {
                 alert('فشل إرسال الدعوة: ' + (error.response?.data?.message || error.message));
             }
