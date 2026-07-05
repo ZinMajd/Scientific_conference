@@ -505,32 +505,54 @@ class CommitteeController extends Controller
     public function sendInvitation(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email|unique:users,email|unique:reviewer_invitations,email',
-            'name' => 'required|string|max:255',
+            'email'       => 'required|email',
+            'name'        => 'required|string|max:255',
             'affiliation' => 'nullable|string|max:255',
-            'paper_id' => 'nullable|exists:papers,id',
+            'paper_id'    => 'nullable|exists:papers,id',
         ]);
+
+        // Check if user already has an account
+        $existingUser = User::where('email', $validated['email'])->first();
+        if ($existingUser) {
+            return response()->json([
+                'message' => 'هذا البريد الإلكتروني مرتبط بحساب مسجل بالفعل في النظام (دور: ' . $existingUser->user_type . '). يمكنك تعيينه مباشرةً كمحكم من قائمة المحكمين.',
+            ], 422);
+        }
 
         $token = \Illuminate\Support\Str::random(40);
 
-        $invitation = \DB::table('reviewer_invitations')->insert([
-            'email' => $validated['email'],
-            'name' => $validated['name'],
-            'affiliation' => $validated['affiliation'],
-            'paper_id' => $validated['paper_id'] ?? null,
-            'token' => $token,
-            'invited_by' => Auth::id(),
-            'expires_at' => now()->addDays(7),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // If invitation already exists for this email, update it (resend)
+        $existing = DB::table('reviewer_invitations')->where('email', $validated['email'])->first();
+        if ($existing) {
+            DB::table('reviewer_invitations')->where('email', $validated['email'])->update([
+                'name'        => $validated['name'],
+                'affiliation' => $validated['affiliation'] ?? $existing->affiliation,
+                'paper_id'    => $validated['paper_id'] ?? $existing->paper_id,
+                'token'       => $token,
+                'invited_by'  => Auth::id(),
+                'status'      => 'pending',
+                'expires_at'  => now()->addDays(7),
+                'updated_at'  => now(),
+            ]);
+        } else {
+            DB::table('reviewer_invitations')->insert([
+                'email'       => $validated['email'],
+                'name'        => $validated['name'],
+                'affiliation' => $validated['affiliation'],
+                'paper_id'    => $validated['paper_id'] ?? null,
+                'token'       => $token,
+                'invited_by'  => Auth::id(),
+                'expires_at'  => now()->addDays(7),
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+        }
 
-        // Generate invitation link (This would be sent via email in production)
         $invitationLink = url("/register/reviewer?token={$token}");
 
         return response()->json([
-            'message' => 'تم إنشاء دعوة التسجيل بنجاح.',
-            'invitation_link' => $invitationLink
+            'message'         => $existing ? 'تم تجديد رابط الدعوة بنجاح.' : 'تم إنشاء دعوة التسجيل بنجاح.',
+            'invitation_link' => $invitationLink,
         ]);
     }
 
