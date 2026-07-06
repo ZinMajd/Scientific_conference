@@ -52,6 +52,16 @@ class PaperWorkflowService
                 $notes
             );
 
+            // 🔔 إضافة الإشعار في قاعدة البيانات ليظهر في الجرس للمؤلف
+            if ($paper->author) {
+                try {
+                    $statusMessage = "تم تحديث حالة البحث إلى: " . __("status.{$toStatus}");
+                    $paper->author->notify(new \App\Notifications\PaperStatusNotification($paper, $statusMessage));
+                } catch (\Exception $e) {
+                    \Log::error('Database Notification Error: ' . $e->getMessage());
+                }
+            }
+
             return $event;
         });
     }
@@ -112,21 +122,13 @@ class PaperWorkflowService
             $paper->save();
         }
 
-        // 4. الانتقال التلقائي إلى "جاهز للتحكيم"
-        $paper->transitionStatus(
-            Paper::STATUS_READY_FOR_REVIEW,
-            'تم إخفاء هوية المؤلف تلقائياً. البحث جاهز الآن للتحكيم.'
+        // 4. الانتقال التلقائي إلى "جاهز للتحكيم" (سيقوم بإرسال الإيميل والإشعار)
+        $this->transition(
+            $paper,
+            'PAPER_ANONYMIZED',
+            'إخفاء هوية تلقائي بواسطة النظام. البحث جاهز الآن للتحكيم.',
+            ['auto' => true, 'blind_path' => $blindPath]
         );
-
-        PaperEvent::create([
-            'paper_id'   => $paper->id,
-            'event_type' => 'PAPER_ANONYMIZED',
-            'from_status'=> Paper::STATUS_PRELIMINARY_ACCEPTED,
-            'to_status'  => Paper::STATUS_READY_FOR_REVIEW,
-            'user_id'    => Auth::id(),
-            'notes'      => 'إخفاء هوية تلقائي بواسطة النظام',
-            'metadata'   => ['auto' => true, 'blind_path' => $blindPath],
-        ]);
     }
 
     /**

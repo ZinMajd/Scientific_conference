@@ -44,7 +44,11 @@ class ReviewerController extends Controller
         // Update paper status to under_review if not already
         $paper = $assignment->paper;
         if ($paper->status !== Paper::STATUS_UNDER_REVIEW) {
-            $paper->transitionStatus(Paper::STATUS_UNDER_REVIEW, 'بدأت عملية التحكيم بقبول المحكم للدعوة', $user->id);
+            app(\App\Services\PaperWorkflowService::class)->transition(
+                $paper, 
+                'REVIEWERS_ASSIGNED', 
+                'بدأت عملية التحكيم بقبول المحكم للدعوة'
+            );
         }
 
         return response()->json(['message' => 'تم قبول الدعوة بنجاح. يمكنك البدء في التحكيم الآن.']);
