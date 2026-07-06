@@ -137,7 +137,16 @@ export default function Certificates() {
 
     useEffect(() => {
         axios.get('/researcher/certificates')
-            .then(res => { setCertificates(res.data); setLoading(false); })
+            .then(res => {
+                // Handle both plain array and paginated/wrapped responses
+                const data = Array.isArray(res.data)
+                    ? res.data
+                    : Array.isArray(res.data?.data)
+                        ? res.data.data
+                        : [];
+                setCertificates(data);
+                setLoading(false);
+            })
             .catch(() => { setError('فشل في تحميل الشهادات.'); setLoading(false); });
     }, []);
 
