@@ -83,7 +83,11 @@ class ProductionController extends Controller
     private function uploadToSupabase($file, string $folder, string $extension): string
     {
         $supabaseUrl  = rtrim(env('SUPABASE_URL', env('VITE_SUPABASE_URL', '')), '/');
-        $supabaseKey  = env('SUPABASE_SERVICE_KEY', env('VITE_SUPABASE_ANON_KEY', ''));
+        $serviceKey   = env('SUPABASE_SERVICE_KEY');
+        if (!$serviceKey || $serviceKey === 'YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE') {
+            $serviceKey = env('VITE_SUPABASE_ANON_KEY', '');
+        }
+        $supabaseKey  = $serviceKey;
         $bucket       = env('SUPABASE_BUCKET', 'papers');
 
         if ($supabaseUrl && $supabaseKey) {
