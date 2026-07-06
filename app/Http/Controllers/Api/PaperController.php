@@ -59,7 +59,14 @@ class PaperController extends Controller
         try {
             $request->validate([
                 'conf_id' => 'required|exists:conferences,id',
-                'title' => 'required|string|max:500',
+                'title' => [
+                    'required',
+                    'string',
+                    'max:500',
+                    \Illuminate\Validation\Rule::unique('papers')->where(function ($query) use ($request) {
+                        return $query->where('conf_id', $request->conf_id);
+                    })
+                ],
                 'abstract' => 'required|string',
                 'keywords' => 'required|string',
                 'track' => 'nullable|string',
@@ -75,6 +82,7 @@ class PaperController extends Controller
                 'paper_files.required' => 'يرجى إرفاق ملف البحث الرئيسي.',
                 'conf_id.required' => 'يرجى اختيار المؤتمر المستهدف.',
                 'title.required' => 'عنوان البحث مطلوب.',
+                'title.unique' => 'عذراً، تم رفع بحث بهذا العنوان مسبقاً في هذا المؤتمر! يُسمح برفع البحث لمرة واحدة فقط من قبل الباحث المسؤول لتجنب التكرار من قِبل المؤلفين المشاركين.',
                 'abstract.required' => 'ملخص البحث مطلوب.',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
