@@ -62,8 +62,71 @@ class PaperWorkflowService
                 }
             }
 
+            // 🔔 تعميم الإشعارات على الطاقم الإداري (مكتب التحرير، المحرر، الإنتاج)
+            $this->notifyStakeholders($paper, $eventType, $toStatus ?? $fromStatus);
+
             return $event;
         });
+    }
+
+    /**
+     * إرسال إشعارات النظام (الجرس) للمسؤولين حسب الحدث
+     */
+    protected function notifyStakeholders(Paper $paper, string $eventType, string $status)
+    {
+        try {
+            $title = "تحديث في مسار البحث: " . $paper->title;
+            $message = "تم تغيير حالة البحث إلى: " . __("status.{$status}");
+            $url = url('/committee/papers'); // Default URL for committee/editors
+
+            $targetRoles = [];
+
+            switch ($eventType) {
+                case 'PAPER_SUBMITTED':
+                    $targetRoles = ['office']; // Editorial Office
+                    $message = "تم تقديم بحث جديد يحتاج إلى مراجعة مبدئية.";
+                    break;
+                
+                case 'PAPER_ANONYMIZED':
+                    $targetRoles = ['editor']; // Editor
+                    $message = "تم إخفاء هوية بحث وهو جاهز الآن لتعيين المحكمين.";
+                    break;
+                
+                case 'REVISION_SUBMITTED':
+                    $targetRoles = ['editor']; // Editor
+                    $message = "قام الباحث برفع نسخة معدلة من البحث.";
+                    break;
+
+                case 'SCHEDULED':
+                    $targetRoles = ['production_office']; // Production Office
+                    $url = url('/production/papers');
+                    $message = "تم جدولة البحث في المؤتمر وهو بانتظار بدء إجراءات النشر.";
+                    break;
+
+                case 'FINAL_ACCEPT':
+                    $targetRoles = ['chair', 'office'];
+                    $message = "تم قبول البحث بشكل نهائي.";
+                    break;
+            }
+
+            if (!empty($targetRoles)) {
+                // Find users by user_type
+                $users = \App\Models\User::whereIn('user_type', $targetRoles)->get();
+                foreach ($users as $user) {
+                    // Do not notify the user who triggered the action if they are an admin
+                    if ($user->id !== Auth::id()) {
+                        $user->notify(new \App\Notifications\SystemNotification(
+                            $title,
+                            $message,
+                            $url,
+                            'info'
+                        ));
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Stakeholder Notification Error: ' . $e->getMessage());
+        }
     }
 
     /**
