@@ -136,7 +136,7 @@ export default function Certificates() {
     const [printingId, setPrintingId] = useState(null);
 
     useEffect(() => {
-        axios.get('/researcher/certificates')
+        axios.get('/api/researcher/certificates')
             .then(res => {
                 // Handle both plain array and paginated/wrapped responses
                 const data = Array.isArray(res.data)
@@ -147,7 +147,11 @@ export default function Certificates() {
                 setCertificates(data);
                 setLoading(false);
             })
-            .catch(() => { setError('فشل في تحميل الشهادات.'); setLoading(false); });
+            .catch((err) => {
+                console.error('Certificates API error:', err.response?.status, err.response?.data);
+                setError('فشل في تحميل الشهادات.');
+                setLoading(false);
+            });
     }, []);
 
     const handlePrint = (cert) => {
