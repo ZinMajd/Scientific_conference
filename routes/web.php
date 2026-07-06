@@ -304,17 +304,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
                 \App\Models\Paper::STATUS_READY_TO_PUBLISH,
                 \App\Models\Paper::STATUS_PUBLISHED,
             ];
-            $papers = \App\Models\Paper::with(['conference'])
-                ->where('author_id', $user->id)
-                ->whereIn('status', $acceptedStatuses)
-                ->get();
+            
+            $query = \App\Models\Paper::with(['conference', 'author'])
+                ->whereIn('status', $acceptedStatuses);
+                
+            // Only restrict by author_id if the user is just a researcher
+            if ($user->user_type === 'author') {
+                $query->where('author_id', $user->id);
+            }
+            
+            $papers = $query->get();
 
-            return response()->json($papers->map(function ($paper) use ($user) {
+            return response()->json($papers->map(function ($paper) {
                 return [
                     'id'             => $paper->id,
                     'title'          => $paper->title,
                     'status'         => $paper->status,
-                    'author_name'    => $user->full_name,
+                    'author_name'    => $paper->author ? $paper->author->full_name : 'غير معروف',
                     'conference'     => $paper->conference ? [
                         'title'      => $paper->conference->title,
                         'short_name' => $paper->conference->short_name,
