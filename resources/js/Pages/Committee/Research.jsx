@@ -148,14 +148,29 @@ export default function CommitteeResearch() {
                     sort_order: sortOrder
                 }
             });
-            setPapers(response.data.data);
-            setLastPage(response.data.last_page);
+            // Handle both paginated {data:[...]} and direct array responses
+            const rawData = response.data;
+            const papersData = Array.isArray(rawData)
+                ? rawData
+                : Array.isArray(rawData?.data)
+                    ? rawData.data
+                    : [];
+            setPapers(papersData);
+            setLastPage(rawData?.last_page ?? 1);
         } catch (error) {
-            console.error('Error fetching papers:', error);
+            console.error('Error fetching papers:', error?.response?.status, error?.response?.data);
+            if (error?.response?.status === 401) {
+                alert('انتهت جلسة تسجيل الدخول. يرجى إعادة تسجيل الدخول.');
+                window.location.href = '/login';
+            } else if (error?.response?.status === 403) {
+                console.error('Committee access denied:', error.response.data);
+            }
+            setPapers([]);
         } finally {
             setLoading(false);
         }
     };
+
 
     const fetchStats = async () => {
         try {
