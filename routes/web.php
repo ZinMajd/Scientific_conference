@@ -294,6 +294,40 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/researcher/reviewed-papers', [\App\Http\Controllers\Api\ResearcherController::class, 'reviewedPapers']);
         Route::post('/researcher/papers/{id}/camera-ready', [\App\Http\Controllers\Api\ResearcherController::class, 'submitCameraReady']);
 
+        // Certificate Routes
+        Route::get('/researcher/certificates', function (Request $request) {
+            $user = $request->user();
+            $acceptedStatuses = [
+                \App\Models\Paper::STATUS_ACCEPTED,
+                \App\Models\Paper::STATUS_SCHEDULED,
+                \App\Models\Paper::STATUS_IN_PRODUCTION,
+                \App\Models\Paper::STATUS_READY_TO_PUBLISH,
+                \App\Models\Paper::STATUS_PUBLISHED,
+            ];
+            $papers = \App\Models\Paper::with(['conference'])
+                ->where('author_id', $user->id)
+                ->whereIn('status', $acceptedStatuses)
+                ->get();
+
+            return response()->json($papers->map(function ($paper) use ($user) {
+                return [
+                    'id'             => $paper->id,
+                    'title'          => $paper->title,
+                    'status'         => $paper->status,
+                    'author_name'    => $user->full_name,
+                    'conference'     => $paper->conference ? [
+                        'title'      => $paper->conference->title,
+                        'short_name' => $paper->conference->short_name,
+                        'venue'      => $paper->conference->venue,
+                        'start_date' => $paper->conference->start_date?->format('Y-m-d'),
+                        'end_date'   => $paper->conference->end_date?->format('Y-m-d'),
+                    ] : null,
+                    'decision_date'  => $paper->decision_date?->format('Y-m-d') ?? $paper->updated_at->format('Y-m-d'),
+                    'certificate_type' => 'acceptance',
+                ];
+            }));
+        });
+
         // Reviewer Routes (Available to all authenticated users who have assignments)
         Route::get('/reviewer/stats', [\App\Http\Controllers\Api\ReviewerController::class, 'stats']);
         Route::get('/reviewer/assignments', [\App\Http\Controllers\Api\ReviewerController::class, 'assignments']);
