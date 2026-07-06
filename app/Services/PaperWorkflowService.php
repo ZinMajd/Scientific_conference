@@ -77,7 +77,7 @@ class PaperWorkflowService
         try {
             $title = "تحديث في مسار البحث: " . $paper->title;
             $message = "تم تغيير حالة البحث إلى: " . __("status.{$status}");
-            $url = url('/committee/papers'); // Default URL for committee/editors
+            $url = url('/committee/research'); // Default URL for committee/editors
 
             $targetRoles = [];
 
@@ -110,7 +110,7 @@ class PaperWorkflowService
 
                 case 'SCHEDULED':
                     $targetRoles = ['production_office']; // Production Office
-                    $url = url('/production/papers');
+                    $url = url('/production');
                     $message = "تم جدولة البحث في المؤتمر وهو بانتظار بدء إجراءات النشر.";
                     break;
 

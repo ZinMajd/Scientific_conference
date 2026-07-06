@@ -18,7 +18,7 @@ class PaperStatusNotification extends Notification
     {
         $this->paper = $paper;
         $this->statusMessage = $statusMessage;
-        $this->actionUrl = $actionUrl ?? url('/researcher/papers/' . $paper->id);
+        $this->actionUrl = $actionUrl ?? url('/researcher/research/' . $paper->id);
     }
 
     /**
