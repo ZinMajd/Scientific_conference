@@ -87,11 +87,22 @@ class PaperWorkflowService
                     $message = "تم تقديم بحث جديد يحتاج إلى مراجعة مبدئية.";
                     break;
                 
+                case 'TECHNICAL_CHECK_PASS':
+                case 'INITIAL_SCREENING_PASS':
+                    $targetRoles = ['editor', 'committee'];
+                    $message = "تم تجاوز المراجعة المبدئية بنجاح للبحث.";
+                    break;
+
                 case 'PAPER_ANONYMIZED':
                     $targetRoles = ['editor']; // Editor
                     $message = "تم إخفاء هوية بحث وهو جاهز الآن لتعيين المحكمين.";
                     break;
                 
+                case 'REVIEWERS_ASSIGNED':
+                    $targetRoles = ['office']; // Notice to office that reviewers are on it
+                    $message = "تم تعيين محكمين للبحث.";
+                    break;
+
                 case 'REVISION_SUBMITTED':
                     $targetRoles = ['editor']; // Editor
                     $message = "قام الباحث برفع نسخة معدلة من البحث.";
@@ -104,8 +115,17 @@ class PaperWorkflowService
                     break;
 
                 case 'FINAL_ACCEPT':
-                    $targetRoles = ['chair', 'office'];
-                    $message = "تم قبول البحث بشكل نهائي.";
+                case 'FINAL_REJECT':
+                    $targetRoles = ['chair', 'office', 'committee'];
+                    $message = "تم اتخاذ قرار نهائي بخصوص البحث.";
+                    break;
+                    
+                case 'SEND_TO_PRODUCTION':
+                case 'MARK_READY_FOR_PUBLISH':
+                case 'PUBLISHED':
+                case 'PUBLISH':
+                    $targetRoles = ['office', 'chair'];
+                    $message = "تحديث في حالة النشر والإنتاج للبحث.";
                     break;
             }
 
@@ -113,15 +133,12 @@ class PaperWorkflowService
                 // Find users by user_type
                 $users = \App\Models\User::whereIn('user_type', $targetRoles)->get();
                 foreach ($users as $user) {
-                    // Do not notify the user who triggered the action if they are an admin
-                    if ($user->id !== Auth::id()) {
-                        $user->notify(new \App\Notifications\SystemNotification(
-                            $title,
-                            $message,
-                            $url,
-                            'info'
-                        ));
-                    }
+                    $user->notify(new \App\Notifications\SystemNotification(
+                        $title,
+                        $message,
+                        $url,
+                        'info'
+                    ));
                 }
             }
         } catch (\Exception $e) {
