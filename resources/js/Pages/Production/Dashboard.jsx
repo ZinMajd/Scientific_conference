@@ -25,7 +25,9 @@ export default function ProductionDashboard() {
         notes: ''
     });
     const [thumbnailPreview, setThumbnailPreview] = useState(null); // معاينة الصورة المختارة
+    const [thumbnailSaved, setThumbnailSaved] = useState(false);    // هل تم الحفظ بنجاح؟
     const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
     const fetchPapers = async () => {
         setLoading(true);
@@ -82,13 +84,16 @@ export default function ProductionDashboard() {
             thumbnail: null,
             notes: paper.production_notes || ''
         });
-        setThumbnailPreview(null); // إعادة تعيين المعاينة عند فتح نافذة جديدة
+        setThumbnailPreview(null);
+        setThumbnailSaved(false);
         setUploadSuccess(false);
+        setUploadError(null);
         setShowProcessModal(true);
     };
 
     const handleUpdateDetails = async (e) => {
         e.preventDefault();
+        setUploadError(null);
         const formData = new FormData();
         formData.append('doi', processForm.doi);
         formData.append('page_numbers', processForm.page_numbers);
@@ -103,18 +108,30 @@ export default function ProductionDashboard() {
             const res = await axios.post(`/api/production/papers/${selectedPaper.id}/update`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            // تحديث بيانات البحث في الحالة محلياً
+
             if (res.data.paper) {
-                setSelectedPaper(res.data.paper);
-                // عرض الصورة الجديدة من الخادم بعد الحفظ (تتضمن مسار Supabase الكامل)
-                setThumbnailPreview(null);
+                const updatedPaper = res.data.paper;
+                setSelectedPaper(updatedPaper);
+
+                // إذا أرجع الخادم thumbnail_path صالحاً، امسح المعاينة المحلية
+                // واعرض الصورة المحفوظة من الخادم
+                if (updatedPaper.thumbnail_path) {
+                    setThumbnailPreview(null);
+                    setThumbnailSaved(true);
+                } else if (processForm.thumbnail) {
+                    // الخادم لم يُعِد مساراً، احتفظ بالمعاينة المحلية مع تنبيه
+                    setUploadError('تعذّر رفع الصورة على الخادم. يُرجى المحاولة مجدداً.');
+                }
             }
+
             setUploadSuccess(true);
+            // إعادة تعيين اختيار الملف بعد الحفظ
+            setProcessForm(prev => ({ ...prev, thumbnail: null, final_file: null }));
             setTimeout(() => setUploadSuccess(false), 3000);
             fetchPapers();
         } catch (err) {
             console.error(err);
-            alert('خطأ في التحديث');
+            setUploadError('خطأ في التحديث: ' + (err.response?.data?.message || err.message));
         }
     };
 
@@ -329,20 +346,35 @@ export default function ProductionDashboard() {
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                             />
-                                            {thumbnailPreview && (
+                                            {thumbnailPreview && !thumbnailSaved && (
                                                 <div className="absolute top-2 right-2 bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-full">
                                                     معاينة - لم يُحفظ بعد
                                                 </div>
                                             )}
-                                            {!thumbnailPreview && getImageUrl(selectedPaper?.thumbnail_path) && (
+                                            {thumbnailSaved && !thumbnailPreview && getImageUrl(selectedPaper?.thumbnail_path) && (
+                                                <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full flex items-center gap-1">
+                                                    <span>✅</span> تم الحفظ
+                                                </div>
+                                            )}
+                                            {!thumbnailPreview && !thumbnailSaved && getImageUrl(selectedPaper?.thumbnail_path) && (
                                                 <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full">
                                                     الصورة الحالية
                                                 </div>
                                             )}
                                         </div>
                                     )}
+
+                                    {/* Placeholder when no image exists */}
+                                    {!thumbnailPreview && !getImageUrl(selectedPaper?.thumbnail_path) && (
+                                        <div className="w-full flex items-center justify-center bg-gray-100" style={{ height: '120px' }}>
+                                            <div className="text-center">
+                                                <div className="text-4xl mb-2">🖼️</div>
+                                                <p className="text-[10px] text-gray-400 font-bold">لم تُرفع صورة بعد</p>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="p-6 flex flex-col items-center gap-3">
-                                        <div className="text-3xl">🖼️</div>
                                         <div className="text-center">
                                             <p className="text-sm font-black text-emerald-900">صورة البحث (Thumbnail)</p>
                                             <p className="text-[10px] text-gray-400 mt-1">تظهر في الأرشيف والبحث</p>
@@ -356,6 +388,8 @@ export default function ProductionDashboard() {
                                                 const file = e.target.files[0];
                                                 if (file) {
                                                     setProcessForm({...processForm, thumbnail: file});
+                                                    setThumbnailSaved(false);
+                                                    setUploadError(null);
                                                     // معاينة مباشرة قبل الرفع
                                                     const reader = new FileReader();
                                                     reader.onload = (ev) => setThumbnailPreview(ev.target.result);
@@ -364,13 +398,18 @@ export default function ProductionDashboard() {
                                             }}
                                         />
                                         <label htmlFor="thumbnail-upload" className="px-6 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl text-xs font-black cursor-pointer hover:bg-emerald-600 hover:text-white transition">
-                                            {processForm.thumbnail ? `✅ ${processForm.thumbnail.name}` : 'اختر صورة جديدة'}
+                                            {processForm.thumbnail ? `✅ ${processForm.thumbnail.name}` : selectedPaper?.thumbnail_path ? '🔄 تغيير الصورة' : 'اختر صورة جديدة'}
                                         </label>
                                         {processForm.thumbnail && (
                                             <button
                                                 type="button"
                                                 className="text-[10px] text-rose-400 hover:text-rose-600 font-bold"
-                                                onClick={() => { setProcessForm({...processForm, thumbnail: null}); setThumbnailPreview(null); }}
+                                                onClick={() => {
+                                                    setProcessForm({...processForm, thumbnail: null});
+                                                    setThumbnailPreview(null);
+                                                    setThumbnailSaved(false);
+                                                    setUploadError(null);
+                                                }}
                                             >
                                                 إلغاء الاختيار
                                             </button>
@@ -378,6 +417,13 @@ export default function ProductionDashboard() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Error Message */}
+                            {uploadError && (
+                                <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm text-red-600 font-bold flex items-center gap-2">
+                                    <span>⚠️</span> {uploadError}
+                                </div>
+                            )}
 
                             <div className="flex gap-4">
                                 <button

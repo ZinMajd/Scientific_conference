@@ -132,21 +132,32 @@ class ProductionController extends Controller
         $paper = Paper::findOrFail($id);
 
         if ($request->hasFile('final_file')) {
-            $path = $request->file('final_file')->store('papers/final', 'public');
+            // Try Supabase first, fallback to local
+            $finalFile = $request->file('final_file');
+            $ext       = strtolower($finalFile->getClientOriginalExtension());
+            $path      = $this->uploadToSupabase($finalFile, 'papers/final', $ext);
             $paper->final_file_path = $path;
         }
 
         if ($request->hasFile('thumbnail')) {
-            $thumbFile  = $request->file('thumbnail');
-            $ext        = strtolower($thumbFile->getClientOriginalExtension());
-            $thumbPath  = $this->uploadToSupabase($thumbFile, 'papers/thumbnails', $ext);
+            $thumbFile = $request->file('thumbnail');
+            $ext       = strtolower($thumbFile->getClientOriginalExtension());
+            $thumbPath = $this->uploadToSupabase($thumbFile, 'papers/thumbnails', $ext);
             $paper->thumbnail_path = $thumbPath;
+
+            \Illuminate\Support\Facades\Log::info('Thumbnail uploaded', [
+                'paper_id'      => $paper->id,
+                'thumbnail_path' => $thumbPath,
+            ]);
         }
 
         if ($request->has('doi'))          $paper->doi          = $request->doi;
         if ($request->has('page_numbers')) $paper->page_numbers = $request->page_numbers;
 
         $paper->save();
+
+        // Refresh from DB to ensure all fields (including thumbnail_path) are up-to-date
+        $paper->refresh();
 
         return response()->json([
             'message' => 'تم تحديث بيانات الإنتاج بنجاح',
