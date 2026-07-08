@@ -113,13 +113,16 @@ export default function ProductionDashboard() {
                 const updatedPaper = res.data.paper;
                 setSelectedPaper(updatedPaper);
 
-                // إذا أرجع الخادم thumbnail_path صالحاً، امسح المعاينة المحلية
-                // واعرض الصورة المحفوظة من الخادم
                 if (updatedPaper.thumbnail_path) {
-                    setThumbnailPreview(null);
+                    // ✅ بعد الحفظ: اعرض URL الصورة الجديدة من الخادم مباشرةً في thumbnailPreview
+                    // هذا يمنع رجوع العرض للصورة القديمة أو الافتراضية
+                    const savedUrl = updatedPaper.thumbnail_path.startsWith('http')
+                        ? updatedPaper.thumbnail_path
+                        : `/storage_file/${updatedPaper.thumbnail_path}`;
+                    setThumbnailPreview(savedUrl);
                     setThumbnailSaved(true);
                 } else if (processForm.thumbnail) {
-                    // الخادم لم يُعِد مساراً، احتفظ بالمعاينة المحلية مع تنبيه
+                    // الخادم لم يحفظ المسار — ابقِ المعاينة المحلية مع تنبيه
                     setUploadError('تعذّر رفع الصورة على الخادم. يُرجى المحاولة مجدداً.');
                 }
             }
@@ -351,7 +354,8 @@ export default function ProductionDashboard() {
                                                     معاينة - لم يُحفظ بعد
                                                 </div>
                                             )}
-                                            {thumbnailSaved && !thumbnailPreview && getImageUrl(selectedPaper?.thumbnail_path) && (
+                                            {/* صورة محفوظة للتو */}
+                                            {thumbnailSaved && (
                                                 <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full flex items-center gap-1">
                                                     <span>✅</span> تم الحفظ
                                                 </div>

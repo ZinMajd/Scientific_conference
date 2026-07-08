@@ -135,18 +135,18 @@ class ProductionController extends Controller
             // Try Supabase first, fallback to local
             $finalFile = $request->file('final_file');
             $ext       = strtolower($finalFile->getClientOriginalExtension());
-            $path      = $this->uploadToSupabase($finalFile, 'papers/final', $ext);
+            $path      = $this->uploadToSupabase($finalFile, 'final', $ext);
             $paper->final_file_path = $path;
         }
 
         if ($request->hasFile('thumbnail')) {
             $thumbFile = $request->file('thumbnail');
             $ext       = strtolower($thumbFile->getClientOriginalExtension());
-            $thumbPath = $this->uploadToSupabase($thumbFile, 'papers/thumbnails', $ext);
+            $thumbPath = $this->uploadToSupabase($thumbFile, 'thumbnails', $ext);
             $paper->thumbnail_path = $thumbPath;
 
             \Illuminate\Support\Facades\Log::info('Thumbnail uploaded', [
-                'paper_id'      => $paper->id,
+                'paper_id'       => $paper->id,
                 'thumbnail_path' => $thumbPath,
             ]);
         }
