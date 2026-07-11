@@ -62,7 +62,7 @@ class PaperController extends Controller
                 'keywords' => 'required|string',
                 'conference_id' => 'required|exists:conferences,id',
                 'file' => 'required|file|mimes:pdf,doc,docx|max:10240',
-                'coauthors' => 'nullable|array',
+                'coauthors' => 'nullable|array|max:2',
                 'coauthors.*.name' => 'required|string',
                 'coauthors.*.email' => 'nullable|email',
                 'coauthors.*.affiliation' => 'nullable|string',
@@ -179,7 +179,7 @@ class PaperController extends Controller
                 'keywords' => 'required|string',
                 'conference_id' => 'required|exists:conferences,id',
                 'file' => 'nullable|file|mimes:pdf,doc,docx|max:10240', // File is optional on update
-                'coauthors' => 'nullable|array',
+                'coauthors' => 'nullable|array|max:2',
                 'coauthors.*.name' => 'required|string',
                 'coauthors.*.email' => 'nullable|email',
                 'coauthors.*.affiliation' => 'nullable|string',

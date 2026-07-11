@@ -59,6 +59,10 @@ export default function ResearchEdit() {
     };
 
     const addCoauthor = () => {
+        if (formData.coauthors.length >= 2) {
+            setError("عذراً، الحد الأقصى للمؤلفين هو 3 (الباحث الرئيسي + 2 مشاركين)");
+            return;
+        }
         setFormData({ ...formData, coauthors: [...formData.coauthors, { name: '', email: '', affiliation: '' }] });
     };
 
@@ -179,9 +183,11 @@ export default function ResearchEdit() {
                     <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
                         <div className="flex justify-between items-center mb-10">
                             <h3 className="text-xl font-black text-blue-950">المؤلفون المشاركون</h3>
-                            <button type="button" onClick={addCoauthor} className="px-6 py-2 bg-blue-50 text-blue-600 font-black rounded-xl hover:bg-blue-100 transition text-sm">
-                                + إضافة مؤلف
-                            </button>
+                            {formData.coauthors.length < 2 && (
+                                <button type="button" onClick={addCoauthor} className="px-6 py-2 bg-blue-50 text-blue-600 font-black rounded-xl hover:bg-blue-100 transition text-sm">
+                                    + إضافة مؤلف
+                                </button>
+                            )}
                         </div>
 
                         <div className="space-y-8">
