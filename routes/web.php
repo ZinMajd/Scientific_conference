@@ -373,6 +373,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::delete('/committee/sessions/{id}', [\App\Http\Controllers\Api\CommitteeController::class, 'deleteSession']);
 
             // Office Specific
+            Route::get('/committee/reports/analytics', [\App\Http\Controllers\Api\ReportController::class, 'analytics']);
             Route::get('/committee/reports/papers', [\App\Http\Controllers\Api\ReportController::class, 'papers']);
             Route::get('/committee/reports/reviewers', [\App\Http\Controllers\Api\ReportController::class, 'reviewers']);
             Route::get('/committee/reports/attendees', [\App\Http\Controllers\Api\ReportController::class, 'attendees']);
