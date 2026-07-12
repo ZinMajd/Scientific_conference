@@ -381,16 +381,18 @@ export default function ResearchCreate() {
                         </div>
                         
                         <div className="pt-4 border-t border-gray-100">
-                            <div className="bg-blue-50/50 p-4 rounded-3xl border border-blue-100 flex flex-col items-center gap-4 group cursor-pointer hover:bg-blue-50 transition-all" onClick={() => window.open('/images/template-preview.jpg', '_blank')}>
-                                <h2 className="text-sm font-black text-blue-950 flex items-center gap-2">
-                                    <span className="text-blue-500 text-lg">📄</span> شكل قالب البحث المعتمد
+                            <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 flex flex-col items-center gap-6 group">
+                                <h2 className="text-xl font-black text-blue-950 flex items-center gap-2">
+                                    <span className="text-blue-500 text-2xl">📄</span> قالب البحث المعتمد
                                 </h2>
-                                <div className="w-full rounded-2xl overflow-hidden border border-gray-200 relative">
-                                    <img src="/images/template-preview.jpg" alt="Template Preview" className="w-full h-auto object-cover max-h-[300px] object-top group-hover:scale-105 transition-transform duration-700" />
-                                    <div className="absolute inset-0 bg-blue-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                                        <span className="text-white font-black text-sm bg-blue-900/80 px-4 py-2 rounded-xl shadow-md">🔍 اضغط للتكبير</span>
-                                    </div>
-                                </div>
+                                <p className="text-gray-500 font-bold text-center text-sm px-4">يرجى تحميل القالب وتنسيق بحثك بناءً عليه قبل التقديم النهائي لضمان القبول المبدئي.</p>
+                                <a 
+                                    href="/template.docx" 
+                                    download="قالب_البحث_العلمي.docx"
+                                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-lg hover:-translate-y-1 transition-all flex items-center gap-3"
+                                >
+                                    <span className="text-2xl">📥</span> تحميل القالب (Word)
+                                </a>
                             </div>
                         </div>
                     </div>
