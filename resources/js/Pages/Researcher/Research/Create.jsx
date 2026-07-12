@@ -387,8 +387,7 @@ export default function ResearchCreate() {
                                 </h2>
                                 <p className="text-gray-500 font-bold text-center text-sm px-4">يرجى تحميل القالب وتنسيق بحثك بناءً عليه قبل التقديم النهائي لضمان القبول المبدئي.</p>
                                 <a 
-                                    href="/template.docx" 
-                                    download="قالب_البحث_العلمي.docx"
+                                    href="/download-template" 
                                     className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-lg hover:-translate-y-1 transition-all flex items-center gap-3"
                                 >
                                     <span className="text-2xl">📥</span> تحميل القالب (Word)

@@ -243,6 +243,16 @@ Route::get('/seed-papers-prod', function (Request $request) {
     }
 });
 
+Route::get('/download-template', function () {
+    $path = public_path('template.docx');
+    if (file_exists($path)) {
+        return response()->download($path, 'قالب_البحث_العلمي.docx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ]);
+    }
+    abort(404, 'Template not found');
+});
+
 Route::view('/{path?}', 'welcome')->where('path', '^(?!api).*$');
 
 // Consolidated API Routes in web.php to support sessions and avoid conflicts
