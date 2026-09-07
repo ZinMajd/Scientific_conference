@@ -5,6 +5,7 @@ import axios from 'axios';
 const PRUSSIAN = '#105d82';
 const PRUSSIAN_DARK = '#0a4a68';
 const TURQUOISE = '#40E0D0';
+const OCEAN = '#0096c7';
 const SUPABASE_BASE = 'https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/papers';
 
 const getImageUrl = (path) => {
