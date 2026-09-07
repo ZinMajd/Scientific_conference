@@ -125,8 +125,8 @@ class ProductionController extends Controller
     public function updateProduction(Request $request, $id)
     {
         $request->validate([
-            'final_file'          => 'nullable|file|mimes:pdf|max:20480',
-            'thumbnail'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'final_file'          => 'sometimes|nullable|file|mimes:pdf|max:20480',
+            'thumbnail'           => 'sometimes|nullable|file|mimes:jpeg,png,jpg,webp|max:5120',
             'doi'                 => 'nullable|string',
             'page_numbers'        => 'nullable|string',
             'publish_delay_days'  => 'nullable|integer|min:0',

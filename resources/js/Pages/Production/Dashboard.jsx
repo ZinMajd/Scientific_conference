@@ -111,10 +111,10 @@ export default function ProductionDashboard() {
         formData.append('publish_delay_days', processForm.publish_delay_days || 2);
         formData.append('action', action);
 
-        if (processForm.final_file) {
+        if (processForm.final_file instanceof File) {
             formData.append('final_file', processForm.final_file);
         }
-        if (processForm.thumbnail) {
+        if (processForm.thumbnail instanceof File) {
             formData.append('thumbnail', processForm.thumbnail);
         }
 
