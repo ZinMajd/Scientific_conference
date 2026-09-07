@@ -45,6 +45,10 @@
         "APP_ROUTES_CACHE": "/tmp/routes.php",
         "APP_SERVICES_CACHE": "/tmp/services.php",
         "VIEW_COMPILED_PATH": "/tmp",
-        "SESSION_DRIVER": "cookie"
+        "SESSION_DRIVER": "cookie",
+        "SUPABASE_URL": "https://ygjjurnheomesuyvgoie.supabase.co",
+        "VITE_SUPABASE_URL": "https://ygjjurnheomesuyvgoie.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlnamp1cm5oZW9tZXN1eXZnb2llIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMzUwNzcsImV4cCI6MjA4NzgxMTA3N30.gMRy56jfQ5jAUfCXTmRsr2R6IMFfnYsLbBqbAUS0x00",
+        "SUPABASE_BUCKET": "papers"
     }
 }

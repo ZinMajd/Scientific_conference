@@ -11,12 +11,40 @@ const PRUSSIAN = '#105d82';
 const PRUSSIAN_DARK = '#0a4a68';
 const OCEAN = '#0096c7';
 
-// دالة مساعدة: تُعيد رابط الصورة سواء كان رابطاً كاملاً (Supabase) أو مساراً محلياً
+const SUPABASE_BASE = 'https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/papers';
+
+// دالة مساعدة: تُعيد رابط الصورة المباشر من Supabase أو كمسار كامل
 const getImageUrl = (path) => {
-    if (!path) return '/images/template-preview.jpg';
+    if (!path) return null;
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `/storage_file/${path}`;
+    const clean = path.replace(/^\/+/, '');
+    if (clean.startsWith('papers/')) {
+        return `https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/${clean}`;
+    }
+    return `${SUPABASE_BASE}/${clean}`;
 };
+
+// غلاف أكاديمي أنيق مخصص لكل بحث في حال عدم رفع صورة أو تعذر تحميلها (بدون تكرار صورة مقال أجنبي)
+const PaperCardCover = ({ paper }) => (
+    <div className="w-full h-full bg-gradient-to-b from-slate-800 via-slate-900 to-indigo-950 p-3 flex flex-col justify-between text-right select-none relative overflow-hidden shadow-inner">
+        <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+            <img src="/images/university_logo.gif" alt="جامعة إقليم سبأ" className="w-6 h-6 object-contain brightness-110" />
+            <span className="text-[8px] font-black text-amber-400 tracking-wider">مقال علمي</span>
+        </div>
+        <div className="my-auto py-2 text-center">
+            <div className="w-8 h-8 mx-auto rounded-xl bg-white/10 text-white flex items-center justify-center text-sm mb-2 shadow-sm border border-white/10">
+                📄
+            </div>
+            <p className="text-[10px] font-bold text-white/95 line-clamp-3 leading-snug font-['Cairo']">
+                {paper.title}
+            </p>
+        </div>
+        <div className="border-t border-white/10 pt-1.5 flex items-center justify-between text-[8px] font-medium text-white/50">
+            <span>رقم التعريف: {paper.id}</span>
+            <span className="text-teal-300 font-bold">مُحكَّم</span>
+        </div>
+    </div>
+);
 
 export default function Archive() {
     const [papers, setPapers] = useState([]);
@@ -25,6 +53,7 @@ export default function Archive() {
     const [search, setSearch] = useState('');
     const [pagination, setPagination] = useState({});
     const [selectedImage, setSelectedImage] = useState(null);
+    const [failedImages, setFailedImages] = useState({});
     
     const fetchArchive = useCallback(async (page = 1) => {
         setLoading(true);
@@ -206,42 +235,41 @@ export default function Archive() {
                             <div className="text-center py-20 bg-white rounded-sm italic text-gray-400">لم يتم العثور على أبحاث في الأرشيف حالياً.</div>
                         ) : (
                         <div className="bg-white p-6 md:p-10 flex flex-col gap-16">
-                                    {papers.map((paper) => (
+                                    {papers.map((paper) => {
+                                        const imageUrl = getImageUrl(paper.thumbnail_path);
+                                        const hasCustomImage = Boolean(imageUrl) && !failedImages[paper.id];
+
+                                        return (
                                         <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300" style={{ minHeight: '350px' }}>
                                             {/* Left Column: Small Thumbnail */}
                                             <div className="md:w-[150px] shrink-0 flex flex-col">
                                                 <div 
-                                                    className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
-                                                    onClick={() => paper.thumbnail_path && setSelectedImage(getImageUrl(paper.thumbnail_path))}
+                                                    className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in rounded-sm shadow-sm"
+                                                    onClick={() => hasCustomImage && setSelectedImage(imageUrl)}
                                                     role="button"
                                                     tabIndex={0}
-                                                    onKeyDown={(e) => e.key === 'Enter' && paper.thumbnail_path && setSelectedImage(getImageUrl(paper.thumbnail_path))}
+                                                    onKeyDown={(e) => e.key === 'Enter' && hasCustomImage && setSelectedImage(imageUrl)}
                                                 >
-                                                    {paper.thumbnail_path ? (
+                                                    {hasCustomImage ? (
                                                         <>
                                                             <img 
-                                                                src={getImageUrl(paper.thumbnail_path)} 
+                                                                src={imageUrl} 
                                                                 alt={paper.title || 'صورة البحث'} 
                                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
-                                                                onError={(e) => { e.currentTarget.src = '/images/template-preview.jpg'; }}
+                                                                onError={() => {
+                                                                    setFailedImages(prev => ({ ...prev, [paper.id]: true }));
+                                                                }}
                                                             />
                                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
+                                                            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <div className="bg-white/90 p-2 rounded-full shadow-lg">
+                                                                    <span className="text-lg">🔍</span>
+                                                                </div>
+                                                            </div>
                                                         </>
                                                     ) : (
-                                                        <>
-                                                            <img 
-                                                                src={`/images/template-preview.jpg`} 
-                                                                alt={paper.title || 'معاينة البحث'} 
-                                                                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
-                                                            />
-                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
-                                                        </>
+                                                        <PaperCardCover paper={paper} />
                                                     )}
-                                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <div className="bg-white/90 p-2 rounded-full shadow-lg">
-                                                            <span className="text-lg">🔍</span>
-                                                        </div>
-                                                    </div>
                                                 </div>
                                                 
                                                 <div className="space-y-3 px-1">
@@ -334,7 +362,8 @@ export default function Archive() {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    );
+                                })}
                                 </div>
                         )}
 

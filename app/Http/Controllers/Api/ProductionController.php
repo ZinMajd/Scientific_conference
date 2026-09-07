@@ -82,13 +82,17 @@ class ProductionController extends Controller
      */
     private function uploadToSupabase($file, string $folder, string $extension): string
     {
-        $supabaseUrl  = rtrim(env('SUPABASE_URL', env('VITE_SUPABASE_URL', '')), '/');
+        $supabaseUrl  = rtrim(env('SUPABASE_URL', env('VITE_SUPABASE_URL', 'https://ygjjurnheomesuyvgoie.supabase.co')), '/');
         $serviceKey   = env('SUPABASE_SERVICE_KEY');
+        $anonKey      = env('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlnamp1cm5oZW9tZXN1eXZnb2llIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMzUwNzcsImV4cCI6MjA4NzgxMTA3N30.gMRy56jfQ5jAUfCXTmRsr2R6IMFfnYsLbBqbAUS0x00');
+
         if (!$serviceKey || $serviceKey === 'YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE') {
-            $serviceKey = env('VITE_SUPABASE_ANON_KEY', '');
+            $supabaseKey = $anonKey;
+        } else {
+            $supabaseKey = $serviceKey;
         }
-        $supabaseKey  = $serviceKey;
-        $bucket       = env('SUPABASE_BUCKET', 'papers');
+
+        $bucket = env('SUPABASE_BUCKET', 'papers');
 
         if ($supabaseUrl && $supabaseKey) {
             $fileName    = $folder . '/' . Str::uuid() . '.' . $extension;
@@ -104,7 +108,7 @@ class ProductionController extends Controller
               ->post("{$supabaseUrl}/storage/v1/object/{$bucket}/{$fileName}");
 
             if ($response->successful()) {
-                // Return the public URL directly so it works from any machine
+                // Return the full public URL directly
                 return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$fileName}";
             }
 
@@ -126,13 +130,13 @@ class ProductionController extends Controller
             'doi'                 => 'nullable|string',
             'page_numbers'        => 'nullable|string',
             'publish_delay_days'  => 'nullable|integer|min:0',
-            'notes'               => 'nullable|string'
+            'notes'               => 'nullable|string',
+            'action'              => 'nullable|string' // 'save', 'schedule', 'publish_now'
         ]);
 
         $paper = Paper::findOrFail($id);
 
         if ($request->hasFile('final_file')) {
-            // Try Supabase first, fallback to local
             $finalFile = $request->file('final_file');
             $ext       = strtolower($finalFile->getClientOriginalExtension());
             $path      = $this->uploadToSupabase($finalFile, 'final', $ext);
@@ -154,13 +158,38 @@ class ProductionController extends Controller
         if ($request->has('doi'))          $paper->doi          = $request->doi;
         if ($request->has('page_numbers')) $paper->page_numbers = $request->page_numbers;
 
-        $paper->save();
+        $action = $request->input('action', 'save');
 
-        // Refresh from DB to ensure all fields (including thumbnail_path) are up-to-date
+        if ($action === 'schedule') {
+            $delayDays = (int) $request->input('publish_delay_days', 2);
+            $publishAt = now()->addDays($delayDays);
+            $paper->publish_at = $publishAt;
+            $this->workflow->transition($paper, 'MARK_READY_FOR_PUBLISH', "البحث جاهز للنشر. سيتم النشر تلقائياً بتاريخ: " . $publishAt->toDateString());
+        } elseif ($action === 'publish_now') {
+            $this->workflow->transition($paper, 'PUBLISH', 'تم النشر النهائي والمباشر للبحث.');
+            $paper->publish_at = now();
+            $paper->is_published = true;
+            $paper->status = Paper::STATUS_PUBLISHED;
+
+            DB::table('publications')->updateOrInsert(
+                ['paper_id' => $paper->id],
+                [
+                    'conference_id' => $paper->conf_id,
+                    'doi'           => $paper->doi,
+                    'page_numbers'  => $paper->page_numbers,
+                    'file_path'     => $paper->final_file_path ?? $paper->file_path,
+                    'published_at'  => now(),
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
+                ]
+            );
+        }
+
+        $paper->save();
         $paper->refresh();
 
         return response()->json([
-            'message' => 'تم تحديث بيانات الإنتاج بنجاح',
+            'message' => $action === 'publish_now' ? 'تم نشر البحث بنجاح' : ($action === 'schedule' ? 'تم اعتماد البحث وجدولته للنشر' : 'تم تحديث بيانات الإنتاج بنجاح'),
             'paper'   => $paper
         ]);
     }
@@ -202,23 +231,28 @@ class ProductionController extends Controller
         
         $paper->publish_at = now();
         $paper->is_published = true;
+        $paper->status = Paper::STATUS_PUBLISHED;
         $paper->save();
 
-        // Create Publication record
-        DB::table('publications')->insert([
-            'paper_id' => $paper->id,
-            'conference_id' => $paper->conf_id,
-            'doi' => $paper->doi,
-            'page_numbers' => $paper->page_numbers,
-            'file_path' => $paper->final_file_path ?? $paper->file_path,
-            'published_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Create or update Publication record
+        DB::table('publications')->updateOrInsert(
+            ['paper_id' => $paper->id],
+            [
+                'conference_id' => $paper->conf_id,
+                'doi'           => $paper->doi,
+                'page_numbers'  => $paper->page_numbers,
+                'file_path'     => $paper->final_file_path ?? $paper->file_path,
+                'published_at'  => now(),
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]
+        );
+
+        $paper->refresh();
 
         return response()->json([
             'message' => 'تم نشر البحث بنجاح',
-            'paper' => $paper
+            'paper'   => $paper
         ]);
     }
 

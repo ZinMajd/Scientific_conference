@@ -2,6 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
+const SUPABASE_BASE = 'https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/papers';
+
+const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    const clean = path.replace(/^\/+/, '');
+    if (clean.startsWith('papers/')) {
+        return `https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/${clean}`;
+    }
+    return `${SUPABASE_BASE}/${clean}`;
+};
+
 const translations = {
     ar: {
         uniName: "جامعة إقليم سبأ",
@@ -269,12 +281,13 @@ export default function ArticleView() {
                     {/* Sidebar Area */}
                     <div className="lg:w-[30%] space-y-8 px-4 pt-2">
                         {/* Article Thumbnail */}
-                        {paper.thumbnail_path && (
+                        {paper.thumbnail_path && getImageUrl(paper.thumbnail_path) && (
                             <div className="mb-6">
                                 <img 
-                                    src={`/storage_file/${paper.thumbnail_path}`} 
+                                    src={getImageUrl(paper.thumbnail_path)} 
                                     alt={paper.title} 
                                     className="w-full h-auto object-cover rounded-sm shadow-sm border border-gray-200"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                 />
                             </div>
                         )}

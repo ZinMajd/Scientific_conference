@@ -50,20 +50,17 @@ Route::get('/storage_file/{path}', function ($path) {
         ]);
     }
 
-    \Illuminate\Support\Facades\Log::warning("File not found in any storage base: " . $path);
-    
-    // Fallback for missing files
+    \Illuminate\Support\Facades\Log::warning("File not found locally in storage base: " . $path . ", trying Supabase Storage fallback.");
+
+    $supabaseUrl = rtrim(env('SUPABASE_URL', env('VITE_SUPABASE_URL', 'https://ygjjurnheomesuyvgoie.supabase.co')), '/');
+    $bucket = env('SUPABASE_BUCKET', 'papers');
+    $cleanPath = ltrim($path, '/');
+    $targetPath = preg_replace('#^papers/#', '', $cleanPath);
+    $supabaseUrlPublic = "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$targetPath}";
+
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    if (in_array($ext, ['pdf', 'doc', 'docx'])) {
-        $dummyPath = public_path('dummy.pdf');
-        if (file_exists($dummyPath)) {
-            return response(file_get_contents($dummyPath), 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="fallback_document.pdf"'
-            ]);
-        }
-    } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-        return redirect('/images/template-preview.jpg');
+    if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx'])) {
+        return redirect($supabaseUrlPublic);
     }
 
     abort(404, 'File not found');

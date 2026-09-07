@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const SUPABASE_BASE = 'https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/papers';
+
 // دالة مساعدة: تُعيد رابط الصورة سواء كان رابطاً كاملاً (Supabase) أو مساراً محلياً
 const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `/storage_file/${path}`;
+    const clean = path.replace(/^\/+/, '');
+    if (clean.startsWith('papers/')) {
+        return `https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/${clean}`;
+    }
+    return `${SUPABASE_BASE}/${clean}`;
 };
 
 export default function ProductionDashboard() {
@@ -16,6 +22,7 @@ export default function ProductionDashboard() {
     const [archiveLoading, setArchiveLoading] = useState(false);
     const [selectedPaper, setSelectedPaper] = useState(null);
     const [showProcessModal, setShowProcessModal] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [processForm, setProcessForm] = useState({
         doi: '',
         page_numbers: '',
@@ -69,7 +76,6 @@ export default function ProductionDashboard() {
             'ready_to_publish': { text: 'جاهز للنشر المجدول', color: 'bg-amber-100 text-amber-700' },
             'scheduled': { text: 'تمت الجدولة (بانتظار الموعد)', color: 'bg-teal-100 text-teal-700' },
             'published': { text: 'منشور نهائياً', color: 'bg-indigo-100 text-indigo-700' }
-
         };
         return labels[status] || { text: status, color: 'bg-gray-100 text-gray-700' };
     };
@@ -91,12 +97,20 @@ export default function ProductionDashboard() {
         setShowProcessModal(true);
     };
 
-    const handleUpdateDetails = async (e) => {
-        e.preventDefault();
+    const submitProductionAction = async (action = 'save') => {
+        if (action === 'publish_now' && !confirm('هل أنت متأكد من رغبتك في نشر هذا البحث الآن فوراً مع كافة التعديلات والصورة؟')) {
+            return;
+        }
+
+        setSaving(true);
         setUploadError(null);
+
         const formData = new FormData();
-        formData.append('doi', processForm.doi);
-        formData.append('page_numbers', processForm.page_numbers);
+        formData.append('doi', processForm.doi || '');
+        formData.append('page_numbers', processForm.page_numbers || '');
+        formData.append('publish_delay_days', processForm.publish_delay_days || 2);
+        formData.append('action', action);
+
         if (processForm.final_file) {
             formData.append('final_file', processForm.final_file);
         }
@@ -114,46 +128,38 @@ export default function ProductionDashboard() {
                 setSelectedPaper(updatedPaper);
 
                 if (updatedPaper.thumbnail_path) {
-                    // ✅ بعد الحفظ: اعرض URL الصورة الجديدة من الخادم مباشرةً في thumbnailPreview
-                    // هذا يمنع رجوع العرض للصورة القديمة أو الافتراضية
-                    const savedUrl = updatedPaper.thumbnail_path.startsWith('http')
-                        ? updatedPaper.thumbnail_path
-                        : `/storage_file/${updatedPaper.thumbnail_path}`;
+                    const savedUrl = getImageUrl(updatedPaper.thumbnail_path);
                     setThumbnailPreview(savedUrl);
                     setThumbnailSaved(true);
-                } else if (processForm.thumbnail) {
-                    // الخادم لم يحفظ المسار — ابقِ المعاينة المحلية مع تنبيه
-                    setUploadError('تعذّر رفع الصورة على الخادم. يُرجى المحاولة مجدداً.');
                 }
             }
 
             setUploadSuccess(true);
-            // إعادة تعيين اختيار الملف بعد الحفظ
             setProcessForm(prev => ({ ...prev, thumbnail: null, final_file: null }));
-            setTimeout(() => setUploadSuccess(false), 3000);
             fetchPapers();
+
+            if (action === 'schedule' || action === 'publish_now') {
+                setTimeout(() => {
+                    setShowProcessModal(false);
+                    setUploadSuccess(false);
+                }, 1200);
+            } else {
+                setTimeout(() => setUploadSuccess(false), 3000);
+            }
         } catch (err) {
             console.error(err);
-            setUploadError('خطأ في التحديث: ' + (err.response?.data?.message || err.message));
+            setUploadError('خطأ في العملية: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleMarkReady = async () => {
-        try {
-            await axios.post(`/api/production/papers/${selectedPaper.id}/ready`, {
-                publish_delay_days: processForm.publish_delay_days
-            });
-            alert('تم اعتماد البحث وجدولته للنشر');
-            setShowProcessModal(false);
-            fetchPapers();
-        } catch (err) {
-
-            console.error(err);
-            alert('خطأ في الجدولة');
-        }
+    const handleUpdateDetails = (e) => {
+        e.preventDefault();
+        submitProductionAction('save');
     };
 
-    const handlePublishNow = async (paper) => {
+    const handlePublishNowDirect = async (paper) => {
         if (!confirm('هل أنت متأكد من رغبتك في نشر البحث الآن فوراً؟')) return;
         try {
             await axios.post(`/api/production/papers/${paper.id}/publish`);
@@ -161,10 +167,9 @@ export default function ProductionDashboard() {
             fetchPapers();
         } catch (err) {
             console.error(err);
-            alert('خطأ في النشر');
+            alert('خطأ في النشر: ' + (err.response?.data?.message || err.message));
         }
     };
-
 
     const promptReturnToAuthor = async (paper) => {
         const notes = prompt('ما هي التعديلات المطلوبة من الباحث بخصوص التنسيق؟');
@@ -184,7 +189,7 @@ export default function ProductionDashboard() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-black text-indigo-950 font-['Cairo']">مكتب الإنتاج والنشر العلمي</h1>
-                    <p className="text-gray-500 font-medium italic mt-1">تنسيق، مراجعة، وجدولة نشر الأبحاث المقبولة</p>
+                    <p className="text-gray-500 font-medium italic mt-1">تنسيق، مراجعة، وجدولة نشر الأبحاث المقبولة مع صورها الخاصة</p>
                 </div>
                 <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-100">
                     <button 
@@ -204,10 +209,10 @@ export default function ProductionDashboard() {
 
             {activeTab === 'production' ? (
                 <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
-                    {/* ... (Existing Table) ... */}
                     <table className="w-full text-right border-collapse">
                         <thead className="bg-gray-50/50 border-b border-gray-100">
                             <tr>
+                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">صورة البحث</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">البحث والمؤلف</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">الحالة</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">تاريخ النشر المجدول</th>
@@ -216,11 +221,44 @@ export default function ProductionDashboard() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {loading ? (
-                                <tr><td colSpan="4" className="p-10 text-center text-gray-400">جاري التحميل...</td></tr>
+                                <tr><td colSpan="5" className="p-10 text-center text-gray-400">جاري التحميل...</td></tr>
                             ) : papers.length === 0 ? (
-                                <tr><td colSpan="4" className="p-10 text-center text-gray-400 font-bold">لا توجد أبحاث في مرحلة الإنتاج حالياً</td></tr>
+                                <tr><td colSpan="5" className="p-10 text-center text-gray-400 font-bold">لا توجد أبحاث في مرحلة الإنتاج حالياً</td></tr>
                             ) : papers.map(paper => (
                                 <tr key={paper.id} className="hover:bg-indigo-50/10 transition">
+                                    {/* Thumbnail Preview Column */}
+                                    <td className="px-6 py-5 text-center">
+                                        {paper.thumbnail_path ? (
+                                            <div 
+                                                className="relative group inline-block cursor-pointer" 
+                                                onClick={() => openProcessModal(paper)}
+                                                title="انقر لتعديل صورة البحث"
+                                            >
+                                                <img
+                                                    src={getImageUrl(paper.thumbnail_path)}
+                                                    alt={paper.title}
+                                                    className="w-16 h-20 object-cover rounded-xl border-2 border-emerald-500 shadow-md mx-auto group-hover:scale-105 transition"
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = '/images/university_logo.gif';
+                                                    }}
+                                                />
+                                                <span className="absolute -bottom-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                                                    ✔
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => openProcessModal(paper)}
+                                                className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-dashed border-amber-300 rounded-xl text-[11px] font-black transition flex items-center gap-1.5 mx-auto shadow-sm"
+                                                title="إضافة صورة مخصصة لهذا البحث قبل النشر"
+                                            >
+                                                <span>🖼️</span>
+                                                <span>اختر صورة</span>
+                                            </button>
+                                        )}
+                                    </td>
+
                                     <td className="px-8 py-6">
                                         <h5 className="font-black text-indigo-950">{paper.title}</h5>
                                         <p className="text-xs text-gray-400 font-bold mt-1">{paper.author?.full_name} | {paper.conference?.title}</p>
@@ -236,9 +274,9 @@ export default function ProductionDashboard() {
                                     <td className="px-8 py-6">
                                         <div className="flex justify-center gap-2">
                                             <a href={`/storage_file/${paper.final_file_path || paper.file_path}`} target="_blank" rel="noreferrer" className="p-2.5 bg-white border border-gray-200 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition shadow-sm" title="مراجعة البحث (فتح PDF)">📄</a>
-                                            <button onClick={() => openProcessModal(paper)} className="p-2.5 bg-white border border-gray-200 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition shadow-sm" title="تنسيق وجدولة النشر">⚙️</button>
+                                            <button onClick={() => openProcessModal(paper)} className="p-2.5 bg-white border border-gray-200 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition shadow-sm" title="تنسيق صورة البحث والبيانات وجدولة النشر">⚙️</button>
                                             <button onClick={() => promptReturnToAuthor(paper)} className="p-2.5 bg-white border border-gray-200 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition shadow-sm" title="إعادة للباحث لتعديل التنسيق">↩️</button>
-                                            <button onClick={() => handlePublishNow(paper)} className="p-2.5 bg-white border border-gray-200 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition shadow-sm" title="تنفيذ النشر فوراً">🚀</button>
+                                            <button onClick={() => handlePublishNowDirect(paper)} className="p-2.5 bg-white border border-gray-200 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition shadow-sm" title="تنفيذ النشر فوراً">🚀</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -429,21 +467,31 @@ export default function ProductionDashboard() {
                                 </div>
                             )}
 
-                            <div className="flex gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button
                                     type="submit"
-                                    className={`flex-1 py-4 rounded-2xl font-black shadow-lg transition flex items-center justify-center gap-2 ${
+                                    disabled={saving}
+                                    className={`w-full py-4 rounded-2xl font-black shadow-lg transition flex items-center justify-center gap-2 ${
                                         uploadSuccess
                                             ? 'bg-emerald-500 text-white shadow-emerald-100'
                                             : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700'
                                     }`}
                                 >
-                                    {uploadSuccess ? '✅ تم الحفظ بنجاح!' : 'تحديث وحفظ البيانات'}
+                                    {saving ? '⏳ جاري الحفظ...' : uploadSuccess ? '✅ تم الحفظ بنجاح!' : '💾 حفظ وتحديث الصورة والبيانات'}
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={saving}
+                                    onClick={() => submitProductionAction('publish_now')}
+                                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black shadow-lg shadow-emerald-100 transition flex items-center justify-center gap-2"
+                                >
+                                    <span>🚀</span>
+                                    {saving ? '⏳ جاري النشر...' : 'نشر البحث فوراً بالصورة المختارة'}
                                 </button>
                             </div>
 
                             <div className="pt-6 border-t border-gray-100 space-y-4">
-                                <div className="flex items-center gap-4">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                                     <div className="flex-1">
                                         <label className="block text-sm font-black text-amber-950 mb-2">مدة الانتظار في طابور النشر (أيام)</label>
                                         <input 
@@ -455,14 +503,15 @@ export default function ProductionDashboard() {
                                     </div>
                                     <button 
                                         type="button" 
-                                        onClick={handleMarkReady}
-                                        className="mt-7 px-8 py-4 bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-100 hover:bg-amber-700 transition flex items-center gap-2"
+                                        disabled={saving}
+                                        onClick={() => submitProductionAction('schedule')}
+                                        className="sm:mt-7 px-8 py-4 bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-100 hover:bg-amber-700 transition flex items-center justify-center gap-2"
                                     >
                                         <span>⏱️</span>
-                                        اعتماد وجدولة النشر
+                                        {saving ? '⏳ جاري الحفظ...' : 'اعتماد وجدولة النشر'}
                                     </button>
                                 </div>
-                                <p className="text-[10px] text-gray-400 font-bold text-center italic">ملاحظة: سيتم نقل البحث لحالة "جاهز للنشر" ونشره تلقائياً بعد انقضاء المدة المحددة.</p>
+                                <p className="text-[10px] text-gray-400 font-bold text-center italic">ملاحظة: سيتم حفظ الصورة وكافة البيانات المدخلة وتطبيقها فوراً على هذا البحث.</p>
                             </div>
                         </form>
                     </div>

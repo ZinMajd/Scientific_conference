@@ -5,7 +5,17 @@ import axios from 'axios';
 const PRUSSIAN = '#105d82';
 const PRUSSIAN_DARK = '#0a4a68';
 const TURQUOISE = '#40E0D0';
-const OCEAN = '#0096c7';
+const SUPABASE_BASE = 'https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/papers';
+
+const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    const clean = path.replace(/^\/+/, '');
+    if (clean.startsWith('papers/')) {
+        return `https://ygjjurnheomesuyvgoie.supabase.co/storage/v1/object/public/${clean}`;
+    }
+    return `${SUPABASE_BASE}/${clean}`;
+};
 
 export default function Show() {
     const { id } = useParams();
@@ -73,14 +83,15 @@ export default function Show() {
             <div className="md:w-[150px] shrink-0 flex flex-col">
                 <div 
                     className="w-full aspect-[3/4] bg-gray-200 mb-6 flex items-center justify-center overflow-hidden relative group cursor-zoom-in"
-                    onClick={() => paper.thumbnail_path && setSelectedImage(`/storage_file/${paper.thumbnail_path}`)}
+                    onClick={() => paper.thumbnail_path && setSelectedImage(getImageUrl(paper.thumbnail_path))}
                 >
-                    {paper.thumbnail_path ? (
+                    {paper.thumbnail_path && getImageUrl(paper.thumbnail_path) ? (
                         <>
                             <img 
-                                src={`/storage_file/${paper.thumbnail_path}`} 
+                                src={getImageUrl(paper.thumbnail_path)} 
                                 alt={paper.title} 
                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
                         </>
