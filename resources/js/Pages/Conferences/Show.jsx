@@ -247,19 +247,36 @@ export default function Show() {
                             <div className="w-full aspect-[3/4] mb-6 flex flex-col items-center justify-center text-white relative overflow-hidden bg-white">
                                 <img 
                                     src={(() => {
+                                        const staticMap = {
+                                            1: '/images/conferences/saba_ai_2026.png',
+                                            2: '/images/conferences/ye_energy_2026.png',
+                                            5: '/images/conferences/cybersec_2026.png',
+                                            6: '/images/conferences/ai_systems_2026.png',
+                                            7: '/images/conferences/mobile_iot_2026.png',
+                                            8: '/images/conferences/cloud_net_2026.png',
+                                            9: '/images/conferences/cybersec_2026.png'
+                                        };
+                                        if (staticMap[conference.id]) return staticMap[conference.id];
+
                                         if (conference.image_url) {
-                                            return conference.image_url.startsWith('http') || conference.image_url.startsWith('/') 
-                                                ? conference.image_url 
-                                                : `/storage_file/${conference.image_url}`;
+                                            if (conference.image_url.startsWith('http')) return conference.image_url;
+                                            const filename = conference.image_url.split('/').pop();
+                                            return `/images/conferences/${filename}`;
                                         }
                                         if (conference.image_path) {
-                                            return `/storage_file/${conference.image_path}`;
+                                            const filename = conference.image_path.split('/').pop();
+                                            return `/images/conferences/${filename}`;
                                         }
                                         const images = ['/images/conf_ai.png', '/images/conf_cyber.png', '/images/conf_innovation.png'];
                                         return images[(conference.id - 1) % images.length];
                                     })()} 
                                     alt={conference.title} 
                                     className="w-full h-full object-cover" 
+                                    onError={(e) => {
+                                        e.currentTarget.onerror = null;
+                                        const fallbackImages = ['/images/conf_cyber.png', '/images/conf_ai.png', '/images/conf_innovation.png'];
+                                        e.currentTarget.src = fallbackImages[(conference.id - 1) % fallbackImages.length];
+                                    }}
                                 />
                             </div>
                         </div>

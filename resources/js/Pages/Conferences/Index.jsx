@@ -28,7 +28,21 @@ export default function Conferences() {
     }, []);
 
     const getConferenceImage = (id, imageUrl) => {
-        if (imageUrl && !imageUrl.includes('storage_file') && !imageUrl.includes('storage')) return imageUrl;
+        const staticMap = {
+            1: '/images/conferences/saba_ai_2026.png',
+            2: '/images/conferences/ye_energy_2026.png',
+            5: '/images/conferences/cybersec_2026.png',
+            6: '/images/conferences/ai_systems_2026.png',
+            7: '/images/conferences/mobile_iot_2026.png',
+            8: '/images/conferences/cloud_net_2026.png',
+            9: '/images/conferences/cybersec_2026.png'
+        };
+        if (staticMap[id]) return staticMap[id];
+        if (imageUrl && imageUrl.startsWith('http')) return imageUrl;
+        if (imageUrl) {
+            const filename = imageUrl.split('/').pop();
+            return `/images/conferences/${filename}`;
+        }
         const images = ['/images/conf_ai.png', '/images/conf_cyber.png', '/images/conf_innovation.png'];
         return images[(id - 1) % images.length];
     };
