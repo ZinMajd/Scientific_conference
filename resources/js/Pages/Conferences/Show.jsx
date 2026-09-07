@@ -75,8 +75,12 @@ export default function Show() {
     if (loading) return <div className="text-center py-20 animate-pulse font-black text-slate-400 font-['Cairo']">جاري تحميل محتوى المؤتمر...</div>;
     if (!conference) return <div className="text-center py-20 font-black text-red-600 font-['Cairo']">عذراً، لم يتم العثور على المؤتمر</div>;
 
-    const acceptedPapers = conference.papers?.filter(paper => paper.status === 'scheduled') || [];
-    const publishedPapers = conference.papers?.filter(paper => paper.is_published || paper.status === 'published') || [];
+    const publishedPapers = conference.papers?.filter(paper =>
+        paper.is_published ||
+        paper.status === 'published' ||
+        paper.status === 'ready_to_publish' ||
+        paper.status === 'scheduled'
+    ) || [];
 
     const renderPaperCard = (paper) => (
         <div key={paper.id} className="bg-gray-50 p-6 flex flex-col md:flex-row gap-8 transition-all duration-300 border border-gray-100 hover:shadow-lg rounded-sm" style={{ minHeight: '350px' }}>
@@ -326,38 +330,19 @@ export default function Show() {
                     <div className="w-full lg:col-span-2">
                         <div className="bg-white p-6 md:p-10 flex flex-col gap-12">
                             
-                            {/* Section 1: Accepted Papers */}
-                            {acceptedPapers.length > 0 && (
+                            {publishedPapers.length > 0 ? (
                                 <div className="space-y-8">
                                     <div className="border-b border-gray-200 pb-3 text-right">
-                                        <h3 className="text-xl font-black text-slate-800">الأبحاث المقبولة في المؤتمر</h3>
+                                        <h3 className="text-xl font-black text-slate-800">الأبحاث المنشورة في المؤتمر</h3>
                                         <div className="w-16 h-1 mt-2" style={{ backgroundColor: OCEAN }}></div>
-                                    </div>
-                                    <div className="flex flex-col gap-10">
-                                        {acceptedPapers.map(paper => renderPaperCard(paper))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Spacer between sections */}
-                            {acceptedPapers.length > 0 && publishedPapers.length > 0 && (
-                                <div className="my-6"></div>
-                            )}
-
-                            {/* Section 2: Published Papers */}
-                            {publishedPapers.length > 0 && (
-                                <div className="space-y-8">
-                                    <div className="pb-3 text-right">
-                                        <h3 className="text-xl font-black text-slate-800">الأبحاث المنشورة</h3>
+                                        <p className="text-xs text-gray-400 mt-2 font-bold">{publishedPapers.length} بحث منشور</p>
                                     </div>
                                     <div className="flex flex-col gap-10">
                                         {publishedPapers.map(paper => renderPaperCard(paper))}
                                     </div>
                                 </div>
-                            )}
-
-                            {acceptedPapers.length === 0 && publishedPapers.length === 0 && (
-                                <div className="text-center py-20 text-gray-400 italic">لا توجد أبحاث مقبولة أو منشورة حالياً في هذا المؤتمر.</div>
+                            ) : (
+                                <div className="text-center py-20 text-gray-400 italic">لا توجد أبحاث منشورة حالياً في هذا المؤتمر.</div>
                             )}
                         </div>
                     </div>
